@@ -1,16 +1,13 @@
 # adaptivecheck
 
-A new Flutter project.
+Um jogo de matemática adaptativo com Flutter e uma LLM (Google Gemini).
 
-## Getting Started
+## Visão Geral
 
-This project is a starting point for a Flutter application.
+Este projeto é um tutor de matemática que:
+- Gera perguntas de matemática usando uma LLM (Ollama local ou outro modelo configurável).
+- Se o jogador errar, a LLM explica o conceito automaticamente.
+- Em seguida, a LLM cria novos exercícios para reforçar o aprendizado, adaptando à dificuldade do usuário.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

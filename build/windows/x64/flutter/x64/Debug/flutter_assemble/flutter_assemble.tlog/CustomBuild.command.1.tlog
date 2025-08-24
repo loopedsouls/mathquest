@@ -1,0 +1,28 @@
+^C:\USERS\LUANN\DOCUMENTS\GITHUB\ADAPTIVECHECK\BUILD\WINDOWS\X64\CMAKEFILES\D0BA9DDAB65CC0FB943BEFAF5D1719F4\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\Users\luann\Documents\GitHub\flutter PROJECT_DIR=C:\Users\luann\Documents\GitHub\adaptivecheck FLUTTER_ROOT=C:\Users\luann\Documents\GitHub\flutter FLUTTER_EPHEMERAL_DIR=C:\Users\luann\Documents\GitHub\adaptivecheck\windows\flutter\ephemeral PROJECT_DIR=C:\Users\luann\Documents\GitHub\adaptivecheck FLUTTER_TARGET=C:\Users\luann\Documents\GitHub\adaptivecheck\lib\main.dart DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuMzUuMA==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049Yjg5NjI1NTU1Nw==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MWU5YTgxMWJmOA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjA= DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=C:\Users\luann\Documents\GitHub\adaptivecheck\.dart_tool\package_config.json C:/Users/luann/Documents/GitHub/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\LUANN\DOCUMENTS\GITHUB\ADAPTIVECHECK\BUILD\WINDOWS\X64\CMAKEFILES\6DA10BD73539B4E53A7FE71FA16F72FD\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\LUANN\DOCUMENTS\GITHUB\ADAPTIVECHECK\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/luann/Documents/GitHub/adaptivecheck/windows -BC:/Users/luann/Documents/GitHub/adaptivecheck/build/windows/x64 --check-stamp-file C:/Users/luann/Documents/GitHub/adaptivecheck/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

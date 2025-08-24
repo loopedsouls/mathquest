@@ -364,6 +364,7 @@ class _GameScreenState extends State<GameScreen> {
         'resposta': resposta,
         'correta': correta ? 'Correto' : 'Incorreto',
         'explicacao': '',
+        'nivel': _niveis[_nivelDificuldade],
       });
       carregando = false;
     });
@@ -388,18 +389,24 @@ class _GameScreenState extends State<GameScreen> {
         middle: Text('Tutor de Matemática'),
         backgroundColor: CupertinoColors.systemGrey6,
       ),
-      child: carregando
-          ? const Center(child: CupertinoActivityIndicator())
-          : SafeArea(
-              child: ListView(
-                padding: const EdgeInsets.all(20.0),
-                children: [
-                  _buildQuestionCardCupertino(),
-                  const SizedBox(height: 30),
-                  _buildHistoryListCupertino(),
-                ],
-              ),
-            ),
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(20.0),
+          children: [
+            carregando
+                ? Column(
+                    children: [
+                      const CupertinoActivityIndicator(),
+                      const SizedBox(height: 16),
+                      const Text('Carregando pergunta da IA...', style: TextStyle(color: CupertinoColors.systemGrey)),
+                    ],
+                  )
+                : _buildQuestionCardCupertino(),
+            const SizedBox(height: 30),
+            _buildHistoryListCupertino(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -555,6 +562,10 @@ class _GameScreenState extends State<GameScreen> {
                       item['pergunta'] ?? '',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
+                    if (item['nivel'] != null) ...[
+                      const SizedBox(height: 4),
+                      Text('Nível: ${item['nivel']}', style: const TextStyle(fontSize: 14, color: CupertinoColors.activeBlue)),
+                    ],
                     const SizedBox(height: 8),
                     Text(
                       'Sua resposta: ${item['resposta'] ?? ''}',

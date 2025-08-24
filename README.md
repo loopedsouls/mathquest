@@ -1,6 +1,6 @@
 # adaptivecheck
 
-Um jogo de matemática adaptativo com Flutter e uma LLM (Google Gemini).
+Um jogo de matemática adaptativo com Flutter e uma LLM (Ollama).
 
 ## Visão Geral
 

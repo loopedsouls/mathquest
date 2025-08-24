@@ -67,6 +67,7 @@ class OllamaService {
       body: jsonEncode({
         'model': model,
         'prompt': prompt,
+        'stream': false,
       }),
     );
     if (response.statusCode == 200) {

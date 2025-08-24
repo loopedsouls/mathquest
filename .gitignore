@@ -1,2 +1,16 @@
+# Flutter/Dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+
+# VS Code
+.vscode/
+
+# Outros arquivos comuns
+*.log
+
 # Ignorar arquivos de configuração de ambiente
 .env

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'math_tutor_service.dart';
-import 'ollama_service.dart';
+import 'gemini_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -13,30 +13,31 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen> {
-  final OllamaService ollamaService = OllamaService();
+  final GeminiService geminiService = GeminiService();
   bool _isLoading = true;
   String? _error;
-  List<String> _models = [];
 
   @override
   void initState() {
     super.initState();
-    _checkOllama();
+    _checkGemini();
   }
 
-  Future<void> _checkOllama() async {
+  Future<void> _checkGemini() async {
     try {
-      final models = await ollamaService.listModels();
+      final isAvailable = await geminiService.isServiceAvailable();
       if (mounted) {
         setState(() {
-          _models = models;
+          if (!isAvailable) {
+            _error = 'Serviço Gemini não está acessível. Verifique sua chave API.';
+          }
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Ollama não está acessível. Verifique se está rodando.';
+          _error = 'Erro ao conectar com Gemini. Verifique sua configuração.';
           _isLoading = false;
         });
       }
@@ -44,10 +45,10 @@ class _StartScreenState extends State<StartScreen> {
   }
 
   void _startGame() {
-    if (_models.isNotEmpty) {
+    if (_error == null) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => GameScreen(modelo: _models.first),
+          builder: (context) => const GameScreen(),
         ),
       );
     } else {
@@ -59,10 +60,10 @@ class _StartScreenState extends State<StartScreen> {
     Navigator.of(context)
         .push(
           MaterialPageRoute(
-            builder: (context) => const OllamaConfigScreen(),
+            builder: (context) => const GeminiConfigScreen(),
           ),
         )
-        .then((_) => _checkOllama());
+        .then((_) => _checkGemini());
   }
 
   @override
@@ -94,7 +95,7 @@ class _StartScreenState extends State<StartScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Desafie-se e melhore suas habilidades matemáticas com a ajuda da IA.',
+                      'Desafie-se e melhore suas habilidades matemáticas com a ajuda da IA Gemini.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -113,7 +114,7 @@ class _StartScreenState extends State<StartScreen> {
                     CupertinoButton.filled(
                       onPressed: _startGame,
                       borderRadius: BorderRadius.circular(12),
-                      child: Text(_models.isNotEmpty ? 'Iniciar Jogo' : 'Configurar Modelos', style: const TextStyle(fontSize: 18)),
+                      child: Text(_error == null ? 'Iniciar Jogo' : 'Configurar API', style: const TextStyle(fontSize: 18)),
                     ),
                     const SizedBox(height: 16),
                     CupertinoButton(
@@ -130,74 +131,72 @@ class _StartScreenState extends State<StartScreen> {
   }
 }
 
-class OllamaConfigScreen extends StatefulWidget {
-  const OllamaConfigScreen({super.key});
+class GeminiConfigScreen extends StatefulWidget {
+  const GeminiConfigScreen({super.key});
 
   @override
-  State<OllamaConfigScreen> createState() => _OllamaConfigScreenState();
+  State<GeminiConfigScreen> createState() => _GeminiConfigScreenState();
 }
 
-class _OllamaConfigScreenState extends State<OllamaConfigScreen> {
-  final OllamaService ollamaService = OllamaService();
-  final TextEditingController modeloController = TextEditingController();
+class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
+  final TextEditingController apiKeyController = TextEditingController();
   bool carregando = false;
   String status = '';
-  List<String> modelos = [];
-  String? _selectedModel;
 
   @override
   void initState() {
     super.initState();
-    carregarModelos();
+    _carregarApiKey();
   }
 
-  Future<void> carregarModelos() async {
-    setState(() => carregando = true);
-    try {
-      modelos = await ollamaService.listModels();
-      status = 'Modelos carregados.';
-    } catch (e) {
-      status = 'Erro ao conectar Ollama: $e';
+  Future<void> _carregarApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final apiKey = prefs.getString('gemini_api_key');
+    if (apiKey != null) {
+      apiKeyController.text = apiKey;
+    } else {
+      // Usar a chave padrão se não houver uma salva
+      apiKeyController.text = 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo';
     }
-    setState(() => carregando = false);
+  }
+
+  Future<void> _salvarApiKey() async {
+    final apiKey = apiKeyController.text.trim();
+    if (apiKey.isEmpty) return;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('gemini_api_key', apiKey);
+    
+    setState(() {
+      status = 'Chave API salva com sucesso!';
+    });
   }
 
   Future<void> testarConexao() async {
     setState(() => carregando = true);
-    final rodando = await ollamaService.isOllamaRunning();
-    status = rodando ? 'Ollama está rodando.' : 'Ollama não está rodando.';
-    setState(() => carregando = false);
-  }
-
-  Future<void> instalarModelo() async {
-    final modelo = modeloController.text.trim();
-    if (modelo.isEmpty) return;
-    setState(() => carregando = true);
     try {
-      await ollamaService.installModel(modelo);
-      status = 'Modelo "$modelo" instalado.';
-      await carregarModelos();
+      final geminiService = GeminiService(apiKey: apiKeyController.text.trim());
+      final isAvailable = await geminiService.isServiceAvailable();
+      status = isAvailable ? 'Conexão com Gemini funcionando!' : 'Erro na conexão com Gemini.';
     } catch (e) {
-      status = 'Erro ao instalar modelo: $e';
+      status = 'Erro ao testar conexão: $e';
     }
     setState(() => carregando = false);
   }
 
   void _startGame() {
-    if (_selectedModel != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => GameScreen(modelo: _selectedModel!),
-        ),
-      );
-    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GameScreen(apiKey: apiKeyController.text.trim()),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Configuração do Ollama'),
+        middle: Text('Configuração do Gemini'),
         backgroundColor: CupertinoColors.systemGrey6,
       ),
       child: Padding(
@@ -207,54 +206,33 @@ class _OllamaConfigScreenState extends State<OllamaConfigScreen> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Selecione um modelo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Para usar o Gemini, você precisa de uma chave API:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: modelos.map((m) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedModel = m;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _selectedModel == m ? CupertinoColors.activeBlue : CupertinoColors.systemGrey5,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: CupertinoColors.systemGrey4),
-                          ),
-                          child: Text(m, style: TextStyle(color: _selectedModel == m ? CupertinoColors.white : CupertinoColors.black)),
-                        ),
-                      );
-                    }).toList(),
+                  const Text(
+                    '1. Vá para https://makersuite.google.com/app/apikey\n2. Crie uma nova chave API\n3. Cole a chave abaixo',
+                    style: TextStyle(color: CupertinoColors.systemGrey),
                   ),
                   const SizedBox(height: 24),
-                  CupertinoButton.filled(
-                    onPressed: _selectedModel != null ? _startGame : null,
-                    borderRadius: BorderRadius.circular(12),
-                    child: const Text('Iniciar Jogo'),
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 24),
-                  const Text('Instalar novo modelo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Chave API do Gemini:', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   CupertinoTextField(
-                    controller: modeloController,
-                    placeholder: 'Nome do modelo para instalar',
+                    controller: apiKeyController,
+                    placeholder: 'Cole sua chave API aqui',
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    obscureText: true,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
                         child: CupertinoButton(
-                          onPressed: instalarModelo,
+                          onPressed: _salvarApiKey,
                           color: CupertinoColors.activeBlue,
                           borderRadius: BorderRadius.circular(12),
-                          child: const Text('Instalar Modelo'),
+                          child: const Text('Salvar API Key'),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -269,6 +247,14 @@ class _OllamaConfigScreenState extends State<OllamaConfigScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  if (apiKeyController.text.isNotEmpty) ...[
+                    CupertinoButton.filled(
+                      onPressed: _startGame,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Text('Iniciar Jogo'),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text(status, style: const TextStyle(color: CupertinoColors.activeBlue)),
                 ],
               ),
@@ -278,8 +264,8 @@ class _OllamaConfigScreenState extends State<OllamaConfigScreen> {
 }
 
 class GameScreen extends StatefulWidget {
-  final String modelo;
-  const GameScreen({super.key, required this.modelo});
+  final String? apiKey;
+  const GameScreen({super.key, this.apiKey});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -300,8 +286,19 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    tutorService = MathTutorService(modelo: widget.modelo);
+    _initializeService();
     _carregarHistorico().then((_) => gerarNovaPergunta());
+  }
+
+  Future<void> _initializeService() async {
+    String? apiKey = widget.apiKey;
+    
+    if (apiKey == null || apiKey.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      apiKey = prefs.getString('gemini_api_key');
+    }
+    
+    tutorService = MathTutorService(apiKey: apiKey);
   }
 
   Future<void> _salvarHistorico() async {
@@ -342,7 +339,8 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
-    final correta = await tutorService.verificarResposta(pergunta, resposta);
+    final resultado = await tutorService.verificarResposta(pergunta, resposta);
+    final correta = resultado['correta'] as bool;
 
     if (correta) {
       if (_nivelDificuldade < _niveis.length - 1) {
@@ -374,7 +372,7 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> mostrarExplicacao() async {
     setState(() => carregando = true);
     explicacao = await tutorService
-        .gerarExplicacao('Explique o conceito da pergunta: $pergunta');
+        .gerarExplicacao(pergunta, 'Resposta correta', _respostaController.text);
     if (historico.isNotEmpty) {
       historico.last['explicacao'] = explicacao;
     }

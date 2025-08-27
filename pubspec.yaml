@@ -38,6 +38,7 @@ dependencies:
 
   http: ^1.2.1
   shared_preferences:
+  google_generative_ai: ^0.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'screens/game_screen.dart';
 import 'screens/gemini_config_screen.dart';
 import 'package:flutter/material.dart';
-import 'game_screen.dart';
 import '../services/gemini_service.dart';
 
 class StartScreen extends StatefulWidget {

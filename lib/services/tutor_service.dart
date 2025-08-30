@@ -62,18 +62,37 @@ Inclua apenas a pergunta, sem a resposta.
     return await geminiService.sendPrompt(prompt);
   }
 
-  /// Gera explicação para resposta errada de qualquer área
-  Future<String> gerarExplicacao(
-      {required String area,
-      required String pergunta,
-      required String respostaCorreta,
-      required String respostaUsuario}) async {
-    final prompt = '''
-O usuário respondeu incorretamente a uma pergunta de $area.
+  /// Gera história e opções iniciais para visual novel
+  Future<Map<String, dynamic>> gerarHistoriaGemini() async {
+    const prompt = '''
+Você é o narrador de uma visual novel. Gere o próximo trecho da história e 3 opções de escolha para o jogador, em formato JSON:
+{
+  "historia": "Texto da história...",
+  "opcoes": ["Opção 1", "Opção 2", "Opção 3"]
+}
+''';
+    final resposta = await geminiService.sendPrompt(prompt);
+    try {
+      final json = resposta.contains('{')
+          ? resposta.substring(resposta.indexOf('{'))
+          : resposta;
+      return Map<String, dynamic>.from(geminiService.parseJson(json));
+    } catch (e) {
+      return {'historia': resposta, 'opcoes': []};
+    }
+  }
 
-Pergunta: $pergunta
-Resposta correta: $respostaCorreta
-Resposta do usuário: $respostaUsuario
+  /// Gera explicação para resposta errada de qualquer área
+  Future<String> gerarExplicacao({
+    required String area,
+    required String pergunta,
+    required String respostaUsuario,
+    required String respostaCorreta,
+  }) async {
+    final prompt = '''
+Pergunta de $area: "$pergunta"
+Resposta do usuário: "$respostaUsuario"
+Resposta correta: "$respostaCorreta"
 
 Forneça uma explicação clara e didática de:
 1. Por que a resposta do usuário está incorreta
@@ -83,6 +102,26 @@ Forneça uma explicação clara e didática de:
 Seja encorajador e educativo na explicação.
 ''';
     return await geminiService.sendPrompt(prompt);
+  }
+
+  /// Envia escolha do jogador e recebe próximo trecho e opções
+  Future<Map<String, dynamic>> enviarEscolhaGemini(String escolha) async {
+    final prompt = '''
+Você é o narrador de uma visual novel. O jogador escolheu: "$escolha". Gere o próximo trecho da história e 3 opções de escolha para o jogador, em formato JSON:
+{
+  "historia": "Texto da história...",
+  "opcoes": ["Opção 1", "Opção 2", "Opção 3"]
+}
+''';
+    final resposta = await geminiService.sendPrompt(prompt);
+    try {
+      final json = resposta.contains('{')
+          ? resposta.substring(resposta.indexOf('{'))
+          : resposta;
+      return Map<String, dynamic>.from(geminiService.parseJson(json));
+    } catch (e) {
+      return {'historia': resposta, 'opcoes': []};
+    }
   }
 
   /// Verifica se a resposta está correta e obtém a resposta correta para qualquer área

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,17 @@ class GeminiService {
     } catch (e) {
       // Fallback: retorna mensagem padrão
       return 'Desculpe, não consegui gerar uma resposta agora.';
+    }
+  }
+
+  /// Faz o parse de uma string JSON para Map<String, dynamic>
+  Map<String, dynamic> parseJson(String jsonStr) {
+    try {
+      return jsonStr.isNotEmpty
+          ? Map<String, dynamic>.from(json.decode(jsonStr))
+          : {};
+    } catch (e) {
+      return {};
     }
   }
 

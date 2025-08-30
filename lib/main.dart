@@ -78,55 +78,76 @@ class _StartScreenState extends State<StartScreen> {
           padding: const EdgeInsets.all(24.0),
           child: _isLoading
               ? const CupertinoActivityIndicator()
-              : Column(
+              : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(CupertinoIcons.book_solid,
-                        size: 80, color: CupertinoColors.activeBlue),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Tutor de Matemática Adaptativo',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.activeBlue,
+                    const Expanded(
+                      flex: 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(CupertinoIcons.book_solid,
+                              size: 80, color: CupertinoColors.activeBlue),
+                          SizedBox(height: 24),
+                          Text(
+                            'Tutor de Conheciimento Adaptativo',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: CupertinoColors.activeBlue,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Desafie-se e melhore suas habilidades e conhecimentos com a ajuda da IA Gemini.',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: CupertinoColors.systemGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Desafie-se e melhore suas habilidades matemáticas com a ajuda da IA Gemini.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.systemGrey,
+                    const SizedBox(width: 48),
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (_error != null) ...[
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                  color: CupertinoColors.systemRed,
+                                  fontSize: 16),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          CupertinoButton.filled(
+                            onPressed: _startGame,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Text(
+                                _error == null
+                                    ? 'Iniciar Jogo'
+                                    : 'Configurar API',
+                                style: const TextStyle(fontSize: 18)),
+                          ),
+                          const SizedBox(height: 16),
+                          CupertinoButton(
+                            onPressed: _goToConfig,
+                            color: CupertinoColors.systemGrey4,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Text('Configurações',
+                                style: TextStyle(fontSize: 16)),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 48),
-                    if (_error != null) ...[
-                      Text(
-                        _error!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: CupertinoColors.systemRed, fontSize: 16),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    CupertinoButton.filled(
-                      onPressed: _startGame,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Text(
-                          _error == null ? 'Iniciar Jogo' : 'Configurar API',
-                          style: const TextStyle(fontSize: 18)),
-                    ),
-                    const SizedBox(height: 16),
-                    CupertinoButton(
-                      onPressed: _goToConfig,
-                      color: CupertinoColors.systemGrey4,
-                      borderRadius: BorderRadius.circular(12),
-                      child: const Text('Configurações',
-                          style: TextStyle(fontSize: 16)),
                     ),
                   ],
                 ),
@@ -150,8 +171,17 @@ class MyApp extends StatelessWidget {
       theme: CupertinoThemeData(
         primaryColor: CupertinoColors.activeBlue,
         brightness: Brightness.light,
+        // Desktop focus: fontes maiores, padding extra, visual mais "flat"
+        textTheme: CupertinoTextThemeData(
+          textStyle: TextStyle(fontSize: 18),
+          navTitleTextStyle:
+              TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        barBackgroundColor: CupertinoColors.systemGrey5,
       ),
       home: StartScreen(),
+      // Desktop: remove debug banner, usa scrollbars nativos
+      debugShowCheckedModeBanner: false,
     );
   }
 }

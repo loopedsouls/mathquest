@@ -156,6 +156,8 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildQuestionCardCupertino() {
     return Container(
+      constraints:
+          const BoxConstraints(maxWidth: 600), // desktop: largura máxima
       decoration: BoxDecoration(
         color: CupertinoColors.systemGrey6,
         borderRadius: BorderRadius.circular(16),
@@ -167,7 +169,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(32.0), // desktop: padding maior
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -175,12 +177,12 @@ class _GameScreenState extends State<GameScreen> {
             'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 20, // desktop: fonte maior
               fontWeight: FontWeight.bold,
               color: CupertinoColors.activeBlue,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
             child: Text(
@@ -188,35 +190,38 @@ class _GameScreenState extends State<GameScreen> {
               key: ValueKey<String>(pergunta),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 20, color: CupertinoColors.black, height: 1.5),
+                  fontSize: 24, // desktop: fonte maior
+                  color: CupertinoColors.black,
+                  height: 1.5),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           CupertinoTextField(
             controller: _respostaController,
             placeholder: 'Sua Resposta',
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-            style: const TextStyle(fontSize: 18),
+            padding: const EdgeInsets.symmetric(
+                vertical: 18, horizontal: 16), // desktop: padding maior
+            style: const TextStyle(fontSize: 20),
             decoration: BoxDecoration(
               color: CupertinoColors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: CupertinoColors.systemGrey4),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           CupertinoButton.filled(
             onPressed: _verificarResposta,
             borderRadius: BorderRadius.circular(12),
-            child: const Text('Verificar', style: TextStyle(fontSize: 18)),
+            child: const Text('Verificar', style: TextStyle(fontSize: 20)),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           _buildFeedbackSectionCupertino(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           CupertinoButton(
             onPressed: gerarNovaPergunta,
             color: CupertinoColors.activeGreen,
             borderRadius: BorderRadius.circular(12),
-            child: const Text('Nova Pergunta'),
+            child: const Text('Nova Pergunta', style: TextStyle(fontSize: 18)),
           ),
         ],
       ),
@@ -272,107 +277,117 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildHistoryListCupertino() {
-    return Column(
-      children: [
-        const Text(
-          'Histórico de Atividades',
-          style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.activeBlue),
-        ),
-        const SizedBox(height: 16),
-        if (historico.isEmpty)
-          const Text('Nenhuma atividade ainda.',
-              style:
-                  TextStyle(fontSize: 16, color: CupertinoColors.systemGrey)),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: historico.length,
-          itemBuilder: (context, index) {
-            final item = historico.reversed.toList()[index];
-            final isCorrect = item['correta'] == 'Correto';
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: CupertinoColors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemGrey.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item['pergunta'] ?? '',
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    if (item['nivel'] != null) ...[
-                      const SizedBox(height: 4),
-                      Text('Nível: ${item['nivel']}',
-                          style: const TextStyle(
-                              fontSize: 14, color: CupertinoColors.activeBlue)),
-                    ],
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sua resposta: ${item['resposta'] ?? ''}',
-                      style: const TextStyle(
-                          fontSize: 16, color: CupertinoColors.systemGrey),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Icon(
-                          isCorrect
-                              ? CupertinoIcons.check_mark_circled
-                              : CupertinoIcons.clear_circled,
-                          color: isCorrect
-                              ? CupertinoColors.activeGreen
-                              : CupertinoColors.systemRed,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          item['correta'] ?? '',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isCorrect
-                                ? CupertinoColors.activeGreen
-                                : CupertinoColors.systemRed,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (item['explicacao'] != null &&
-                        item['explicacao']!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemGrey6,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text('Explicação: ${item['explicacao']}',
-                            style: const TextStyle(
-                                color: CupertinoColors.activeBlue)),
+    return Center(
+      child: Container(
+        constraints:
+            const BoxConstraints(maxWidth: 700), // desktop: largura máxima
+        child: Column(
+          children: [
+            const Text(
+              'Histórico de Atividades',
+              style: TextStyle(
+                  fontSize: 24, // desktop: fonte maior
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.activeBlue),
+            ),
+            const SizedBox(height: 20),
+            if (historico.isEmpty)
+              const Text('Nenhuma atividade ainda.',
+                  style: TextStyle(
+                      fontSize: 18, color: CupertinoColors.systemGrey)),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: historico.length,
+              itemBuilder: (context, index) {
+                final item = historico.reversed.toList()[index];
+                final isCorrect = item['correta'] == 'Correto';
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.systemGrey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.all(20.0), // desktop: padding maior
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['pergunta'] ?? '',
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w500),
+                        ),
+                        if (item['nivel'] != null) ...[
+                          const SizedBox(height: 4),
+                          Text('Nível: ${item['nivel']}',
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  color: CupertinoColors.activeBlue)),
+                        ],
+                        const SizedBox(height: 10),
+                        Text(
+                          'Sua resposta: ${item['resposta'] ?? ''}',
+                          style: const TextStyle(
+                              fontSize: 18, color: CupertinoColors.systemGrey),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Icon(
+                              isCorrect
+                                  ? CupertinoIcons.check_mark_circled
+                                  : CupertinoIcons.clear_circled,
+                              color: isCorrect
+                                  ? CupertinoColors.activeGreen
+                                  : CupertinoColors.systemRed,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              item['correta'] ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: isCorrect
+                                    ? CupertinoColors.activeGreen
+                                    : CupertinoColors.systemRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (item['explicacao'] != null &&
+                            item['explicacao']!.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemGrey6,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text('Explicação: ${item['explicacao']}',
+                                style: const TextStyle(
+                                    color: CupertinoColors.activeBlue,
+                                    fontSize: 16)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

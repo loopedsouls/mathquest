@@ -1,8 +1,35 @@
+// Widget global
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../services/tutor_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+
+class OptionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const OptionButton({
+    required this.label,
+    required this.onTap,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class GameScreen extends StatefulWidget {
   final String? apiKey;
@@ -13,7 +40,7 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  late TutorService tutorService;
+  _GameScreenState(); // Add default unnamed constructor
   final TextEditingController _respostaController = TextEditingController();
   String pergunta = '';
   String explicacao = '';
@@ -21,310 +48,256 @@ class _GameScreenState extends State<GameScreen> {
   bool carregando = false;
   bool? _respostaCorreta;
   List<Map<String, String>> historico = [];
-  int _nivelDificuldade = 1; // 0: Fácil, 1: Médio, 2: Difícil
-  final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
-  final List<String> _tiposJogo = [
-    'matemática',
-    'quiz',
-    'lógica',
-    'palavras cruzadas',
-    'forca',
-    'adivinhação',
-  ];
-  String _tipoSelecionado = 'matemática';
+// 0: Fácil, 1: Médio, 2: Difícil, 3: Expert
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeService().then((_) {
-      _carregarHistorico().then((_) => gerarNovaPergunta());
+  void mostrarExplicacao() {
+    setState(() {
+      explicacao = explicacao.isNotEmpty
+          ? explicacao
+          : 'Explicação não disponível para esta pergunta.';
     });
   }
 
-  Future<void> _initializeService() async {
-    String? apiKey = widget.apiKey;
-
-    if (apiKey == null || apiKey.isEmpty) {
-      final prefs = await SharedPreferences.getInstance();
-      apiKey = prefs.getString('gemini_api_key');
-    }
-
-    tutorService = TutorService(apiKey: apiKey);
-  }
-
-  Future<void> _salvarHistorico() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historicoJson = jsonEncode(historico);
-    await prefs.setString('historico_perguntas', historicoJson);
-  }
-
-  Future<void> _carregarHistorico() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historicoJson = prefs.getString('historico_perguntas');
-    if (historicoJson != null) {
-      final List<dynamic> decoded = jsonDecode(historicoJson);
-      setState(() {
-        historico = decoded.map((e) => Map<String, String>.from(e)).toList();
-      });
-    }
-  }
-
-  Future<void> gerarNovaPergunta() async {
+  void _verificarResposta() {
+    // TODO: Implement your answer verification logic here
     setState(() {
       carregando = true;
-      pergunta = '';
-      explicacao = '';
-      feedback = '';
-      _respostaCorreta = null;
-      _respostaController.clear();
     });
-    pergunta = await tutorService.gerarPergunta(
-        area: _tipoSelecionado, nivelDificuldade: _niveis[_nivelDificuldade]);
-    setState(() => carregando = false);
-  }
-
-  Future<void> _verificarResposta() async {
-    setState(() => carregando = true);
-    final resposta = _respostaController.text.trim();
-    if (resposta.isEmpty) {
-      setState(() => carregando = false);
-      return;
-    }
-
-    final resultado = await tutorService.verificarResposta(
-        area: _tipoSelecionado, pergunta: pergunta, resposta: resposta);
-    final correta = resultado['correta'] as bool;
-
-    if (correta) {
-      if (_nivelDificuldade < _niveis.length - 1) {
-        setState(() => _nivelDificuldade++);
-      }
-    } else {
-      if (_nivelDificuldade > 0) {
-        setState(() => _nivelDificuldade--);
-      }
-    }
-
-    setState(() {
-      _respostaCorreta = correta;
-      feedback = correta
-          ? 'Correto! Próximo nível: ${_niveis[_nivelDificuldade]}'
-          : 'Incorreto. Tente novamente ou peça uma explicação.';
-      historico.add({
-        'pergunta': pergunta,
-        'resposta': resposta,
-        'correta': correta ? 'Correto' : 'Incorreto',
-        'explicacao': '',
-        'nivel': _niveis[_nivelDificuldade],
+    // Simulate a delay and check
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        carregando = false;
+        // Example logic: mark as correct if not empty
+        _respostaCorreta = _respostaController.text.isNotEmpty;
+        feedback = _respostaCorreta == true
+            ? "Resposta correta!"
+            : "Resposta incorreta.";
       });
-      carregando = false;
     });
-    await _salvarHistorico();
-  }
-
-  Future<void> mostrarExplicacao() async {
-    setState(() => carregando = true);
-    explicacao = await tutorService.gerarExplicacao(
-        area: _tipoSelecionado,
-        pergunta: pergunta,
-        respostaCorreta: 'Resposta correta',
-        respostaUsuario: _respostaController.text);
-    if (historico.isNotEmpty) {
-      historico.last['explicacao'] = explicacao;
-    }
-    setState(() => carregando = false);
-    await _salvarHistorico();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('LLM the Game'),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // Menu lateral estilo Ren'Py
-            Container(
-              width: 220,
-              color: const Color(0xFFEEEEEE),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Fundo
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF22223B),
+              // Para imagem de fundo, use:
+              // image: DecorationImage(image: AssetImage('assets/bg.jpg'), fit: BoxFit.cover),
+            ),
+          ),
+          // Personagem centralizado
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 160),
+              child: SizedBox(
+                width: 340,
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: 480,
+                    maxHeight: 480,
+                  ),
+                  child: Image.asset(
+                    'assets/character.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                          child: Icon(Icons.person,
+                              size: 120, color: Colors.white24)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Caixa de diálogo inferior
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 48, left: 32, right: 32),
+              child: Stack(
                 children: [
-                  const SizedBox(height: 24),
-                  const Text('Jogos',
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  ..._tiposJogo.map((tipo) => CupertinoButton(
-                        onPressed: () {
-                          setState(() {
-                            _tipoSelecionado = tipo;
-                          });
-                          gerarNovaPergunta();
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Text(tipo[0].toUpperCase() + tipo.substring(1),
-                            style: const TextStyle(fontSize: 18)),
-                      )),
-                  const Spacer(),
-                  CupertinoButton(
-                    onPressed: () {
-                      showGeneralDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        barrierLabel: 'Fechar',
-                        pageBuilder: (context, _, __) {
-                          return SafeArea(
-                            child: Container(
-                              color: const Color(0xFFEEEEEE),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16, horizontal: 24),
-                                    color: const Color(0xFFDDDDDD),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text('Histórico',
-                                            style: TextStyle(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold)),
-                                        CupertinoButton(
-                                          padding: EdgeInsets.zero,
-                                          child: const Text('Fechar'),
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 700),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.18),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.only(
+                        left: 120, right: 32, top: 32, bottom: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          pergunta.isNotEmpty
+                              ? pergunta
+                              : 'Carregando diálogo...',
+                          style: const TextStyle(
+                              fontSize: 22, color: Colors.black87, height: 1.3),
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _respostaController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Sua escolha ou resposta',
+                                  border: OutlineInputBorder(),
+                                ),
+                                style: const TextStyle(fontSize: 18),
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: const Text('Ver Histórico',
-                        style: TextStyle(fontSize: 18)),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
-            // Conteúdo principal à direita
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(32.0),
-                children: [
-                  Text(
-                    _tipoSelecionado[0].toUpperCase() +
-                        _tipoSelecionado.substring(1),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  carregando
-                      ? const Column(
-                          children: [
-                            CupertinoActivityIndicator(),
-                            SizedBox(height: 16),
-                            Text('Carregando pergunta da IA...'),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: carregando ? null : _verificarResposta,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: carregando
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2))
+                                  : const Text('Enviar'),
+                            ),
                           ],
-                        )
-                      : _buildQuestionCardCupertino(),
+                        ),
+                        if (feedback.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Text(
+                              feedback,
+                              style: TextStyle(
+                                color: _respostaCorreta == true
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        if (_respostaCorreta == false)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: OutlinedButton(
+                              onPressed: mostrarExplicacao,
+                              child: const Text('Ver Explicação'),
+                            ),
+                          ),
+                        if (explicacao.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              explicacao,
+                              style: const TextStyle(
+                                  fontSize: 15, color: Colors.black87),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Aba do nome do personagem
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Container(
+                      width: 120,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(18),
+                          bottomRight: Radius.circular(18),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.10),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Personagem',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          // Barra de opções inferior
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 0),
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
+                height: 38,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    OptionButton(label: 'History', onTap: () {}),
+                    OptionButton(label: 'Skip', onTap: () {}),
+                    OptionButton(label: 'Auto', onTap: () {}),
+                    OptionButton(label: 'Save', onTap: () {}),
+                    OptionButton(label: 'Load', onTap: () {}),
+                    OptionButton(
+                      label: 'Settings',
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/settings');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+// (Remove everything from here until the closing bracket of the duplicate build method)
+// The code above is a duplicate of the widget tree already present in your first build method.
+// No replacement needed; just delete this duplicate code.
 
-  Widget _buildQuestionCardCupertino() {
-    // Adaptação para tipos de jogos específicos
-    if (_tipoSelecionado == 'forca') {
-      return Container(
-        constraints: const BoxConstraints(maxWidth: 600),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8F8F8),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Jogo da Forca',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              child: Text(
-                pergunta,
-                key: ValueKey<String>(pergunta),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 24, height: 1.5),
-              ),
-            ),
-            const SizedBox(height: 32),
-            CupertinoTextField(
-              controller: _respostaController,
-              placeholder: 'Digite uma letra ou palavra',
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-              style: const TextStyle(fontSize: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFCCCCCC)),
-              ),
-            ),
-            const SizedBox(height: 24),
-            CupertinoButton.filled(
-              onPressed: _verificarResposta,
-              borderRadius: BorderRadius.circular(12),
-              child: const Text('Verificar', style: TextStyle(fontSize: 20)),
-            ),
-            const SizedBox(height: 24),
-            _buildFeedbackSectionCupertino(),
-            const SizedBox(height: 24),
-            CupertinoButton(
-              onPressed: gerarNovaPergunta,
-              borderRadius: BorderRadius.circular(12),
-              child: const Text('Nova Palavra', style: TextStyle(fontSize: 18)),
-            ),
-          ],
-        ),
-      );
-    }
-    // Para outros tipos não implementados, exibe mensagem
-    if (_tipoSelecionado == 'palavras cruzadas') {
-      return Container(
-        constraints: const BoxConstraints(maxWidth: 600),
-        padding: const EdgeInsets.all(32.0),
-        child: const Center(
-          child: Text(
-            'Palavras cruzadas: Em breve!',
-            style: TextStyle(fontSize: 22),
-          ),
-        ),
-      );
-    }
-    // ...existing code...
+// Move these functions outside of the _OptionButton class, e.g., below the _OptionButton class
+
+  Widget buildDialogCardCupertino({
+    required List<String> niveis,
+    required int nivelDificuldade,
+    required String pergunta,
+    required TextEditingController respostaController,
+    required VoidCallback verificarResposta,
+    required VoidCallback gerarNovaPergunta,
+    required String feedback,
+    required bool? respostaCorreta,
+    required VoidCallback mostrarExplicacao,
+    required String explicacao,
+  }) {
+    // Caixa de diálogo estilo visual novel
     return Container(
       constraints: const BoxConstraints(maxWidth: 600),
       decoration: BoxDecoration(
@@ -336,7 +309,7 @@ class _GameScreenState extends State<GameScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
+            'Nível: ${niveis[nivelDificuldade].toUpperCase()}',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 20,
@@ -355,8 +328,8 @@ class _GameScreenState extends State<GameScreen> {
           ),
           const SizedBox(height: 32),
           CupertinoTextField(
-            controller: _respostaController,
-            placeholder: 'Sua Resposta',
+            controller: respostaController,
+            placeholder: 'Sua escolha ou resposta',
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             style: const TextStyle(fontSize: 20),
             decoration: BoxDecoration(
@@ -367,24 +340,35 @@ class _GameScreenState extends State<GameScreen> {
           ),
           const SizedBox(height: 24),
           CupertinoButton.filled(
-            onPressed: _verificarResposta,
+            onPressed: verificarResposta,
             borderRadius: BorderRadius.circular(12),
-            child: const Text('Verificar', style: TextStyle(fontSize: 20)),
+            child: const Text('Enviar', style: TextStyle(fontSize: 20)),
           ),
           const SizedBox(height: 24),
-          _buildFeedbackSectionCupertino(),
+          buildFeedbackSectionCupertino(
+            feedback: feedback,
+            respostaCorreta: respostaCorreta,
+            mostrarExplicacao: mostrarExplicacao,
+            explicacao: explicacao,
+          ),
           const SizedBox(height: 24),
           CupertinoButton(
             onPressed: gerarNovaPergunta,
             borderRadius: BorderRadius.circular(12),
-            child: const Text('Nova Pergunta', style: TextStyle(fontSize: 18)),
+            child:
+                const Text('Próximo Diálogo', style: TextStyle(fontSize: 18)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeedbackSectionCupertino() {
+  Widget buildFeedbackSectionCupertino({
+    required String feedback,
+    required bool? respostaCorreta,
+    required VoidCallback mostrarExplicacao,
+    required String explicacao,
+  }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.all(12),
@@ -403,7 +387,7 @@ class _GameScreenState extends State<GameScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          if (_respostaCorreta == false) ...[
+          if (respostaCorreta == false) ...[
             const SizedBox(height: 12),
             CupertinoButton(
               onPressed: mostrarExplicacao,

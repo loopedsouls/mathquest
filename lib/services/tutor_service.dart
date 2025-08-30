@@ -59,7 +59,7 @@ Crie uma pergunta de $area de nível $nivelDificuldade.
 Inclua apenas a pergunta, sem a resposta.
 ''';
     }
-    return await geminiService.generate(prompt);
+    return await geminiService.sendPrompt(prompt);
   }
 
   /// Gera explicação para resposta errada de qualquer área
@@ -82,7 +82,7 @@ Forneça uma explicação clara e didática de:
 
 Seja encorajador e educativo na explicação.
 ''';
-    return await geminiService.generate(prompt);
+    return await geminiService.sendPrompt(prompt);
   }
 
   /// Verifica se a resposta está correta e obtém a resposta correta para qualquer área
@@ -106,7 +106,7 @@ Responda no seguinte formato JSON:
 Seja preciso na análise.
 ''';
     try {
-      final resultado = await geminiService.generate(prompt);
+      final resultado = await geminiService.sendPrompt(prompt);
       final isCorrect = resultado.toLowerCase().contains('"correta": true') ||
           resultado.toLowerCase().contains('correta');
       return {

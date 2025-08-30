@@ -1,10 +1,16 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class GeminiService {
   late final GenerativeModel _model;
   final String _apiKey;
-  
-  GeminiService({String? apiKey}) : _apiKey = apiKey ?? 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo' {
+  final String persona;
+  final List<String> _history = [];
+  final String _cacheKey = 'gemini_cache';
+
+  GeminiService({String? apiKey, this.persona = 'Narrador'})
+      : _apiKey = apiKey ?? 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo' {
     _model = GenerativeModel(
       model: 'gemini-1.5-flash',
       apiKey: _apiKey,
@@ -17,21 +23,45 @@ class GeminiService {
     );
   }
 
-  /// Gera uma resposta usando o modelo Gemini
-  Future<String> generate(String prompt) async {
+  /// Envia prompt para Gemini, mantendo contexto e cache.
+  Future<String> sendPrompt(String prompt) async {
+    final fullPrompt = _buildPrompt(prompt);
+    // Tenta cache
+    final cached = await _getCachedResponse(fullPrompt);
+    if (cached != null) return cached;
     try {
-      final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
-      return response.text ?? 'Não foi possível gerar uma resposta.';
+      final response = await _model.generateContent([Content.text(fullPrompt)]);
+      final text = response.text ?? '';
+      await _cacheResponse(fullPrompt, text);
+      _history.add(prompt);
+      return text;
     } catch (e) {
-      throw Exception('Erro ao gerar resposta com Gemini: $e');
+      // Fallback: retorna mensagem padrão
+      return 'Desculpe, não consegui gerar uma resposta agora.';
     }
+  }
+
+  /// Monta prompt com contexto/histórico.
+  String _buildPrompt(String prompt) {
+    final context = _history.join('\n');
+    return '$persona:\n$context\nJogador: $prompt';
+  }
+
+  /// Cache simples usando shared_preferences.
+  Future<void> _cacheResponse(String prompt, String response) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_cacheKey + prompt.hashCode.toString(), response);
+  }
+
+  Future<String?> _getCachedResponse(String prompt) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_cacheKey + prompt.hashCode.toString());
   }
 
   /// Verifica se o serviço está funcionando
   Future<bool> isServiceAvailable() async {
     try {
-      await generate('Teste de conexão');
+      await sendPrompt('Teste de conexão');
       return true;
     } catch (_) {
       return false;
@@ -55,7 +85,7 @@ class GeminiService {
           maxOutputTokens: maxOutputTokens ?? 1024,
         ),
       );
-      
+
       final content = [Content.text(prompt)];
       final response = await model.generateContent(content);
       return response.text ?? 'Não foi possível gerar uma resposta.';

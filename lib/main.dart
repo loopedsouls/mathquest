@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'screens/game_screen.dart';
 import 'screens/gemini_config_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/gemini_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -57,13 +59,18 @@ class _StartScreenState extends State<StartScreen> {
   }
 
   void _goToConfig() {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (context) => const GeminiConfigScreen(),
-          ),
-        )
-        .then((_) => _checkGemini());
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => const GeminiConfigScreen(),
+    ).then((_) => _checkGemini());
+  }
+
+  void _openHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historicoJson = prefs.getString('historico_perguntas');
+    if (historicoJson != null) {
+      jsonDecode(historicoJson);
+    }
   }
 
   @override
@@ -71,7 +78,6 @@ class _StartScreenState extends State<StartScreen> {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         middle: Text('Bem-vindo'),
-        backgroundColor: CupertinoColors.systemGrey6,
       ),
       child: Center(
         child: Padding(
@@ -79,74 +85,90 @@ class _StartScreenState extends State<StartScreen> {
           child: _isLoading
               ? const CupertinoActivityIndicator()
               : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Expanded(
-                      flex: 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(CupertinoIcons.book_solid,
-                              size: 80, color: CupertinoColors.activeBlue),
-                          SizedBox(height: 24),
-                          Text(
-                            'Tutor de Conheciimento Adaptativo',
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: CupertinoColors.activeBlue,
-                            ),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Desafie-se e melhore suas habilidades e conhecimentos com a ajuda da IA Gemini.',
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: CupertinoColors.systemGrey,
-                            ),
-                          ),
-                        ],
+                    // Menu à esquerda (padrão Ren'Py)
+                    Container(
+                      width: 220,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 32, horizontal: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
-                    const SizedBox(width: 48),
-                    Expanded(
-                      flex: 1,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (_error != null) ...[
-                            Text(
-                              _error!,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                  color: CupertinoColors.systemRed,
-                                  fontSize: 16),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          CupertinoButton.filled(
+                          CupertinoButton(
                             onPressed: _startGame,
                             borderRadius: BorderRadius.circular(12),
                             child: Text(
-                                _error == null
-                                    ? 'Iniciar Jogo'
-                                    : 'Configurar API',
-                                style: const TextStyle(fontSize: 18)),
+                              _error == null
+                                  ? 'Iniciar Jogo'
+                                  : 'Configurar API',
+                            ),
                           ),
                           const SizedBox(height: 16),
                           CupertinoButton(
                             onPressed: _goToConfig,
-                            color: CupertinoColors.systemGrey4,
                             borderRadius: BorderRadius.circular(12),
-                            child: const Text('Configurações',
-                                style: TextStyle(fontSize: 16)),
+                            child: const Text(
+                              'Configurações',
+                            ),
                           ),
+                          const SizedBox(height: 16),
+                          CupertinoButton(
+                            onPressed: _openHistory,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Text(
+                              'Histórico',
+                            ),
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 24),
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
                         ],
+                      ),
+                    ),
+                    const SizedBox(width: 48),
+                    // Nome do jogo à direita
+                    const Expanded(
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            SizedBox(height: 32),
+                            Text(
+                              'Adaptive Check',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Tutor de Conhecimento Adaptativo',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 22,
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              'Desafie-se e melhore suas habilidades e conhecimentos com a ajuda da IA Gemini.',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -166,21 +188,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final bool isDark = brightness == Brightness.dark;
+    return CupertinoApp(
       title: 'Adaptive Check',
       theme: CupertinoThemeData(
-        primaryColor: CupertinoColors.activeBlue,
-        brightness: Brightness.light,
-        // Desktop focus: fontes maiores, padding extra, visual mais "flat"
+        brightness: brightness,
+        primaryColor: isDark ? CupertinoColors.white : CupertinoColors.black,
+        scaffoldBackgroundColor:
+            isDark ? CupertinoColors.black : CupertinoColors.white,
+        barBackgroundColor:
+            isDark ? CupertinoColors.black : CupertinoColors.white,
         textTheme: CupertinoTextThemeData(
-          textStyle: TextStyle(fontSize: 18),
-          navTitleTextStyle:
-              TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          textStyle: TextStyle(
+              fontSize: 18,
+              color: isDark ? CupertinoColors.white : CupertinoColors.black),
+          navTitleTextStyle: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: isDark ? CupertinoColors.white : CupertinoColors.black),
         ),
-        barBackgroundColor: CupertinoColors.systemGrey5,
       ),
-      home: StartScreen(),
-      // Desktop: remove debug banner, usa scrollbars nativos
+      home: const StartScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -70,75 +70,74 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Configuração do Gemini'),
-        backgroundColor: CupertinoColors.systemGrey6,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: carregando
-            ? const Center(child: CupertinoActivityIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Para usar o Gemini, você precisa de uma chave API:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    return CupertinoAlertDialog(
+      title: const Text('Configuração do Gemini'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            const Text(
+              'Para usar o Gemini, você precisa de uma chave API:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '1. Vá para https://makersuite.google.com/app/apikey\n2. Crie uma nova chave API\n3. Cole a chave abaixo',
+              style: TextStyle(color: CupertinoColors.systemGrey),
+            ),
+            const SizedBox(height: 24),
+            const Text('Chave API do Gemini:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            CupertinoTextField(
+              controller: apiKeyController,
+              placeholder: 'Cole sua chave API aqui',
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: CupertinoButton(
+                    onPressed: _salvarApiKey,
+                    color: CupertinoColors.activeBlue,
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Text('Salvar API Key'),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '1. Vá para https://makersuite.google.com/app/apikey\n2. Crie uma nova chave API\n3. Cole a chave abaixo',
-                    style: TextStyle(color: CupertinoColors.systemGrey),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CupertinoButton(
+                    onPressed: testarConexao,
+                    color: CupertinoColors.systemGrey,
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Text('Testar Conexão'),
                   ),
-                  const SizedBox(height: 24),
-                  const Text('Chave API do Gemini:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  CupertinoTextField(
-                    controller: apiKeyController,
-                    placeholder: 'Cole sua chave API aqui',
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CupertinoButton(
-                          onPressed: _salvarApiKey,
-                          color: CupertinoColors.activeBlue,
-                          borderRadius: BorderRadius.circular(12),
-                          child: const Text('Salvar API Key'),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: CupertinoButton(
-                          onPressed: testarConexao,
-                          color: CupertinoColors.systemGrey,
-                          borderRadius: BorderRadius.circular(12),
-                          child: const Text('Testar Conexão'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (apiKeyController.text.isNotEmpty) ...[
-                    CupertinoButton.filled(
-                      onPressed: _startGame,
-                      borderRadius: BorderRadius.circular(12),
-                      child: const Text('Iniciar Jogo'),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  Text(status,
-                      style:
-                          const TextStyle(color: CupertinoColors.activeBlue)),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (apiKeyController.text.isNotEmpty) ...[
+              CupertinoButton.filled(
+                onPressed: _startGame,
+                borderRadius: BorderRadius.circular(12),
+                child: const Text('Iniciar Jogo'),
               ),
+              const SizedBox(height: 16),
+            ],
+            Text(status,
+                style: const TextStyle(color: CupertinoColors.activeBlue)),
+          ],
+        ),
       ),
+      actions: [
+        CupertinoDialogAction(
+          child: const Text('Fechar'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
     );
   }
 }

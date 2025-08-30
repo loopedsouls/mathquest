@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import '../../services/tutor_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -22,12 +23,22 @@ class _GameScreenState extends State<GameScreen> {
   List<Map<String, String>> historico = [];
   int _nivelDificuldade = 1; // 0: Fácil, 1: Médio, 2: Difícil
   final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
+  final List<String> _tiposJogo = [
+    'matemática',
+    'quiz',
+    'lógica',
+    'palavras cruzadas',
+    'forca',
+    'adivinhação',
+  ];
+  String _tipoSelecionado = 'matemática';
 
   @override
   void initState() {
     super.initState();
-    _initializeService();
-    _carregarHistorico().then((_) => gerarNovaPergunta());
+    _initializeService().then((_) {
+      _carregarHistorico().then((_) => gerarNovaPergunta());
+    });
   }
 
   Future<void> _initializeService() async {
@@ -68,7 +79,7 @@ class _GameScreenState extends State<GameScreen> {
       _respostaController.clear();
     });
     pergunta = await tutorService.gerarPergunta(
-        area: 'matemática', nivelDificuldade: _niveis[_nivelDificuldade]);
+        area: _tipoSelecionado, nivelDificuldade: _niveis[_nivelDificuldade]);
     setState(() => carregando = false);
   }
 
@@ -81,7 +92,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     final resultado = await tutorService.verificarResposta(
-        area: 'matemática', pergunta: pergunta, resposta: resposta);
+        area: _tipoSelecionado, pergunta: pergunta, resposta: resposta);
     final correta = resultado['correta'] as bool;
 
     if (correta) {
@@ -114,7 +125,7 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> mostrarExplicacao() async {
     setState(() => carregando = true);
     explicacao = await tutorService.gerarExplicacao(
-        area: 'matemática',
+        area: _tipoSelecionado,
         pergunta: pergunta,
         respostaCorreta: 'Resposta correta',
         respostaUsuario: _respostaController.text);
@@ -129,25 +140,110 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Tutor de Matemática'),
-        backgroundColor: CupertinoColors.systemGrey6,
+        middle: Text('LLM the Game'),
       ),
       child: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20.0),
+        child: Row(
           children: [
-            carregando
-                ? const Column(
-                    children: [
-                      CupertinoActivityIndicator(),
-                      SizedBox(height: 16),
-                      Text('Carregando pergunta da IA...',
-                          style: TextStyle(color: CupertinoColors.systemGrey)),
-                    ],
-                  )
-                : _buildQuestionCardCupertino(),
-            const SizedBox(height: 30),
-            _buildHistoryListCupertino(),
+            // Menu lateral estilo Ren'Py
+            Container(
+              width: 220,
+              color: const Color(0xFFEEEEEE),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
+                  const Text('Jogos',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  ..._tiposJogo.map((tipo) => CupertinoButton(
+                        onPressed: () {
+                          setState(() {
+                            _tipoSelecionado = tipo;
+                          });
+                          gerarNovaPergunta();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(tipo[0].toUpperCase() + tipo.substring(1),
+                            style: const TextStyle(fontSize: 18)),
+                      )),
+                  const Spacer(),
+                  CupertinoButton(
+                    onPressed: () {
+                      showGeneralDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        barrierLabel: 'Fechar',
+                        pageBuilder: (context, _, __) {
+                          return SafeArea(
+                            child: Container(
+                              color: const Color(0xFFEEEEEE),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16, horizontal: 24),
+                                    color: const Color(0xFFDDDDDD),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text('Histórico',
+                                            style: TextStyle(
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold)),
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          child: const Text('Fechar'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Text('Ver Histórico',
+                        style: TextStyle(fontSize: 18)),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+            // Conteúdo principal à direita
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(32.0),
+                children: [
+                  Text(
+                    _tipoSelecionado[0].toUpperCase() +
+                        _tipoSelecionado.substring(1),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  carregando
+                      ? const Column(
+                          children: [
+                            CupertinoActivityIndicator(),
+                            SizedBox(height: 16),
+                            Text('Carregando pergunta da IA...'),
+                          ],
+                        )
+                      : _buildQuestionCardCupertino(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -155,21 +251,87 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildQuestionCardCupertino() {
-    return Container(
-      constraints:
-          const BoxConstraints(maxWidth: 600), // desktop: largura máxima
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.systemGrey.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    // Adaptação para tipos de jogos específicos
+    if (_tipoSelecionado == 'forca') {
+      return Container(
+        constraints: const BoxConstraints(maxWidth: 600),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Jogo da Forca',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              child: Text(
+                pergunta,
+                key: ValueKey<String>(pergunta),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, height: 1.5),
+              ),
+            ),
+            const SizedBox(height: 32),
+            CupertinoTextField(
+              controller: _respostaController,
+              placeholder: 'Digite uma letra ou palavra',
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+              style: const TextStyle(fontSize: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFCCCCCC)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            CupertinoButton.filled(
+              onPressed: _verificarResposta,
+              borderRadius: BorderRadius.circular(12),
+              child: const Text('Verificar', style: TextStyle(fontSize: 20)),
+            ),
+            const SizedBox(height: 24),
+            _buildFeedbackSectionCupertino(),
+            const SizedBox(height: 24),
+            CupertinoButton(
+              onPressed: gerarNovaPergunta,
+              borderRadius: BorderRadius.circular(12),
+              child: const Text('Nova Palavra', style: TextStyle(fontSize: 18)),
+            ),
+          ],
+        ),
+      );
+    }
+    // Para outros tipos não implementados, exibe mensagem
+    if (_tipoSelecionado == 'palavras cruzadas') {
+      return Container(
+        constraints: const BoxConstraints(maxWidth: 600),
+        padding: const EdgeInsets.all(32.0),
+        child: const Center(
+          child: Text(
+            'Palavras cruzadas: Em breve!',
+            style: TextStyle(fontSize: 22),
           ),
-        ],
+        ),
+      );
+    }
+    // ...existing code...
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 600),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F8F8),
+        borderRadius: BorderRadius.circular(16),
       ),
-      padding: const EdgeInsets.all(32.0), // desktop: padding maior
+      padding: const EdgeInsets.all(32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -177,9 +339,8 @@ class _GameScreenState extends State<GameScreen> {
             'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 20, // desktop: fonte maior
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: CupertinoColors.activeBlue,
             ),
           ),
           const SizedBox(height: 16),
@@ -189,23 +350,19 @@ class _GameScreenState extends State<GameScreen> {
               pergunta,
               key: ValueKey<String>(pergunta),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 24, // desktop: fonte maior
-                  color: CupertinoColors.black,
-                  height: 1.5),
+              style: const TextStyle(fontSize: 24, height: 1.5),
             ),
           ),
           const SizedBox(height: 32),
           CupertinoTextField(
             controller: _respostaController,
             placeholder: 'Sua Resposta',
-            padding: const EdgeInsets.symmetric(
-                vertical: 18, horizontal: 16), // desktop: padding maior
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             style: const TextStyle(fontSize: 20),
             decoration: BoxDecoration(
-              color: CupertinoColors.white,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey4),
+              border: Border.all(color: const Color(0xFFCCCCCC)),
             ),
           ),
           const SizedBox(height: 24),
@@ -219,7 +376,6 @@ class _GameScreenState extends State<GameScreen> {
           const SizedBox(height: 24),
           CupertinoButton(
             onPressed: gerarNovaPergunta,
-            color: CupertinoColors.activeGreen,
             borderRadius: BorderRadius.circular(12),
             child: const Text('Nova Pergunta', style: TextStyle(fontSize: 18)),
           ),
@@ -233,11 +389,7 @@ class _GameScreenState extends State<GameScreen> {
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _respostaCorreta == null
-            ? CupertinoColors.systemGrey6
-            : _respostaCorreta == true
-                ? CupertinoColors.activeGreen.withOpacity(0.1)
-                : CupertinoColors.systemRed.withOpacity(0.1),
+        color: const Color(0xFFF0F0F0),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -246,19 +398,15 @@ class _GameScreenState extends State<GameScreen> {
             Text(
               feedback,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: _respostaCorreta == true
-                    ? CupertinoColors.activeGreen
-                    : CupertinoColors.systemRed,
               ),
             ),
           if (_respostaCorreta == false) ...[
             const SizedBox(height: 12),
             CupertinoButton(
               onPressed: mostrarExplicacao,
-              color: CupertinoColors.activeBlue,
               borderRadius: BorderRadius.circular(12),
               child: const Text('Ver Explicação'),
             ),
@@ -267,126 +415,10 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 12),
             Text(
               explicacao,
-              style: const TextStyle(
-                  fontSize: 16, color: CupertinoColors.black, height: 1.4),
+              style: const TextStyle(fontSize: 16, height: 1.4),
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryListCupertino() {
-    return Center(
-      child: Container(
-        constraints:
-            const BoxConstraints(maxWidth: 700), // desktop: largura máxima
-        child: Column(
-          children: [
-            const Text(
-              'Histórico de Atividades',
-              style: TextStyle(
-                  fontSize: 24, // desktop: fonte maior
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.activeBlue),
-            ),
-            const SizedBox(height: 20),
-            if (historico.isEmpty)
-              const Text('Nenhuma atividade ainda.',
-                  style: TextStyle(
-                      fontSize: 18, color: CupertinoColors.systemGrey)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: historico.length,
-              itemBuilder: (context, index) {
-                final item = historico.reversed.toList()[index];
-                final isCorrect = item['correta'] == 'Correto';
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CupertinoColors.systemGrey.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.all(20.0), // desktop: padding maior
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['pergunta'] ?? '',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w500),
-                        ),
-                        if (item['nivel'] != null) ...[
-                          const SizedBox(height: 4),
-                          Text('Nível: ${item['nivel']}',
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  color: CupertinoColors.activeBlue)),
-                        ],
-                        const SizedBox(height: 10),
-                        Text(
-                          'Sua resposta: ${item['resposta'] ?? ''}',
-                          style: const TextStyle(
-                              fontSize: 18, color: CupertinoColors.systemGrey),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Icon(
-                              isCorrect
-                                  ? CupertinoIcons.check_mark_circled
-                                  : CupertinoIcons.clear_circled,
-                              color: isCorrect
-                                  ? CupertinoColors.activeGreen
-                                  : CupertinoColors.systemRed,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              item['correta'] ?? '',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: isCorrect
-                                    ? CupertinoColors.activeGreen
-                                    : CupertinoColors.systemRed,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (item['explicacao'] != null &&
-                            item['explicacao']!.isNotEmpty) ...[
-                          const SizedBox(height: 14),
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemGrey6,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text('Explicação: ${item['explicacao']}',
-                                style: const TextStyle(
-                                    color: CupertinoColors.activeBlue,
-                                    fontSize: 16)),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

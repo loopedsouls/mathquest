@@ -9,20 +9,56 @@ class TutorService {
   /// Gera pergunta de qualquer área
   Future<String> gerarPergunta(
       {required String area, required String nivelDificuldade}) async {
-    final prompt = '''
-Crie uma pergunta de $area de nível $nivelDificuldade.
-A pergunta deve ser clara, direta e apropriada para o nível especificado.
+    String prompt;
+    switch (area.toLowerCase()) {
+      case 'matemática':
+        prompt = '''
+Crie uma pergunta de matemática de nível $nivelDificuldade.
+Pode ser sobre operações, problemas, lógica ou raciocínio matemático.
 Inclua apenas a pergunta, sem a resposta.
-
-Exemplos de áreas:
-- Matemática: operações, problemas, lógica
-- História: fatos, datas, personagens
-- Geografia: capitais, mapas, clima
-- Ciências: biologia, física, química
-- Língua Portuguesa: gramática, interpretação
-
-Responda apenas com a pergunta.
 ''';
+        break;
+      case 'quiz':
+        prompt = '''
+Crie uma pergunta de conhecimento geral de nível $nivelDificuldade.
+Pode ser sobre história, geografia, ciências, cultura ou atualidades.
+Inclua apenas a pergunta, sem a resposta.
+''';
+        break;
+      case 'lógica':
+        prompt = '''
+Crie um desafio de lógica ou raciocínio lógico de nível $nivelDificuldade.
+Pode ser um enigma, sequência lógica ou problema de dedução.
+Inclua apenas o desafio, sem a resposta.
+''';
+        break;
+      case 'forca':
+        prompt = '''
+Escolha uma palavra de dificuldade $nivelDificuldade para o jogo da forca.
+Não revele a palavra, apenas informe a quantidade de letras e uma dica.
+Formato: "Palavra com X letras. Dica: ..."
+''';
+        break;
+      case 'palavras cruzadas':
+        prompt = '''
+Crie uma pista para palavras cruzadas de nível $nivelDificuldade.
+Informe a dica e a quantidade de letras da resposta.
+Formato: "Dica: ... (X letras)"
+''';
+        break;
+      case 'adivinhação':
+        prompt = '''
+Crie um desafio de adivinhação de nível $nivelDificuldade.
+Pode ser sobre objetos, animais, lugares ou pessoas.
+Inclua apenas a pergunta, sem a resposta.
+''';
+        break;
+      default:
+        prompt = '''
+Crie uma pergunta de $area de nível $nivelDificuldade.
+Inclua apenas a pergunta, sem a resposta.
+''';
+    }
     return await geminiService.generate(prompt);
   }
 

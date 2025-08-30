@@ -1,26 +1,27 @@
-# Adaptive Check - Tutor de Matemática com IA Gemini
+# Visual Novel LMM - Jogo de Conhecimento Geral com IA Gemini
 
-Um aplicativo Flutter que oferece tutoria de matemática adaptativa usando a API do Google Gemini.
+Um projeto Flutter que oferece jogos de conhecimento geral integrados à API do Google Gemini.
 
 ## 🚀 Características
 
-- **Tutoria Adaptativa**: O nível de dificuldade se ajusta automaticamente baseado no desempenho
-- **IA Generativa**: Usa o Google Gemini para gerar perguntas e explicações personalizadas
-- **Interface Nativa**: Design Cupertino para uma experiência iOS nativa
-- **Histórico de Atividades**: Acompanhe seu progresso ao longo do tempo
-- **Explicações Detalhadas**: Receba explicações claras quando errar uma questão
+- **Jogos Interativos**: Quiz, perguntas e respostas, desafios de lógica, adivinhação, palavras cruzadas, entre outros
+- **IA Generativa**: Utiliza Google Gemini para criar perguntas, enigmas e explicações personalizadas
+- **Interface Visual Novel**: Layout inspirado em visual novels, com diálogos, escolhas e navegação intuitiva
+- **Histórico de Progresso**: Acompanhe seu desempenho em diferentes jogos
+- **Explicações Detalhadas**: Receba feedback e explicações sobre cada resposta
+- **Configuração Dinâmica**: Tela/modal para inserir e testar a chave API Gemini
 
 ## 📋 Pré-requisitos
 
-- Flutter SDK (>=3.1.3)
-- Dart SDK
+- Flutter (>=3.0)
+- Dart
 - Chave API do Google Gemini
 
 ## 🔧 Configuração
 
 ### 1. Obter Chave API do Gemini
 
-1. Vá para [Google AI Studio](https://makersuite.google.com/app/apikey)
+1. Acesse [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Faça login com sua conta Google
 3. Clique em "Create API Key"
 4. Copie a chave gerada
@@ -30,99 +31,96 @@ Um aplicativo Flutter que oferece tutoria de matemática adaptativa usando a API
 ```bash
 # Clone o repositório
 git clone <url-do-repositorio>
-cd adaptivecheck
+cd visual-novel-lmm
 
-# Instale as dependências
+# Instale dependências Flutter
 flutter pub get
 
-# Execute o aplicativo
+# Execute o projeto
 flutter run
 ```
 
 ### 3. Configuração da API
 
-1. Abra o aplicativo
-2. Na tela inicial, clique em "Configurações"
-3. Cole sua chave API do Gemini no campo apropriado
-4. Clique em "Salvar API Key"
-5. Teste a conexão clicando em "Testar Conexão"
-6. Se tudo estiver funcionando, clique em "Iniciar Jogo"
+1. Abra o app Flutter
+2. No menu inicial, acesse "Configurações"
+3. Cole sua chave API Gemini
+4. Salve e teste a conexão
 
-## 🎮 Como Usar
+## 🎮 Como Jogar
 
-1. **Início**: Na tela inicial, clique em "Iniciar Jogo"
-2. **Perguntas**: O aplicativo gerará perguntas de matemática baseadas no seu nível atual
-3. **Resposta**: Digite sua resposta no campo de texto
-4. **Verificação**: Clique em "Verificar" para ver se acertou
-5. **Explicação**: Se errar, clique em "Ver Explicação" para entender o conceito
-6. **Progresso**: O nível de dificuldade se ajusta automaticamente:
-   - ✅ Acertou: Nível aumenta
-   - ❌ Errou: Nível diminui
-7. **Nova Pergunta**: Clique em "Nova Pergunta" para continuar
+1. **Início**: Escolha o tipo de jogo (quiz, lógica, palavras cruzadas, etc.)
+2. **Perguntas/Desafios**: O app gera perguntas ou desafios usando IA Gemini
+3. **Resposta**: Selecione ou digite sua resposta nas telas do app
+4. **Feedback**: Veja se acertou e receba explicações
+5. **Progresso**: Dificuldade ajustada conforme desempenho
+6. **Novo Jogo**: Escolha outro modo ou continue jogando
+7. **Histórico**: Veja suas atividades e resultados
 
-## 📱 Níveis de Dificuldade
+## 📱 Tipos de Jogos
 
-- **Fácil**: Operações básicas (adição, subtração, multiplicação, divisão)
-- **Médio**: Frações, percentagens, equações simples
-- **Difícil**: Álgebra, geometria, problemas complexos
-- **Expert**: Problemas avançados e conceitos matemáticos complexos
+- **Quiz de Conhecimento Geral**
+- **Desafios de Lógica**
+- **Adivinhação de Palavras**
+- **Palavras Cruzadas**
+- **Perguntas e Respostas**
+- **Jogo da Forca**
+- **Matemática Básica**
+- **Outros jogos simples gerados pela IA**
 
 ## 🏗️ Estrutura do Projeto
 
 ```
 lib/
-├── main.dart                 # Ponto de entrada do aplicativo
-├── game_screen.dart         # Telas principais (início, configuração, jogo)
-├── gemini_service.dart      # Serviço para integração com Google Gemini
-└── math_tutor_service.dart  # Lógica de tutoria matemática
+├── main.dart                 # Entrada principal do app
+├── gemini_service.dart       # Integração com Google Gemini
+├── screens/                  # Telas de configuração, histórico e jogos
+├── assets/                   # Imagens, sons, etc.
 ```
 
-## 🔄 Migração do Ollama para Gemini
+## 🔄 Migração do Ren'Py para Flutter
 
-Este projeto foi migrado do Ollama (IA local) para o Google Gemini (IA em nuvem). As principais mudanças incluem:
+Este projeto foi adaptado de Ren'Py para Flutter, mantendo integração com Google Gemini. Principais mudanças:
 
-- ✅ Substituição do `OllamaService` por `GeminiService`
-- ✅ Atualização da interface de configuração
-- ✅ Melhoria na geração de perguntas e explicações
-- ✅ Configuração mais simples (apenas chave API necessária)
+- ✅ Interface visual novel adaptada para Flutter
+- ✅ Configuração da API via tela/modal
+- ✅ Geração de perguntas e explicações via IA Gemini
+- ✅ Histórico de progresso integrado
+- ✅ Layout responsivo para mobile e desktop
 
 ## 🛠️ Dependências Principais
 
-- `flutter`: Framework de desenvolvimento
-- `google_generative_ai`: Integração com Google Gemini
-- `shared_preferences`: Armazenamento local de configurações
+- `Flutter`: Framework para apps multiplataforma
 - `http`: Requisições HTTP
+- `google-generativeai`: Integração com Google Gemini
 
 ## 📝 Notas de Desenvolvimento
 
 ### Serviços
 
-- **GeminiService**: Gerencia a comunicação com a API do Google Gemini
-- **MathTutorService**: Contém a lógica de negócio para tutoria matemática
-- **Configurações**: Armazenadas localmente usando SharedPreferences
+- **gemini_service.dart**: Gerencia comunicação com API Gemini
+- **main.dart**: Lógica dos jogos e navegação
+- **Configurações**: Armazenadas localmente
 
 ### Interface
 
-- Design baseado em Cupertino (estilo iOS)
-- Animações suaves para feedback visual
-- Cores adaptáveis baseadas no resultado (verde para correto, vermelho para incorreto)
+- Layout visual novel com diálogos e escolhas
+- Menu lateral ou inferior para navegação
+- Telas de configuração e histórico como modal
 
 ## 🚨 Segurança
 
-- A chave API é armazenada localmente no dispositivo
-- Recomenda-se não compartilhar a chave API
-- Use controles de acesso da Google Cloud para limitar o uso da API se necessário
+- Chave API armazenada localmente
+- Não compartilhe sua chave API
+- Use controles de acesso da Google Cloud para limitar uso
 
 ## 📞 Suporte
 
-Para problemas ou dúvidas:
-1. Verifique se sua chave API está correta
+Para dúvidas ou problemas:
+1. Verifique sua chave API
 2. Certifique-se de ter conexão com a internet
-3. Verifique se a API do Gemini está ativa em sua conta Google
+3. Confirme se a API Gemini está ativa
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
-
-
-
+Este projeto está sob licença MIT. Veja o arquivo LICENSE para detalhes.

@@ -45,10 +45,28 @@ class GeminiService {
   /// Faz o parse de uma string JSON para Map<String, dynamic>
   Map<String, dynamic> parseJson(String jsonStr) {
     try {
-      return jsonStr.isNotEmpty
-          ? Map<String, dynamic>.from(json.decode(jsonStr))
+      // Remove delimitadores <json> e </json> se existirem
+      String cleaned = jsonStr.trim();
+      if (cleaned.startsWith('<json>')) {
+        cleaned = cleaned.substring(6);
+      }
+      if (cleaned.endsWith('</json>')) {
+        cleaned = cleaned.substring(0, cleaned.length - 7);
+      }
+      // Remove caracteres invisíveis, espaços e quebras de linha
+      cleaned = cleaned.replaceAll(RegExp(r'[\u200B-\u200D\uFEFF]'), '').trim();
+      // Extrai apenas o bloco JSON usando expressão regular
+      final match = RegExp(r'\{[\s\S]*\}').firstMatch(cleaned);
+      if (match != null) {
+        cleaned = match.group(0)!;
+      }
+      // Tenta parsear
+      return cleaned.isNotEmpty
+          ? Map<String, dynamic>.from(json.decode(cleaned))
           : {};
     } catch (e) {
+      print('Erro ao fazer parse do JSON: $e');
+      print('Conteúdo recebido: $jsonStr');
       return {};
     }
   }

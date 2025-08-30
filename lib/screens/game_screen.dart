@@ -54,6 +54,20 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
+  String _construirPromptContextual() {
+    return '''
+      Capítulo: ${estadoJogo['capitulo']}
+      Personagem: $personagemAtivo
+      Tema: $temaHistoria
+      Complexidade: $nivelComplexidade
+      Escolhas anteriores: ${estadoJogo['escolhasAnteriores']}
+      Pontos de relacionamento: ${estadoJogo['pontosRelacionamento']}
+      Inventário: ${estadoJogo['itensInventario']}
+      Flags da história: ${estadoJogo['flagsHistoria']}
+      Continue a narrativa de forma envolvente e apresente opções para o jogador.
+    ''';
+  }
+
   String historia = '';
   String explicacao = '';
   String feedback = '';
@@ -162,19 +176,39 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     });
 
     try {
-      // Prompt mais elaborado para o LLM
-      // final prompt = _construirPromptContextual();
-      // final resultado = await tutorService.gerarHistoriaAvancada(
-      //   prompt: prompt,
-      //   contexto: estadoJogo,
-      //   personagem: personagemAtivo,
-      //   tema: temaHistoria,
-      // );
-      // Substituir por método existente:
-      final resultado = await tutorService.gerarHistoriaGemini();
+      // Prompt contextual para o LLM
+      final prompt = _construirPromptContextual();
+      final resultado = await tutorService.gerarHistoriaAvancada(
+        prompt: prompt,
+        contexto: estadoJogo,
+        personagem: personagemAtivo,
+        tema: temaHistoria,
+      );
+
+      // Detecta erro padrão da LLM
+      final respostaBruta = resultado['historia'] ?? '';
+      final falhaLLM = respostaBruta
+              .contains('Desculpe, não consegui gerar uma resposta agora.') ||
+          respostaBruta.isEmpty;
+
+      if (falhaLLM) {
+        setState(() {
+          historia =
+              'A IA não conseguiu gerar uma resposta agora. Tente novamente.';
+          opcoes = [];
+          carregando = false;
+        });
+        _salvarNoHistorico({
+          'tipo': 'narrativa',
+          'texto': historia,
+          'emocao': 'neutro',
+          'timestamp': DateTime.now(),
+        });
+        return;
+      }
 
       setState(() {
-        historia = resultado['historia'] ?? 'História não disponível';
+        historia = respostaBruta;
         opcoes = List<String>.from(resultado['opcoes'] ?? []);
         carregando = false;
       });
@@ -191,8 +225,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       }
     } catch (e) {
       setState(() {
-        historia =
-            'Erro ao carregar história. A LLM pode estar indisponível. Tente novamente.';
+        historia = 'Erro ao processar resposta da IA. Tente novamente.';
         opcoes = [];
         carregando = false;
       });
@@ -787,13 +820,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
 
-              // Personagem com animação
+              // Personagem com animação (centralizado, mas sem caixa de diálogo junto)
               Align(
                 alignment: Alignment.center,
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 200),
+                    padding: const EdgeInsets.only(
+                        bottom: 120), // menos espaço para diálogo separado
                     child: Hero(
                       tag: 'character',
                       child: Container(
@@ -840,16 +874,150 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
 
-              // Caixa de diálogo aprimorada
+              // Menu de opções centralizado na tela, com fundo apenas nas perguntas
+              if (!carregando && opcoes.isNotEmpty)
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Escolha uma opção:',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...List.generate(opcoes.length, (index) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => selecionarOpcao(index),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: respostaSelecionada == index
+                                        ? Colors.blue.withOpacity(0.3)
+                                        : Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: respostaSelecionada == index
+                                          ? Colors.blue.withOpacity(0.5)
+                                          : Colors.white.withOpacity(0.2),
+                                      width:
+                                          respostaSelecionada == index ? 2 : 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          color: _getOptionColor(index),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            '${index + 1}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              opcoes[index],
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _getOptionHint(index),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white
+                                                    .withOpacity(0.6),
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (autoMode &&
+                                          index == _escolherOpcaoInteligente())
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: const Text(
+                                            'LLM',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Caixa de diálogo separada, fixa no rodapé
               Align(
                 alignment: Alignment.bottomCenter,
                 child: SlideTransition(
                   position: _dialogueAnimation,
                   child: Container(
-                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 60),
+                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     constraints: const BoxConstraints(
-                      maxWidth: 800,
-                      minHeight: 180,
+                      maxWidth: 2000, // aumente a largura máxima
+                      maxHeight: 700, // diminua a altura mínima
+                      minWidth: 900, // opcional: garanta largura mínima
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.95),
@@ -917,7 +1085,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         // Indicador de LLM ativo
                         if (carregando)
                           Positioned(
-                            top: -8,
+                            top: -15,
                             right: 20,
                             child: FadeTransition(
                               opacity: _thinkingAnimation,
@@ -936,16 +1104,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
 
-                        // Conteúdo principal
+                        // Conteúdo principal do diálogo
                         Padding(
                           padding: const EdgeInsets.all(24),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const SizedBox(height: 8),
-
-                              // Texto da história com efeito de digitação
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 400),
                                 transitionBuilder: (child, animation) {
@@ -967,11 +1132,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        historia.isNotEmpty
-                                            ? historia
-                                            : 'Conectando com LLM...',
+                                        (historia.isEmpty && !carregando)
+                                            ? 'Nenhuma resposta da IA.'
+                                            : historia,
                                         style: const TextStyle(
-                                          fontSize: 18,
+                                          fontSize: 13,
                                           color: Colors.white,
                                           height: 1.5,
                                           fontWeight: FontWeight.w400,
@@ -983,7 +1148,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                               const EdgeInsets.only(top: 12),
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 12,
-                                            vertical: 6,
+                                            vertical: 0,
                                           ),
                                           decoration: BoxDecoration(
                                             color:
@@ -1005,199 +1170,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-
-                              const SizedBox(height: 20),
-
-                              // Loading com indicador inteligente
-                              if (carregando)
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const CircularProgressIndicator(
-                                            color: Colors.blue,
-                                            strokeWidth: 2,
-                                          ),
-                                          const SizedBox(width: 16),
-                                          FadeTransition(
-                                            opacity: _thinkingAnimation,
-                                            child: const Text(
-                                              'LLM analisando contexto...',
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      LinearProgressIndicator(
-                                        backgroundColor:
-                                            Colors.white.withOpacity(0.1),
-                                        valueColor:
-                                            const AlwaysStoppedAnimation<Color>(
-                                                Colors.blue),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                              // Opções com análise de impacto
-                              if (!carregando && opcoes.isNotEmpty) ...[
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'Escolha uma opção:',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    if (autoMode)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: const Text(
-                                          'AUTO',
-                                          style: TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                ...List.generate(opcoes.length, (index) {
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () => selecionarOpcao(index),
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: respostaSelecionada == index
-                                                ? Colors.blue.withOpacity(0.3)
-                                                : Colors.white
-                                                    .withOpacity(0.05),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: respostaSelecionada ==
-                                                      index
-                                                  ? Colors.blue.withOpacity(0.5)
-                                                  : Colors.white
-                                                      .withOpacity(0.2),
-                                              width:
-                                                  respostaSelecionada == index
-                                                      ? 2
-                                                      : 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 28,
-                                                height: 28,
-                                                decoration: BoxDecoration(
-                                                  color: _getOptionColor(index),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    '${index + 1}',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      opcoes[index],
-                                                      style: const TextStyle(
-                                                        fontSize: 16,
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      _getOptionHint(index),
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.white
-                                                            .withOpacity(0.6),
-                                                        fontStyle:
-                                                            FontStyle.italic,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              if (autoMode &&
-                                                  index ==
-                                                      _escolherOpcaoInteligente())
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 3,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.orange,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6),
-                                                  ),
-                                                  child: const Text(
-                                                    'LLM',
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
-
-                              // Feedback e explicação com melhor formatação
+                              // Feedback e explicação
                               if (feedback.isNotEmpty) ...[
                                 const SizedBox(height: 16),
                                 Container(
@@ -1243,7 +1216,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ],
-
                               if (explicacao.isNotEmpty) ...[
                                 const SizedBox(height: 12),
                                 Container(
@@ -1298,7 +1270,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
 
-              // Barra de controles melhorada
+              // Barra de controles melhorada (mantida no rodapé)
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(

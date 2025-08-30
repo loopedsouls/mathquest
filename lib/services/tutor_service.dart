@@ -1,6 +1,41 @@
 import 'gemini_service.dart';
 
 class TutorService {
+  /// Gera história avançada para visual novel usando contexto, personagem e tema
+  Future<Map<String, dynamic>> gerarHistoriaAvancada({
+    required String prompt,
+    required Map<String, dynamic> contexto,
+    required String personagem,
+    required String tema,
+  }) async {
+    final fullPrompt = '''
+Você é o narrador de uma visual novel.
+Personagem principal: "$personagem"
+Tema: "$tema"
+Contexto do jogo: ${contexto.toString()}
+${prompt}
+Gere o próximo trecho da história e 3 opções de escolha para o jogador. Responda SOMENTE com o bloco JSON abaixo, sem explicações, sem texto extra. Delimite o JSON entre <json> e </json>:
+<json>
+{
+  "historia": "Texto da história...",
+  "opcoes": ["Opção 1", "Opção 2", "Opção 3"]
+}
+</json>
+''';
+    final resposta = await geminiService.sendPrompt(fullPrompt);
+    print('Resposta bruta da LLM:');
+    print(resposta);
+    try {
+      final json = resposta.contains('{')
+          ? resposta.substring(resposta.indexOf('{'))
+          : resposta;
+      return Map<String, dynamic>.from(geminiService.parseJson(json));
+    } catch (e) {
+      print('Erro ao fazer parse do JSON: $e');
+      return {'historia': resposta, 'opcoes': []};
+    }
+  }
+
   final GeminiService geminiService;
 
   TutorService({String? apiKey})

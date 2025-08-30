@@ -41,13 +41,14 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   _GameScreenState(); // Add default unnamed constructor
-  final TextEditingController _respostaController = TextEditingController();
-  String pergunta = '';
+  String historia = '';
   String explicacao = '';
   String feedback = '';
   bool carregando = false;
-  bool? _respostaCorreta;
+  int? respostaSelecionada;
+  List<String> opcoes = [];
   List<Map<String, String>> historico = [];
+  late TutorService tutorService;
 // 0: Fácil, 1: Médio, 2: Difícil, 3: Expert
 
   void mostrarExplicacao() {
@@ -58,22 +59,40 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _verificarResposta() {
-    // TODO: Implement your answer verification logic here
+  Future<void> carregarHistoria() async {
     setState(() {
       carregando = true;
+      respostaSelecionada = null;
+      feedback = '';
     });
-    // Simulate a delay and check
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        carregando = false;
-        // Example logic: mark as correct if not empty
-        _respostaCorreta = _respostaController.text.isNotEmpty;
-        feedback = _respostaCorreta == true
-            ? "Resposta correta!"
-            : "Resposta incorreta.";
-      });
+    // Chamada real ao Gemini via TutorService
+    final resultado = await tutorService.gerarHistoriaGemini();
+    setState(() {
+      historia = resultado['historia'] ?? '';
+      opcoes = List<String>.from(resultado['opcoes'] ?? []);
+      carregando = false;
     });
+  }
+
+  Future<void> selecionarOpcao(int index) async {
+    setState(() {
+      carregando = true;
+      respostaSelecionada = index;
+    });
+    // Chamada real ao Gemini via TutorService
+    final resultado = await tutorService.enviarEscolhaGemini(opcoes[index]);
+    setState(() {
+      historia = resultado['historia'] ?? '';
+      opcoes = List<String>.from(resultado['opcoes'] ?? []);
+      carregando = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    tutorService = TutorService(apiKey: widget.apiKey);
+    carregarHistoria();
   }
 
   @override
@@ -142,62 +161,48 @@ class _GameScreenState extends State<GameScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          pergunta.isNotEmpty
-                              ? pergunta
-                              : 'Carregando diálogo...',
+                          historia.isNotEmpty
+                              ? historia
+                              : 'Carregando história...',
                           style: const TextStyle(
                               fontSize: 22, color: Colors.black87, height: 1.3),
                         ),
                         const SizedBox(height: 18),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _respostaController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Sua escolha ou resposta',
-                                  border: OutlineInputBorder(),
+                        if (carregando)
+                          const Center(child: CircularProgressIndicator()),
+                        if (!carregando && opcoes.isNotEmpty)
+                          Column(
+                            children: List.generate(opcoes.length, (index) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 6),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        respostaSelecionada == index
+                                            ? Colors.blueGrey[700]
+                                            : Colors.blueGrey[300],
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () => selecionarOpcao(index),
+                                  child: Text(opcoes[index]),
                                 ),
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            ElevatedButton(
-                              onPressed: carregando ? null : _verificarResposta,
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                              child: carregando
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))
-                                  : const Text('Enviar'),
-                            ),
-                          ],
-                        ),
+                              );
+                            }),
+                          ),
                         if (feedback.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 12),
                             child: Text(
                               feedback,
-                              style: TextStyle(
-                                color: _respostaCorreta == true
-                                    ? Colors.green
-                                    : Colors.red,
+                              style: const TextStyle(
+                                color: Colors.black87,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                               ),
-                            ),
-                          ),
-                        if (_respostaCorreta == false)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: OutlinedButton(
-                              onPressed: mostrarExplicacao,
-                              child: const Text('Ver Explicação'),
                             ),
                           ),
                         if (explicacao.isNotEmpty)

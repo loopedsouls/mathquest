@@ -65,8 +65,6 @@ class GeminiService {
           ? Map<String, dynamic>.from(json.decode(cleaned))
           : {};
     } catch (e) {
-      print('Erro ao fazer parse do JSON: $e');
-      print('Conteúdo recebido: $jsonStr');
       return {};
     }
   }

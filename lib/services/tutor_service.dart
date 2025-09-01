@@ -13,7 +13,7 @@ Você é o narrador de uma visual novel.
 Personagem principal: "$personagem"
 Tema: "$tema"
 Contexto do jogo: ${contexto.toString()}
-${prompt}
+$prompt
 Gere o próximo trecho da história e 3 opções de escolha para o jogador. Responda SOMENTE com o bloco JSON abaixo, sem explicações, sem texto extra. Delimite o JSON entre <json> e </json>:
 <json>
 {
@@ -23,15 +23,12 @@ Gere o próximo trecho da história e 3 opções de escolha para o jogador. Resp
 </json>
 ''';
     final resposta = await geminiService.sendPrompt(fullPrompt);
-    print('Resposta bruta da LLM:');
-    print(resposta);
     try {
       final json = resposta.contains('{')
           ? resposta.substring(resposta.indexOf('{'))
           : resposta;
       return Map<String, dynamic>.from(geminiService.parseJson(json));
     } catch (e) {
-      print('Erro ao fazer parse do JSON: $e');
       return {'historia': resposta, 'opcoes': []};
     }
   }

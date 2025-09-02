@@ -33,9 +33,11 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
   }
 
   Future<void> _carregarExerciciosOffline() async {
-    // Exercícios pré-definidos para modo offline
+    // Exercícios pré-definidos para modo offline com vários tipos
     _exerciciosOffline = [
+      // Quiz Múltipla Escolha - Frações
       {
+        'tipo': 'multipla_escolha',
         'topico': 'Frações',
         'nivel': 'fácil',
         'pergunta': 'Quanto é 1/2 + 1/4?',
@@ -44,7 +46,31 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
             'Para somar frações com denominadores diferentes, primeiro encontramos o mínimo múltiplo comum (MMC) dos denominadores. MMC de 2 e 4 é 4. Convertemos 1/2 para 2/4 e somamos: 2/4 + 1/4 = 3/4.',
         'opcoes': ['3/4', '1/2', '1/4', '2/4']
       },
+      // Quiz Verdadeiro/Falso - Geometria
       {
+        'tipo': 'verdadeiro_falso',
+        'topico': 'Geometria',
+        'nivel': 'fácil',
+        'pergunta': 'Um quadrado tem quatro lados iguais.',
+        'resposta_correta': 'verdadeiro',
+        'explicacao':
+            'Por definição, um quadrado é um polígono com quatro lados de comprimento igual e quatro ângulos retos.',
+        'opcoes': ['verdadeiro', 'falso']
+      },
+      // Quiz Completar Frase - Porcentagem
+      {
+        'tipo': 'completar_frase',
+        'topico': 'Porcentagem',
+        'nivel': 'médio',
+        'pergunta': '20% de 150 é igual a _____.',
+        'resposta_correta': '30',
+        'explicacao':
+            'Para calcular 20% de 150: (20/100) × 150 = 0,2 × 150 = 30.',
+        'opcoes': []
+      },
+      // Quiz Múltipla Escolha - Geometria
+      {
+        'tipo': 'multipla_escolha',
         'topico': 'Geometria',
         'nivel': 'médio',
         'pergunta': 'Qual é a área de um retângulo com base 5cm e altura 3cm?',
@@ -53,7 +79,62 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
             'A área de um retângulo é calculada multiplicando a base pela altura: 5 × 3 = 15 cm².',
         'opcoes': ['15 cm²', '8 cm²', '25 cm²', '10 cm²']
       },
+      // Quiz Verdadeiro/Falso - Álgebra
       {
+        'tipo': 'verdadeiro_falso',
+        'topico': 'Álgebra',
+        'nivel': 'médio',
+        'pergunta': 'A equação 2x + 3 = 7 tem como solução x = 2.',
+        'resposta_correta': 'verdadeiro',
+        'explicacao': 'Resolvendo a equação: 2x + 3 = 7 → 2x = 4 → x = 2.',
+        'opcoes': ['verdadeiro', 'falso']
+      },
+      // Quiz Completar Frase - Frações
+      {
+        'tipo': 'completar_frase',
+        'topico': 'Frações',
+        'nivel': 'difícil',
+        'pergunta': 'A fração 3/4 equivale a _____%.',
+        'resposta_correta': '75',
+        'explicacao':
+            'Para converter fração em porcentagem: (3/4) × 100 = 75%.',
+        'opcoes': []
+      },
+      // Quiz Múltipla Escolha - Estatística
+      {
+        'tipo': 'multipla_escolha',
+        'topico': 'Estatística',
+        'nivel': 'difícil',
+        'pergunta': 'Qual é a média dos números: 2, 4, 6, 8, 10?',
+        'resposta_correta': '6',
+        'explicacao':
+            'A média é calculada somando todos os valores e dividindo pelo número de valores: (2+4+6+8+10)/5 = 30/5 = 6.',
+        'opcoes': ['6', '5', '7', '8']
+      },
+      // Quiz Verdadeiro/Falso - Geometria
+      {
+        'tipo': 'verdadeiro_falso',
+        'topico': 'Geometria',
+        'nivel': 'difícil',
+        'pergunta': 'A soma dos ângulos internos de um triângulo é 180 graus.',
+        'resposta_correta': 'verdadeiro',
+        'explicacao':
+            'A soma dos ângulos internos de qualquer triângulo é sempre 180 graus.',
+        'opcoes': ['verdadeiro', 'falso']
+      },
+      // Quiz Completar Frase - Álgebra
+      {
+        'tipo': 'completar_frase',
+        'topico': 'Álgebra',
+        'nivel': 'fácil',
+        'pergunta': 'Se x = 5, então 2x + 3 = _____.',
+        'resposta_correta': '13',
+        'explicacao': 'Substituindo x = 5 na expressão: 2×5 + 3 = 10 + 3 = 13.',
+        'opcoes': []
+      },
+      // Quiz Múltipla Escolha - Porcentagem
+      {
+        'tipo': 'multipla_escolha',
         'topico': 'Porcentagem',
         'nivel': 'difícil',
         'pergunta': '20% de 150 é igual a:',
@@ -61,6 +142,27 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
         'explicacao':
             'Para calcular 20% de 150: (20/100) × 150 = 0,2 × 150 = 30.',
         'opcoes': ['30', '20', '150', '300']
+      },
+      // Quiz Verdadeiro/Falso - Números
+      {
+        'tipo': 'verdadeiro_falso',
+        'topico': 'Números',
+        'nivel': 'médio',
+        'pergunta': 'O número 17 é um número primo.',
+        'resposta_correta': 'verdadeiro',
+        'explicacao':
+            '17 é um número primo porque só é divisível por 1 e por ele mesmo.',
+        'opcoes': ['verdadeiro', 'falso']
+      },
+      // Quiz Completar Frase - Geometria
+      {
+        'tipo': 'completar_frase',
+        'topico': 'Geometria',
+        'nivel': 'médio',
+        'pergunta': 'Um círculo tem _____ graus.',
+        'resposta_correta': '360',
+        'explicacao': 'Um círculo completo mede 360 graus.',
+        'opcoes': []
       }
     ];
   }
@@ -317,6 +419,11 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
       '✅ Modo offline com exercícios pré-carregados',
       '✅ Alternância entre Gemini e Ollama',
       '✅ Interface intuitiva e gamificada',
+      '🎯 Múltipla escolha interativa',
+      '✓ Quiz verdadeiro/falso',
+      '📝 Complete a frase',
+      '📊 Estatísticas de desempenho',
+      '🎮 Experiência gamificada',
     ];
 
     return Column(
@@ -1312,9 +1419,21 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
     String explicacaoResposta = '';
 
     if (widget.isOfflineMode && _exercicioAtual != null) {
-      // Verificação offline
-      correta = resposta.toLowerCase() ==
-          _exercicioAtual!['resposta_correta'].toLowerCase();
+      // Verificação offline baseada no tipo de quiz
+      final tipo = _exercicioAtual!['tipo'] ?? 'completar_frase';
+
+      switch (tipo) {
+        case 'multipla_escolha':
+        case 'verdadeiro_falso':
+        case 'completar_frase':
+          correta = resposta.toLowerCase() ==
+              _exercicioAtual!['resposta_correta'].toLowerCase();
+          break;
+        default:
+          correta = resposta.toLowerCase() ==
+              _exercicioAtual!['resposta_correta'].toLowerCase();
+      }
+
       explicacaoResposta = _exercicioAtual!['explicacao'];
     } else if (!widget.isOfflineMode) {
       // Verificação com IA
@@ -1347,6 +1466,7 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
     historico.add({
       'pergunta': pergunta,
       'resposta': resposta,
+      'tipo': _exercicioAtual?['tipo'] ?? 'completar_frase',
       'correta': correta ? 'Correto' : 'Incorreto',
       'explicacao': explicacao,
       'nivel': _niveis[_nivelDificuldade],
@@ -1504,6 +1624,8 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
   }
 
   Widget _buildExercicioCard() {
+    final tipo = _exercicioAtual?['tipo'] ?? 'completar_frase';
+
     return Container(
       decoration: BoxDecoration(
         color: CupertinoColors.systemGrey6,
@@ -1520,19 +1642,21 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(
-                CupertinoIcons.book,
+                _getTipoIcon(tipo),
                 color: CupertinoColors.activeBlue,
               ),
-              SizedBox(width: 8),
-              Text(
-                'Exercício de Matemática',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.activeBlue,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _getTipoTitulo(tipo),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.activeBlue,
+                  ),
                 ),
               ),
             ],
@@ -1552,17 +1676,7 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          CupertinoTextField(
-            controller: _respostaController,
-            placeholder: 'Digite sua resposta aqui',
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-            style: const TextStyle(fontSize: 18),
-            decoration: BoxDecoration(
-              color: CupertinoColors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey4),
-            ),
-          ),
+          _buildTipoInterface(tipo),
           const SizedBox(height: 16),
           CupertinoButton.filled(
             onPressed: _verificarResposta,
@@ -1593,6 +1707,146 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  IconData _getTipoIcon(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return CupertinoIcons.list_bullet;
+      case 'verdadeiro_falso':
+        return CupertinoIcons.checkmark_square;
+      case 'completar_frase':
+        return CupertinoIcons.text_cursor;
+      default:
+        return CupertinoIcons.book;
+    }
+  }
+
+  String _getTipoTitulo(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return 'Quiz de Múltipla Escolha';
+      case 'verdadeiro_falso':
+        return 'Verdadeiro ou Falso';
+      case 'completar_frase':
+        return 'Complete a Frase';
+      default:
+        return 'Exercício de Matemática';
+    }
+  }
+
+  Widget _buildTipoInterface(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return _buildMultiplaEscolha();
+      case 'verdadeiro_falso':
+        return _buildVerdadeiroFalso();
+      case 'completar_frase':
+      default:
+        return _buildCompletarFrase();
+    }
+  }
+
+  Widget _buildMultiplaEscolha() {
+    final opcoes = _exercicioAtual?['opcoes'] as List<dynamic>? ?? [];
+
+    return Column(
+      children: opcoes.map((opcao) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: CupertinoButton(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            color: CupertinoColors.white,
+            borderRadius: BorderRadius.circular(12),
+            onPressed: () {
+              setState(() {
+                _respostaController.text = opcao.toString();
+              });
+            },
+            child: Row(
+              children: [
+                Icon(
+                  _respostaController.text == opcao.toString()
+                      ? CupertinoIcons.checkmark_circle_fill
+                      : CupertinoIcons.circle,
+                  color: _respostaController.text == opcao.toString()
+                      ? CupertinoColors.activeBlue
+                      : CupertinoColors.systemGrey,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    opcao.toString(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: CupertinoColors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildVerdadeiroFalso() {
+    return Row(
+      children: [
+        Expanded(
+          child: CupertinoButton(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            color: _respostaController.text == 'verdadeiro'
+                ? CupertinoColors.activeGreen
+                : CupertinoColors.white,
+            borderRadius: BorderRadius.circular(12),
+            onPressed: () {
+              setState(() {
+                _respostaController.text = 'verdadeiro';
+              });
+            },
+            child: const Text(
+              'Verdadeiro',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CupertinoButton(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            color: _respostaController.text == 'falso'
+                ? CupertinoColors.systemRed
+                : CupertinoColors.white,
+            borderRadius: BorderRadius.circular(12),
+            onPressed: () {
+              setState(() {
+                _respostaController.text = 'falso';
+              });
+            },
+            child: const Text(
+              'Falso',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompletarFrase() {
+    return CupertinoTextField(
+      controller: _respostaController,
+      placeholder: 'Digite sua resposta aqui',
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      style: const TextStyle(fontSize: 18),
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CupertinoColors.systemGrey4),
       ),
     );
   }

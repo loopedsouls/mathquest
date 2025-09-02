@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primaryColor: CupertinoColors.activeBlue,
         brightness: Brightness.light,
       ),
-      home: StartScreen(),
+      home: TutoriaScreen(),
     );
   }
 }

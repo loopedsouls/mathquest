@@ -29,7 +29,8 @@ class _StartScreenState extends State<StartScreen> {
       if (mounted) {
         setState(() {
           if (!isAvailable) {
-            _error = 'Serviço Gemini não está acessível. Verifique sua chave API.';
+            _error =
+                'Serviço Gemini não está acessível. Verifique sua chave API.';
           }
           _isLoading = false;
         });
@@ -82,7 +83,8 @@ class _StartScreenState extends State<StartScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(CupertinoIcons.book_solid, size: 80, color: CupertinoColors.activeBlue),
+                    const Icon(CupertinoIcons.book_solid,
+                        size: 80, color: CupertinoColors.activeBlue),
                     const SizedBox(height: 24),
                     const Text(
                       'Tutor de Matemática Adaptativo',
@@ -107,21 +109,25 @@ class _StartScreenState extends State<StartScreen> {
                       Text(
                         _error!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: CupertinoColors.systemRed, fontSize: 16),
+                        style: const TextStyle(
+                            color: CupertinoColors.systemRed, fontSize: 16),
                       ),
                       const SizedBox(height: 16),
                     ],
                     CupertinoButton.filled(
                       onPressed: _startGame,
                       borderRadius: BorderRadius.circular(12),
-                      child: Text(_error == null ? 'Iniciar Jogo' : 'Configurar API', style: const TextStyle(fontSize: 18)),
+                      child: Text(
+                          _error == null ? 'Iniciar Jogo' : 'Configurar API',
+                          style: const TextStyle(fontSize: 18)),
                     ),
                     const SizedBox(height: 16),
                     CupertinoButton(
                       onPressed: _goToConfig,
                       color: CupertinoColors.systemGrey4,
                       borderRadius: BorderRadius.circular(12),
-                      child: const Text('Configurações', style: TextStyle(fontSize: 16)),
+                      child: const Text('Configurações',
+                          style: TextStyle(fontSize: 16)),
                     ),
                   ],
                 ),
@@ -163,10 +169,10 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
   Future<void> _salvarApiKey() async {
     final apiKey = apiKeyController.text.trim();
     if (apiKey.isEmpty) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('gemini_api_key', apiKey);
-    
+
     setState(() {
       status = 'Chave API salva com sucesso!';
     });
@@ -177,7 +183,9 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
     try {
       final geminiService = GeminiService(apiKey: apiKeyController.text.trim());
       final isAvailable = await geminiService.isServiceAvailable();
-      status = isAvailable ? 'Conexão com Gemini funcionando!' : 'Erro na conexão com Gemini.';
+      status = isAvailable
+          ? 'Conexão com Gemini funcionando!'
+          : 'Erro na conexão com Gemini.';
     } catch (e) {
       status = 'Erro ao testar conexão: $e';
     }
@@ -216,12 +224,14 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
                     style: TextStyle(color: CupertinoColors.systemGrey),
                   ),
                   const SizedBox(height: 24),
-                  const Text('Chave API do Gemini:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Chave API do Gemini:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   CupertinoTextField(
                     controller: apiKeyController,
                     placeholder: 'Cole sua chave API aqui',
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     obscureText: true,
                   ),
                   const SizedBox(height: 16),
@@ -255,7 +265,9 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  Text(status, style: const TextStyle(color: CupertinoColors.activeBlue)),
+                  Text(status,
+                      style:
+                          const TextStyle(color: CupertinoColors.activeBlue)),
                 ],
               ),
       ),
@@ -292,12 +304,12 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _initializeService() async {
     String? apiKey = widget.apiKey;
-    
+
     if (apiKey == null || apiKey.isEmpty) {
       final prefs = await SharedPreferences.getInstance();
       apiKey = prefs.getString('gemini_api_key');
     }
-    
+
     tutorService = MathTutorService(apiKey: apiKey);
   }
 
@@ -371,8 +383,8 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> mostrarExplicacao() async {
     setState(() => carregando = true);
-    explicacao = await tutorService
-        .gerarExplicacao(pergunta, 'Resposta correta', _respostaController.text);
+    explicacao = await tutorService.gerarExplicacao(
+        pergunta, 'Resposta correta', _respostaController.text);
     if (historico.isNotEmpty) {
       historico.last['explicacao'] = explicacao;
     }
@@ -396,7 +408,8 @@ class _GameScreenState extends State<GameScreen> {
                     children: [
                       const CupertinoActivityIndicator(),
                       const SizedBox(height: 16),
-                      const Text('Carregando pergunta da IA...', style: TextStyle(color: CupertinoColors.systemGrey)),
+                      const Text('Carregando pergunta da IA...',
+                          style: TextStyle(color: CupertinoColors.systemGrey)),
                     ],
                   )
                 : _buildQuestionCardCupertino(),
@@ -441,7 +454,8 @@ class _GameScreenState extends State<GameScreen> {
               pergunta,
               key: ValueKey<String>(pergunta),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, color: CupertinoColors.black, height: 1.5),
+              style: const TextStyle(
+                  fontSize: 20, color: CupertinoColors.black, height: 1.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -497,7 +511,9 @@ class _GameScreenState extends State<GameScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: _respostaCorreta == true ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
+                color: _respostaCorreta == true
+                    ? CupertinoColors.activeGreen
+                    : CupertinoColors.systemRed,
               ),
             ),
           if (_respostaCorreta == false) ...[
@@ -513,7 +529,8 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 12),
             Text(
               explicacao,
-              style: const TextStyle(fontSize: 16, color: CupertinoColors.black, height: 1.4),
+              style: const TextStyle(
+                  fontSize: 16, color: CupertinoColors.black, height: 1.4),
             ),
           ],
         ],
@@ -526,11 +543,16 @@ class _GameScreenState extends State<GameScreen> {
       children: [
         const Text(
           'Histórico de Atividades',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CupertinoColors.activeBlue),
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.activeBlue),
         ),
         const SizedBox(height: 16),
         if (historico.isEmpty)
-          const Text('Nenhuma atividade ainda.', style: TextStyle(fontSize: 16, color: CupertinoColors.systemGrey)),
+          const Text('Nenhuma atividade ainda.',
+              style:
+                  TextStyle(fontSize: 16, color: CupertinoColors.systemGrey)),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -558,23 +580,31 @@ class _GameScreenState extends State<GameScreen> {
                   children: [
                     Text(
                       item['pergunta'] ?? '',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     if (item['nivel'] != null) ...[
                       const SizedBox(height: 4),
-                      Text('Nível: ${item['nivel']}', style: const TextStyle(fontSize: 14, color: CupertinoColors.activeBlue)),
+                      Text('Nível: ${item['nivel']}',
+                          style: const TextStyle(
+                              fontSize: 14, color: CupertinoColors.activeBlue)),
                     ],
                     const SizedBox(height: 8),
                     Text(
                       'Sua resposta: ${item['resposta'] ?? ''}',
-                      style: const TextStyle(fontSize: 16, color: CupertinoColors.systemGrey),
+                      style: const TextStyle(
+                          fontSize: 16, color: CupertinoColors.systemGrey),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Icon(
-                          isCorrect ? CupertinoIcons.check_mark_circled : CupertinoIcons.clear_circled,
-                          color: isCorrect ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
+                          isCorrect
+                              ? CupertinoIcons.check_mark_circled
+                              : CupertinoIcons.clear_circled,
+                          color: isCorrect
+                              ? CupertinoColors.activeGreen
+                              : CupertinoColors.systemRed,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
@@ -582,12 +612,15 @@ class _GameScreenState extends State<GameScreen> {
                           item['correta'] ?? '',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: isCorrect ? CupertinoColors.activeGreen : CupertinoColors.systemRed,
+                            color: isCorrect
+                                ? CupertinoColors.activeGreen
+                                : CupertinoColors.systemRed,
                           ),
                         ),
                       ],
                     ),
-                    if (item['explicacao'] != null && item['explicacao']!.isNotEmpty) ...[
+                    if (item['explicacao'] != null &&
+                        item['explicacao']!.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(10),
@@ -595,7 +628,9 @@ class _GameScreenState extends State<GameScreen> {
                           color: CupertinoColors.systemGrey6,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text('Explicação: ${item['explicacao']}', style: const TextStyle(color: CupertinoColors.activeBlue)),
+                        child: Text('Explicação: ${item['explicacao']}',
+                            style: const TextStyle(
+                                color: CupertinoColors.activeBlue)),
                       ),
                     ],
                   ],

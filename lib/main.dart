@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'game_screen.dart';
+import 'screens/game_screen.dart';
 
 void main() {
   runApp(const MyApp());

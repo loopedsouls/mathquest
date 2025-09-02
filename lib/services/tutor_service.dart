@@ -1,4 +1,4 @@
-import '../gemini_service.dart';
+import 'gemini_service.dart';
 
 class TutorService {
   final GeminiService geminiService;

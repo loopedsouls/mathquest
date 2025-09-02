@@ -1,631 +1,710 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../services/tutor_service.dart';
-import '../widgets/option_button.dart';
+import '../services/math_tutor_service.dart';
+import '../services/gemini_service.dart';
+import '../services/ollama_service.dart';
+import '../services/ai_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+class StartScreen extends StatefulWidget {
+  const StartScreen({super.key});
 
   @override
-  GameScreenState createState() => GameScreenState();
+  State<StartScreen> createState() => _StartScreenState();
 }
 
-class GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
-  // Estado do jogo
-  bool carregando = false;
-  bool autoMode = false;
-  String historia = '';
-  List<String> opcoes = [];
-  String? respostaSelecionada;
-  String feedback = '';
-  String explicacao = '';
-
-  late TutorService tutorService;
-
-  // Configurações educacionais (adaptado para Matemática BNCC)
-  String topicoAtual = 'Frações';
-  String nivelDificuldade = 'médio';
-  String serieEscolar = '6º ano';
-  Map<String, dynamic> progressoAluno = {};
-
-  // Animações
-  late AnimationController _dialogueController;
-  late Animation<Offset> _dialogueAnimation;
+class _StartScreenState extends State<StartScreen> {
+  final GeminiService geminiService = GeminiService();
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    tutorService = TutorService();
-    _iniciarAnimacoes();
-    carregarExercicio();
+    _checkGemini();
   }
 
-  void _iniciarAnimacoes() {
-    _dialogueController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _dialogueAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _dialogueController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  Future<void> carregarExercicio() async {
-    setState(() {
-      carregando = true;
-      respostaSelecionada = null;
-      feedback = '';
-      explicacao = '';
-    });
-
+  Future<void> _checkGemini() async {
     try {
-      final prompt = _construirPromptEducacional();
-      final resultado = await tutorService.gerarExercicioMatematico(
-        prompt: prompt,
-        contexto: progressoAluno,
-        topico: topicoAtual,
-        nivel: nivelDificuldade,
-      );
-
-      setState(() {
-        historia = resultado['exercicio'] ?? 'Exercício não disponível';
-        opcoes = List<String>.from(resultado['opcoes'] ?? []);
-        carregando = false;
-      });
-
-      _salvarNoHistorico({
-        'tipo': 'exercicio',
-        'texto': historia,
-        'timestamp': DateTime.now(),
-      });
-
-      if (autoMode) {
-        _iniciarAutoAvaliacao();
+      final isAvailable = await geminiService.isServiceAvailable();
+      if (mounted) {
+        setState(() {
+          if (!isAvailable) {
+            _error =
+                'Serviço Gemini não está acessível. Verifique sua chave API.';
+          }
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      setState(() {
-        historia = 'Erro ao gerar exercício. Tente novamente.';
-        opcoes = [];
-        carregando = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Erro ao conectar com Gemini. Verifique sua configuração.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  String _construirPromptEducacional() {
-    return '''
-      Tópico: $topicoAtual
-      Nível: $nivelDificuldade
-      Série: $serieEscolar
-      Progresso do aluno: ${progressoAluno.toString()}
-      BNCC: Gere um exercício matemático contextualizado, com explicação passo a passo e opções de resposta.
-      Inclua feedback personalizado baseado no desempenho anterior.
-    ''';
-  }
-
-  void _salvarNoHistorico(Map<String, dynamic> map) {
-    // Implementar salvamento no histórico (ex.: SQLite)
-  }
-
-  void _iniciarAutoAvaliacao() {
-    // Implementar lógica de auto-avaliação
-  }
-
-  Future<void> selecionarOpcao(int index) async {
-    setState(() {
-      carregando = true;
-      respostaSelecionada = opcoes[index];
-    });
-
-    final escolha = opcoes[index];
-
-    final analise = await _analisarResposta(escolha, index);
-    _atualizarProgresso(escolha, analise);
-
-    final resultado = await tutorService.avaliarResposta(escolha);
-
-    setState(() {
-      historia = resultado['explicacao'] ?? 'Explicação não disponível';
-      feedback = resultado['feedback'] ?? '';
-      explicacao = resultado['dica'] ?? '';
-      respostaSelecionada = null;
-      carregando = false;
-    });
-  }
-
-  Future<Map<String, dynamic>> _analisarResposta(
-      String resposta, int indice) async {
-    // Lógica para analisar resposta matemática
-    return {
-      'correta': resposta == 'resposta_correta', // Placeholder
-      'impacto': 'positivo',
-      'dificuldade': nivelDificuldade,
-    };
-  }
-
-  void _atualizarProgresso(String resposta, Map<String, dynamic> analise) {
-    // Atualizar progresso baseado em resposta
-    progressoAluno[topicoAtual] =
-        (progressoAluno[topicoAtual] ?? 0) + (analise['correta'] ? 1 : 0);
-  }
-
-  void showHistory() {
-    // Implementar exibição do histórico
-  }
-
-  void skipDialogue() {
-    carregarExercicio();
-  }
-
-  void toggleAutoMode() {
-    setState(() {
-      autoMode = !autoMode;
-    });
-  }
-
-  void _showSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Configurações Educacionais'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('Tópico Matemático'),
-                subtitle: Text(topicoAtual),
-                trailing: const Icon(Icons.edit),
-                onTap: () => _mostrarSeletorTopico(),
-              ),
-              ListTile(
-                title: const Text('Dificuldade'),
-                subtitle: Text(nivelDificuldade),
-                trailing: const Icon(Icons.tune),
-                onTap: () => _mostrarSeletorDificuldade(),
-              ),
-              ListTile(
-                title: const Text('Série Escolar'),
-                subtitle: Text(serieEscolar),
-                trailing: const Icon(Icons.school),
-                onTap: () => _mostrarSeletorSerie(),
-              ),
-              const Divider(),
-              ListTile(
-                title: const Text('Imprimir Exercício (Modo Desplugado)'),
-                leading: const Icon(Icons.print),
-                onTap: () {
-                  Navigator.pop(context);
-                  _imprimirExercicio();
-                },
-              ),
-              ListTile(
-                title: const Text('Relatório de Progresso'),
-                leading: const Icon(Icons.bar_chart),
-                onTap: () {
-                  Navigator.pop(context);
-                  _mostrarRelatorio();
-                },
-              ),
-            ],
-          ),
+  void _startGame() {
+    if (_error == null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const GameScreen(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+      );
+    } else {
+      _goToConfig();
+    }
+  }
+
+  void _goToConfig() {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => const GeminiConfigScreen(),
           ),
-        ],
-      ),
-    );
+        )
+        .then((_) => _checkGemini());
   }
 
-  void _mostrarSeletorTopico() {
-    final topicos = ['Frações', 'Geometria', 'Porcentagem', 'Equações'];
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Escolher Tópico'),
-        children: topicos
-            .map((topico) => SimpleDialogOption(
-                  onPressed: () {
-                    setState(() {
-                      topicoAtual = topico;
-                    });
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: Text(topico),
-                ))
-            .toList(),
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Bem-vindo'),
+        backgroundColor: CupertinoColors.systemGrey6,
       ),
-    );
-  }
-
-  void _mostrarSeletorDificuldade() {
-    final dificuldades = ['fácil', 'médio', 'difícil'];
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Nível de Dificuldade'),
-        children: dificuldades
-            .map((dificuldade) => SimpleDialogOption(
-                  onPressed: () {
-                    setState(() {
-                      nivelDificuldade = dificuldade;
-                    });
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: Text(dificuldade),
-                ))
-            .toList(),
-      ),
-    );
-  }
-
-  void _mostrarSeletorSerie() {
-    final series = ['5º ano', '6º ano', '7º ano', '8º ano', '9º ano'];
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Série Escolar'),
-        children: series
-            .map((serie) => SimpleDialogOption(
-                  onPressed: () {
-                    setState(() {
-                      serieEscolar = serie;
-                    });
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: Text(serie),
-                ))
-            .toList(),
-      ),
-    );
-  }
-
-  void _imprimirExercicio() {
-    // Lógica para imprimir exercício (modo desplugado)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Exercício enviado para impressão!'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _mostrarRelatorio() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Text('Relatório de Progresso',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            ...progressoAluno.entries.map((entry) => ListTile(
-                  title: Text(entry.key),
-                  subtitle: Text('Pontos: ${entry.value}'),
-                )),
-          ],
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: _isLoading
+              ? const CupertinoActivityIndicator()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(CupertinoIcons.book_solid,
+                        size: 80, color: CupertinoColors.activeBlue),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Tutor de Matemática Adaptativo',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Desafie-se e melhore suas habilidades matemáticas com a ajuda da IA Gemini.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: CupertinoColors.systemGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    if (_error != null) ...[
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: CupertinoColors.systemRed, fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    CupertinoButton.filled(
+                      onPressed: _startGame,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Text(
+                          _error == null ? 'Iniciar Jogo' : 'Configurar API',
+                          style: const TextStyle(fontSize: 18)),
+                    ),
+                    const SizedBox(height: 16),
+                    CupertinoButton(
+                      onPressed: _goToConfig,
+                      color: CupertinoColors.systemGrey4,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Text('Configurações',
+                          style: TextStyle(fontSize: 16)),
+                    ),
+                  ],
+                ),
         ),
+      ),
+    );
+  }
+}
+
+class GeminiConfigScreen extends StatefulWidget {
+  const GeminiConfigScreen({super.key});
+
+  @override
+  State<GeminiConfigScreen> createState() => _GeminiConfigScreenState();
+}
+
+class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
+  final TextEditingController apiKeyController = TextEditingController();
+  bool carregando = false;
+  String status = '';
+  bool _useGeminiDefault = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarApiKey();
+  }
+
+  Future<void> _carregarApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final apiKey = prefs.getString('gemini_api_key');
+    final useGemini = prefs.getBool('use_gemini') ?? true;
+    if (apiKey != null) {
+      apiKeyController.text = apiKey;
+    } else {
+      // Usar a chave padrão se não houver uma salva
+      apiKeyController.text = 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo';
+    }
+    setState(() {
+      _useGeminiDefault = useGemini;
+    });
+  }
+
+  Future<void> _salvarApiKey() async {
+    final apiKey = apiKeyController.text.trim();
+    if (apiKey.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('gemini_api_key', apiKey);
+    await prefs.setBool('use_gemini', _useGeminiDefault);
+
+    setState(() {
+      status = 'Configurações salvas com sucesso!';
+    });
+  }
+
+  Future<void> testarConexao() async {
+    setState(() => carregando = true);
+    try {
+      final geminiService = GeminiService(apiKey: apiKeyController.text.trim());
+      final isAvailable = await geminiService.isServiceAvailable();
+      status = isAvailable
+          ? 'Conexão com Gemini funcionando!'
+          : 'Erro na conexão com Gemini.';
+    } catch (e) {
+      status = 'Erro ao testar conexão: $e';
+    }
+    setState(() => carregando = false);
+  }
+
+  void _toggleDefaultService() {
+    setState(() {
+      _useGeminiDefault = !_useGeminiDefault;
+    });
+  }
+
+  void _startGame() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GameScreen(apiKey: apiKeyController.text.trim()),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        onTap: () {
-          if (opcoes.isEmpty && !carregando) {
-            carregarExercicio();
-          }
-        },
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF1E1E2E),
-                Color(0xFF2A2A3D),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Fundo animado
-              Positioned.fill(
-                child: AnimatedContainer(
-                  duration: const Duration(seconds: 2),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.1),
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.1),
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Configuração do Gemini'),
+        backgroundColor: CupertinoColors.systemGrey6,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: carregando
+            ? const Center(child: CupertinoActivityIndicator())
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Para usar o Gemini, você precisa de uma chave API:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                ),
-              ),
-
-              // Informações educacionais
-              Positioned(
-                top: 50,
-                left: 20,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(20),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '1. Vá para https://makersuite.google.com/app/apikey\n2. Crie uma nova chave API\n3. Cole a chave abaixo',
+                    style: TextStyle(color: CupertinoColors.systemGrey),
                   ),
-                  child: Text(
-                    'Tópico: $topicoAtual | Nível: $nivelDificuldade | Série: $serieEscolar',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const SizedBox(height: 24),
+                  const Text('Chave API do Gemini:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  CupertinoTextField(
+                    controller: apiKeyController,
+                    placeholder: 'Cole sua chave API aqui',
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    obscureText: true,
                   ),
-                ),
-              ),
-
-              // Menu de opções (exercícios)
-              if (!carregando && opcoes.isNotEmpty)
-                Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 24),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.92),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Escolha a resposta:',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ...opcoes.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final opcao = entry.value;
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ElevatedButton(
-                              onPressed: () => selecionarOpcao(index),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: respostaSelecionada == opcao
-                                    ? (opcao == 'resposta_correta'
-                                        ? Colors.green
-                                        : Colors.red)
-                                    : Colors.blueAccent,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Text(
-                                opcao,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Caixa de diálogo (explicação/exercício)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: SlideTransition(
-                  position: _dialogueAnimation,
-                  child: Container(
-                    margin: const EdgeInsets.all(20),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          top: -20,
-                          right: -20,
-                          child: Opacity(
-                            opacity: 0.1,
-                            child: Image.asset(
-                              'assets/images/brain.png',
-                              width: 100,
-                              height: 100,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const SizedBox(height: 8),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: Container(
-                                  key: ValueKey<String>(historia),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        (historia.isEmpty && !carregando)
-                                            ? 'Nenhum exercício gerado.'
-                                            : historia,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.white,
-                                          height: 1.5,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                      if (historia.isNotEmpty && !carregando)
-                                        Container(
-                                          margin:
-                                              const EdgeInsets.only(top: 12),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 6),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.white.withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            'Gerado por IA | Tópico: $topicoAtual | Dificuldade: $nivelDificuldade',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color:
-                                                  Colors.white.withOpacity(0.7),
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (feedback.isNotEmpty)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 16),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: feedback.startsWith('Parabéns')
-                                        ? Colors.greenAccent
-                                        : Colors.redAccent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    feedback,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              if (explicacao.isNotEmpty)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 12),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blueAccent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    explicacao,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Barra de controles
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.9),
-                        Colors.black.withOpacity(0.7),
-                      ],
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  const SizedBox(height: 16),
+                  Row(
                     children: [
-                      OptionButton(
-                        label: 'History',
-                        onTap: showHistory,
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: _salvarApiKey,
+                          color: CupertinoColors.activeBlue,
+                          borderRadius: BorderRadius.circular(12),
+                          child: const Text('Salvar API Key'),
+                        ),
                       ),
-                      OptionButton(
-                        label: 'Next',
-                        onTap: skipDialogue,
-                      ),
-                      OptionButton(
-                        label: 'Auto',
-                        isActive: autoMode,
-                        onTap: toggleAutoMode,
-                      ),
-                      OptionButton(
-                        label: 'Print',
-                        onTap: _imprimirExercicio,
-                      ),
-                      OptionButton(
-                        label: 'Report',
-                        onTap: _mostrarRelatorio,
-                      ),
-                      OptionButton(
-                        label: 'Settings',
-                        onTap: _showSettings,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: testarConexao,
+                          color: CupertinoColors.systemGrey,
+                          borderRadius: BorderRadius.circular(12),
+                          child: const Text('Testar Conexão'),
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Serviço de IA Padrão:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  CupertinoButton(
+                    onPressed: _toggleDefaultService,
+                    color: _useGeminiDefault
+                        ? CupertinoColors.activeBlue
+                        : CupertinoColors.systemOrange,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Text(
+                        _useGeminiDefault ? 'Usando Gemini' : 'Usando Ollama'),
+                  ),
+                  const SizedBox(height: 16),
+                  if (apiKeyController.text.isNotEmpty) ...[
+                    CupertinoButton.filled(
+                      onPressed: _startGame,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Text('Iniciar Jogo'),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(status,
+                      style:
+                          const TextStyle(color: CupertinoColors.activeBlue)),
+                ],
               ),
-            ],
-          ),
+      ),
+    );
+  }
+}
+
+class GameScreen extends StatefulWidget {
+  final String? apiKey;
+  const GameScreen({super.key, this.apiKey});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  late MathTutorService tutorService;
+  final TextEditingController _respostaController = TextEditingController();
+  String pergunta = '';
+  String explicacao = '';
+  String feedback = '';
+  bool carregando = false;
+  bool? _respostaCorreta;
+  List<Map<String, String>> historico = [];
+  int _nivelDificuldade = 1; // 0: Fácil, 1: Médio, 2: Difícil
+  final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
+  bool _useGemini = true; // Estado para controlar qual serviço usar
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarPreferencias().then((_) {
+      _initializeService().then((_) {
+        _carregarHistorico().then((_) => gerarNovaPergunta());
+      });
+    });
+  }
+
+  Future<void> _carregarPreferencias() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _useGemini = prefs.getBool('use_gemini') ?? true;
+    });
+  }
+
+  Future<void> _initializeService() async {
+    String? apiKey = widget.apiKey;
+
+    if (apiKey == null || apiKey.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      apiKey = prefs.getString('gemini_api_key');
+    }
+
+    AIService aiService;
+    if (_useGemini) {
+      aiService = GeminiService(apiKey: apiKey);
+    } else {
+      aiService = OllamaService();
+    }
+
+    tutorService = MathTutorService(aiService: aiService);
+  }
+
+  Future<void> _toggleAIService() async {
+    setState(() {
+      _useGemini = !_useGemini;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_gemini', _useGemini);
+    await _initializeService();
+  }
+
+  Future<void> _salvarHistorico() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historicoJson = jsonEncode(historico);
+    await prefs.setString('historico_perguntas', historicoJson);
+  }
+
+  Future<void> _carregarHistorico() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historicoJson = prefs.getString('historico_perguntas');
+    if (historicoJson != null) {
+      final List<dynamic> decoded = jsonDecode(historicoJson);
+      setState(() {
+        historico = decoded.map((e) => Map<String, String>.from(e)).toList();
+      });
+    }
+  }
+
+  Future<void> gerarNovaPergunta() async {
+    setState(() {
+      carregando = true;
+      pergunta = '';
+      explicacao = '';
+      feedback = '';
+      _respostaCorreta = null;
+      _respostaController.clear();
+    });
+    pergunta = await tutorService.gerarPergunta(_niveis[_nivelDificuldade]);
+    setState(() => carregando = false);
+  }
+
+  Future<void> _verificarResposta() async {
+    setState(() => carregando = true);
+    final resposta = _respostaController.text.trim();
+    if (resposta.isEmpty) {
+      setState(() => carregando = false);
+      return;
+    }
+
+    final resultado = await tutorService.verificarResposta(pergunta, resposta);
+    final correta = resultado['correta'] as bool;
+
+    if (correta) {
+      if (_nivelDificuldade < _niveis.length - 1) {
+        setState(() => _nivelDificuldade++);
+      }
+    } else {
+      if (_nivelDificuldade > 0) {
+        setState(() => _nivelDificuldade--);
+      }
+    }
+
+    setState(() {
+      _respostaCorreta = correta;
+      feedback = correta
+          ? 'Correto! Próximo nível: ${_niveis[_nivelDificuldade]}'
+          : 'Incorreto. Tente novamente ou peça uma explicação.';
+      historico.add({
+        'pergunta': pergunta,
+        'resposta': resposta,
+        'correta': correta ? 'Correto' : 'Incorreto',
+        'explicacao': '',
+        'nivel': _niveis[_nivelDificuldade],
+      });
+      carregando = false;
+    });
+    await _salvarHistorico();
+  }
+
+  Future<void> mostrarExplicacao() async {
+    setState(() => carregando = true);
+    explicacao = await tutorService.gerarExplicacao(
+        pergunta, 'Resposta correta', _respostaController.text);
+    if (historico.isNotEmpty) {
+      historico.last['explicacao'] = explicacao;
+    }
+    setState(() => carregando = false);
+    await _salvarHistorico();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Tutor de Matemática'),
+        backgroundColor: CupertinoColors.systemGrey6,
+      ),
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(20.0),
+          children: [
+            carregando
+                ? const Column(
+                    children: [
+                      CupertinoActivityIndicator(),
+                      SizedBox(height: 16),
+                      Text('Carregando pergunta da IA...',
+                          style: TextStyle(color: CupertinoColors.systemGrey)),
+                    ],
+                  )
+                : _buildQuestionCardCupertino(),
+            const SizedBox(height: 30),
+            _buildHistoryListCupertino(),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildQuestionCardCupertino() {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGrey6,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.systemGrey.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.activeBlue,
+            ),
+          ),
+          const SizedBox(height: 12),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: Text(
+              pergunta,
+              key: ValueKey<String>(pergunta),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 20, color: CupertinoColors.black, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+          CupertinoTextField(
+            controller: _respostaController,
+            placeholder: 'Sua Resposta',
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            style: const TextStyle(fontSize: 18),
+            decoration: BoxDecoration(
+              color: CupertinoColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CupertinoColors.systemGrey4),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CupertinoButton.filled(
+            onPressed: _verificarResposta,
+            borderRadius: BorderRadius.circular(12),
+            child: const Text('Verificar', style: TextStyle(fontSize: 18)),
+          ),
+          const SizedBox(height: 16),
+          _buildFeedbackSectionCupertino(),
+          const SizedBox(height: 16),
+          CupertinoButton(
+            onPressed: gerarNovaPergunta,
+            color: CupertinoColors.activeGreen,
+            borderRadius: BorderRadius.circular(12),
+            child: const Text('Nova Pergunta'),
+          ),
+          const SizedBox(height: 16),
+          CupertinoButton(
+            onPressed: _toggleAIService,
+            color: _useGemini
+                ? CupertinoColors.activeBlue
+                : CupertinoColors.systemOrange,
+            borderRadius: BorderRadius.circular(12),
+            child: Text(_useGemini ? 'Usar Ollama' : 'Usar Gemini'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedbackSectionCupertino() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _respostaCorreta == null
+            ? CupertinoColors.systemGrey6
+            : _respostaCorreta == true
+                ? CupertinoColors.activeGreen.withOpacity(0.1)
+                : CupertinoColors.systemRed.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          if (feedback.isNotEmpty)
+            Text(
+              feedback,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: _respostaCorreta == true
+                    ? CupertinoColors.activeGreen
+                    : CupertinoColors.systemRed,
+              ),
+            ),
+          if (_respostaCorreta == false) ...[
+            const SizedBox(height: 12),
+            CupertinoButton(
+              onPressed: mostrarExplicacao,
+              color: CupertinoColors.activeBlue,
+              borderRadius: BorderRadius.circular(12),
+              child: const Text('Ver Explicação'),
+            ),
+          ],
+          if (explicacao.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              explicacao,
+              style: const TextStyle(
+                  fontSize: 16, color: CupertinoColors.black, height: 1.4),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryListCupertino() {
+    return Column(
+      children: [
+        const Text(
+          'Histórico de Atividades',
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.activeBlue),
+        ),
+        const SizedBox(height: 16),
+        if (historico.isEmpty)
+          const Text('Nenhuma atividade ainda.',
+              style:
+                  TextStyle(fontSize: 16, color: CupertinoColors.systemGrey)),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: historico.length,
+          itemBuilder: (context, index) {
+            final item = historico.reversed.toList()[index];
+            final isCorrect = item['correta'] == 'Correto';
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: CupertinoColors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: CupertinoColors.systemGrey.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item['pergunta'] ?? '',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    if (item['nivel'] != null) ...[
+                      const SizedBox(height: 4),
+                      Text('Nível: ${item['nivel']}',
+                          style: const TextStyle(
+                              fontSize: 14, color: CupertinoColors.activeBlue)),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sua resposta: ${item['resposta'] ?? ''}',
+                      style: const TextStyle(
+                          fontSize: 16, color: CupertinoColors.systemGrey),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(
+                          isCorrect
+                              ? CupertinoIcons.check_mark_circled
+                              : CupertinoIcons.clear_circled,
+                          color: isCorrect
+                              ? CupertinoColors.activeGreen
+                              : CupertinoColors.systemRed,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          item['correta'] ?? '',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isCorrect
+                                ? CupertinoColors.activeGreen
+                                : CupertinoColors.systemRed,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (item['explicacao'] != null &&
+                        item['explicacao']!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey6,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('Explicação: ${item['explicacao']}',
+                            style: const TextStyle(
+                                color: CupertinoColors.activeBlue)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

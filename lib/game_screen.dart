@@ -161,7 +161,7 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
   Future<void> _carregarApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     final apiKey = prefs.getString('gemini_api_key');
-    final useGemini = prefs.getBool('use_gemini') ?? true;
+    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     if (apiKey != null) {
       apiKeyController.text = apiKey;
     } else {
@@ -169,7 +169,7 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
       apiKeyController.text = 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo';
     }
     setState(() {
-      _useGeminiDefault = useGemini;
+      _useGeminiDefault = selectedAI == 'gemini';
     });
   }
 
@@ -179,7 +179,8 @@ class _GeminiConfigScreenState extends State<GeminiConfigScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('gemini_api_key', apiKey);
-    await prefs.setBool('use_gemini', _useGeminiDefault);
+    await prefs.setString(
+        'selected_ai', _useGeminiDefault ? 'gemini' : 'ollama');
 
     setState(() {
       status = 'Configurações salvas com sucesso!';
@@ -324,6 +325,7 @@ class _GameScreenState extends State<GameScreen> {
   int _nivelDificuldade = 1; // 0: Fácil, 1: Médio, 2: Difícil
   final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
   bool _useGemini = true; // Estado para controlar qual serviço usar
+  String _modeloOllama = 'llama2';
 
   @override
   void initState() {
@@ -337,8 +339,11 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _carregarPreferencias() async {
     final prefs = await SharedPreferences.getInstance();
+    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     setState(() {
-      _useGemini = prefs.getBool('use_gemini') ?? true;
+      _useGemini = selectedAI == 'gemini';
+      _modeloOllama = modeloOllama;
     });
   }
 
@@ -354,7 +359,7 @@ class _GameScreenState extends State<GameScreen> {
     if (_useGemini) {
       aiService = GeminiService(apiKey: apiKey);
     } else {
-      aiService = OllamaService();
+      aiService = OllamaService(defaultModel: _modeloOllama);
     }
 
     tutorService = MathTutorService(aiService: aiService);
@@ -365,7 +370,7 @@ class _GameScreenState extends State<GameScreen> {
       _useGemini = !_useGemini;
     });
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('use_gemini', _useGemini);
+    await prefs.setString('selected_ai', _useGemini ? 'gemini' : 'ollama');
     await _initializeService();
   }
 

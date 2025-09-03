@@ -8,7 +8,8 @@ class OllamaService implements AIService {
   final String defaultModel;
 
   OllamaService(
-      {this.baseUrl = 'http://localhost:11434', this.defaultModel = 'llama2'});
+      {this.baseUrl = 'http://localhost:11434',
+      this.defaultModel = 'AUTODETECT'});
 
   /// Instala o Ollama automaticamente usando winget (Windows)
   Future<void> installOllama() async {
@@ -63,6 +64,15 @@ class OllamaService implements AIService {
     }
   }
 
+  /// Seleciona um modelo automaticamente (o primeiro instalado)
+  Future<String> _selectAutomaticModel() async {
+    final models = await listModels();
+    if (models.isEmpty) {
+      throw Exception('Nenhum modelo disponível para seleção automática');
+    }
+    return models.first;
+  }
+
   /// Gera uma resposta usando o modelo padrão
   @override
   Future<String> generate(String prompt) async {
@@ -77,6 +87,9 @@ class OllamaService implements AIService {
 
   /// Gera uma resposta usando um modelo específico
   Future<String> generateWithModel(String model, String prompt) async {
+    if (model == 'AUTODETECT') {
+      model = await _selectAutomaticModel();
+    }
     final response = await http.post(
       Uri.parse('$baseUrl/api/generate'),
       headers: {'Content-Type': 'application/json'},

@@ -37,6 +37,7 @@ class _ModernTutoriaInterativaScreenState
   int _nivelDificuldade = 1;
   final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
   bool _useGemini = true;
+  String _modeloOllama = 'llama2';
   Map<String, dynamic>? _exercicioAtual;
   int _exercicioIndex = 0;
   int _exerciciosRespondidos = 0;
@@ -112,8 +113,11 @@ class _ModernTutoriaInterativaScreenState
 
   Future<void> _carregarPreferencias() async {
     final prefs = await SharedPreferences.getInstance();
+    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     setState(() {
-      _useGemini = prefs.getBool('use_gemini') ?? true;
+      _useGemini = selectedAI == 'gemini';
+      _modeloOllama = modeloOllama;
     });
   }
 
@@ -127,7 +131,7 @@ class _ModernTutoriaInterativaScreenState
       if (_useGemini) {
         aiService = GeminiService(apiKey: apiKey);
       } else {
-        aiService = OllamaService();
+        aiService = OllamaService(defaultModel: _modeloOllama);
       }
 
       tutorService = MathTutorService(aiService: aiService);

@@ -18,8 +18,11 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
   final TextEditingController apiKeyController = TextEditingController();
   bool carregando = false;
   String status = '';
-  bool _useGeminiDefault = true;
+  String _selectedAI = 'gemini';
   String _modeloOllama = 'llama2';
+
+  List<String> _ollamaModels = [];
+  bool _loadingModels = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -58,7 +61,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
   Future<void> _carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
     final apiKey = prefs.getString('gemini_api_key');
-    final useGemini = prefs.getBool('use_gemini') ?? true;
+    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
 
     if (apiKey != null) {
@@ -68,9 +71,39 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
     }
 
     setState(() {
-      _useGeminiDefault = useGemini;
+      _selectedAI = selectedAI;
       _modeloOllama = modeloOllama;
     });
+
+    if (_selectedAI == 'ollama') {
+      _fetchOllamaModels();
+    }
+  }
+
+  Future<void> _fetchOllamaModels() async {
+    setState(() => _loadingModels = true);
+    try {
+      final ollamaService = OllamaService();
+      _ollamaModels = await ollamaService.listModels();
+      if (_ollamaModels.isEmpty) {
+        _ollamaModels = ['llama2'];
+      }
+      if (!_ollamaModels.contains(_modeloOllama)) {
+        _modeloOllama = _ollamaModels.first;
+      }
+    } catch (e) {
+      _ollamaModels = ['llama2'];
+      _modeloOllama = 'llama2';
+      setState(() {
+        status = 'Erro ao carregar modelos Ollama: $e';
+      });
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => status = '');
+        }
+      });
+    }
+    setState(() => _loadingModels = false);
   }
 
   Future<void> _salvarConfiguracoes() async {
@@ -79,7 +112,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('gemini_api_key', apiKey);
-    await prefs.setBool('use_gemini', _useGeminiDefault);
+    await prefs.setString('selected_ai', _selectedAI);
     await prefs.setString('modelo_ollama', _modeloOllama);
 
     setState(() {
@@ -97,7 +130,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
   Future<void> testarConexao() async {
     setState(() => carregando = true);
     try {
-      if (_useGeminiDefault) {
+      if (_selectedAI == 'gemini') {
         final geminiService =
             GeminiService(apiKey: apiKeyController.text.trim());
         final isAvailable = await geminiService.isServiceAvailable();
@@ -168,13 +201,13 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                         SizedBox(height: isTablet ? 30 : 20),
 
                         // Configuração do Gemini
-                        if (_useGeminiDefault) ...[
+                        if (_selectedAI == 'gemini') ...[
                           _buildGeminiConfig(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
 
                         // Configuração do Ollama
-                        if (!_useGeminiDefault) ...[
+                        if (_selectedAI == 'ollama') ...[
                           _buildOllamaConfig(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
@@ -219,20 +252,20 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: () => setState(() => _useGeminiDefault = true),
+                  onTap: () => setState(() => _selectedAI = 'gemini'),
                   borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                   child: Container(
                     padding: EdgeInsets.all(isTablet ? 20 : 16),
                     decoration: BoxDecoration(
-                      color: _useGeminiDefault
+                      color: _selectedAI == 'gemini'
                           ? AppTheme.primaryColor.withOpacity(0.2)
                           : AppTheme.darkSurfaceColor,
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                       border: Border.all(
-                        color: _useGeminiDefault
+                        color: _selectedAI == 'gemini'
                             ? AppTheme.primaryColor
                             : AppTheme.darkBorderColor,
-                        width: _useGeminiDefault ? 2 : 1,
+                        width: _selectedAI == 'gemini' ? 2 : 1,
                       ),
                     ),
                     child: Column(
@@ -241,7 +274,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                           width: isTablet ? 60 : 50,
                           height: isTablet ? 60 : 50,
                           decoration: BoxDecoration(
-                            color: _useGeminiDefault
+                            color: _selectedAI == 'gemini'
                                 ? AppTheme.primaryColor
                                 : AppTheme.darkBorderColor,
                             shape: BoxShape.circle,
@@ -256,7 +289,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                         Text(
                           'Google Gemini',
                           style: AppTheme.bodyLarge.copyWith(
-                            color: _useGeminiDefault
+                            color: _selectedAI == 'gemini'
                                 ? AppTheme.primaryColor
                                 : AppTheme.darkTextPrimaryColor,
                             fontWeight: FontWeight.w600,
@@ -277,20 +310,23 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
               SizedBox(width: isTablet ? 16 : 12),
               Expanded(
                 child: InkWell(
-                  onTap: () => setState(() => _useGeminiDefault = false),
+                  onTap: () {
+                    setState(() => _selectedAI = 'ollama');
+                    _fetchOllamaModels();
+                  },
                   borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                   child: Container(
                     padding: EdgeInsets.all(isTablet ? 20 : 16),
                     decoration: BoxDecoration(
-                      color: !_useGeminiDefault
+                      color: _selectedAI == 'ollama'
                           ? AppTheme.secondaryColor.withOpacity(0.2)
                           : AppTheme.darkSurfaceColor,
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                       border: Border.all(
-                        color: !_useGeminiDefault
+                        color: _selectedAI == 'ollama'
                             ? AppTheme.secondaryColor
                             : AppTheme.darkBorderColor,
-                        width: !_useGeminiDefault ? 2 : 1,
+                        width: _selectedAI == 'ollama' ? 2 : 1,
                       ),
                     ),
                     child: Column(
@@ -299,7 +335,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                           width: isTablet ? 60 : 50,
                           height: isTablet ? 60 : 50,
                           decoration: BoxDecoration(
-                            color: !_useGeminiDefault
+                            color: _selectedAI == 'ollama'
                                 ? AppTheme.secondaryColor
                                 : AppTheme.darkBorderColor,
                             shape: BoxShape.circle,
@@ -314,7 +350,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                         Text(
                           'Ollama',
                           style: AppTheme.bodyLarge.copyWith(
-                            color: !_useGeminiDefault
+                            color: _selectedAI == 'ollama'
                                 ? AppTheme.secondaryColor
                                 : AppTheme.darkTextPrimaryColor,
                             fontWeight: FontWeight.w600,
@@ -468,34 +504,35 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                 width: 1.5,
               ),
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _modeloOllama,
-                isExpanded: true,
-                style: AppTheme.bodyLarge.copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                ),
-                dropdownColor: AppTheme.darkSurfaceColor,
-                icon: Icon(
-                  Icons.arrow_drop_down_rounded,
-                  color: AppTheme.primaryColor,
-                ),
-                items: ['llama2', 'codellama', 'mistral', 'neural-chat']
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _modeloOllama = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
+            child: _loadingModels
+                ? const Center(child: CircularProgressIndicator())
+                : DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _modeloOllama,
+                      isExpanded: true,
+                      style: AppTheme.bodyLarge.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                      ),
+                      dropdownColor: AppTheme.darkSurfaceColor,
+                      icon: Icon(
+                        Icons.arrow_drop_down_rounded,
+                        color: AppTheme.primaryColor,
+                      ),
+                      items: _ollamaModels.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _modeloOllama = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
           ),
           SizedBox(height: isTablet ? 16 : 12),
           Container(

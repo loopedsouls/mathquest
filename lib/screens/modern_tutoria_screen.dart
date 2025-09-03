@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import 'modern_tutoria_interativa_screen.dart';
 import 'modern_configuracao_screen.dart';
+import 'modern_quiz_screen.dart';
 
 class TutoriaScreen extends StatefulWidget {
   const TutoriaScreen({super.key});
@@ -146,6 +147,18 @@ class _TutoriaScreenState extends State<TutoriaScreen>
           ),
         )
         .then((_) => _checkAIServices());
+  }
+
+  void _startQuiz() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ModernQuizScreen(
+          isOfflineMode: _isOfflineMode,
+          topico: 'Matemática Geral',
+          dificuldade: 'médio',
+        ),
+      ),
+    );
   }
 
   @override
@@ -393,6 +406,14 @@ class _TutoriaScreenState extends State<TutoriaScreen>
           isPrimary: true,
           isFullWidth: true,
         ),
+        SizedBox(height: isTablet ? 16 : 12),
+        ModernButton(
+          text: _isOfflineMode ? 'Quiz Matemático Offline' : 'Quiz com IA',
+          icon: Icons.quiz_rounded,
+          onPressed: _startQuiz,
+          isPrimary: true,
+          isFullWidth: true,
+        ),
         SizedBox(height: isTablet ? 20 : 16),
         ModernButton(
           text: 'Configurações Avançadas',
@@ -581,6 +602,16 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                 ? 'Exercícios pré-definidos'
                 : 'Com inteligência artificial',
             onPressed: _startTutoria,
+            isPrimary: true,
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildMenuButton(
+            icon: Icons.quiz_rounded,
+            title: _isOfflineMode ? 'Quiz Matemático Offline' : 'Quiz com IA',
+            subtitle: 'Múltipla escolha interativa',
+            onPressed: _startQuiz,
             isPrimary: true,
           ),
 

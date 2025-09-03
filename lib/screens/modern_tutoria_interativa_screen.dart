@@ -43,6 +43,8 @@ class _ModernTutoriaInterativaScreenState
   int _exerciciosRespondidos = 0;
   bool _mostrarEstatisticas = false;
   String? _respostaSelecionada;
+  bool _carregandoAjuda = false;
+  String _ajudaIA = '';
 
   // Animações
   late AnimationController _cardAnimationController;
@@ -56,6 +58,9 @@ class _ModernTutoriaInterativaScreenState
     super.initState();
     _initializeAnimations();
     _initializeTutoria();
+    _respostaController.addListener(() {
+      setState(() {});
+    });
   }
 
   void _initializeAnimations() {
@@ -173,6 +178,11 @@ class _ModernTutoriaInterativaScreenState
 
     try {
       pergunta = await tutorService.gerarPergunta(_niveis[_nivelDificuldade]);
+
+      // Após gerar a pergunta, solicitar que a IA armazene a resposta na memória
+      if (pergunta.isNotEmpty && !pergunta.contains('Erro')) {
+        await _armazenarRespostaNaMemoriaIA(pergunta);
+      }
     } catch (e) {
       pergunta = 'Erro ao gerar pergunta. Tente novamente.';
     }
@@ -180,6 +190,77 @@ class _ModernTutoriaInterativaScreenState
     setState(() => carregando = false);
     _cardAnimationController.reset();
     _cardAnimationController.forward();
+  }
+
+  Future<void> _armazenarRespostaNaMemoriaIA(String perguntaGerada) async {
+    try {
+      final promptMemoria = '''
+Você acabou de gerar esta pergunta de matemática:
+"$perguntaGerada"
+
+Agora, por favor, calcule e armazene mentalmente a resposta correta desta pergunta. 
+Analise a pergunta passo a passo e determine:
+
+1. A resposta correta (numérica ou textual)
+2. O método de resolução
+3. Os passos principais para chegar à resposta
+
+Mantenha essas informações na sua memória para quando o usuário solicitar verificação da resposta ou explicação.
+
+Responda apenas com "Resposta armazenada na memória" para confirmar que você processou e guardou a solução.
+''';
+
+      final confirmacao = await tutorService.aiService.generate(promptMemoria);
+
+      // Log opcional para debug (pode ser removido em produção)
+      print('IA confirmou armazenamento: $confirmacao');
+    } catch (e) {
+      // Falha silenciosa - não impacta a experiência do usuário
+      print('Erro ao armazenar resposta na memória da IA: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> _verificarRespostaComMemoria(
+      String pergunta, String respostaUsuario) async {
+    try {
+      final promptVerificacao = '''
+Você tem na sua memória a pergunta de matemática:
+"$pergunta"
+
+O usuário respondeu: "$respostaUsuario"
+
+Com base na resposta correta que você calculou e armazenou anteriormente, analise se a resposta do usuário está correta.
+
+Forneça uma resposta no seguinte formato:
+- Se estiver CORRETA: "CORRETO: [explicação breve do porquê está certo]"
+- Se estiver INCORRETA: "INCORRETO: [resposta correta] - [explicação detalhada dos passos corretos]"
+
+Seja preciso na análise matemática e didático na explicação.
+''';
+
+      final resultado =
+          await tutorService.aiService.generate(promptVerificacao);
+
+      // Analisar a resposta da IA
+      final isCorrect = resultado.toUpperCase().startsWith('CORRETO');
+
+      String explicacao = '';
+      if (isCorrect) {
+        explicacao = resultado.replaceFirst(
+            RegExp(r'^CORRETO:\s*', caseSensitive: false), '');
+      } else {
+        explicacao = resultado.replaceFirst(
+            RegExp(r'^INCORRETO:\s*', caseSensitive: false), '');
+      }
+
+      return {
+        'correta': isCorrect,
+        'explicacao': explicacao.trim(),
+      };
+    } catch (e) {
+      // Fallback para o método original em caso de erro
+      return await tutorService.verificarResposta(pergunta, respostaUsuario);
+    }
   }
 
   Future<void> _verificarResposta() async {
@@ -201,8 +282,9 @@ class _ModernTutoriaInterativaScreenState
       explicacaoResposta = _exercicioAtual!['explicacao'] ?? '';
     } else if (!widget.isOfflineMode) {
       try {
+        // Usar verificação com memória da IA
         final resultado =
-            await tutorService.verificarResposta(pergunta, resposta);
+            await _verificarRespostaComMemoria(pergunta, resposta);
         correta = resultado['correta'] as bool;
         explicacaoResposta = resultado['explicacao'] ?? '';
       } catch (e) {
@@ -283,6 +365,469 @@ class _ModernTutoriaInterativaScreenState
       _mostrarEstatisticas = false;
     });
     _feedbackAnimationController.reset();
+  }
+
+  void _mostrarAjuda(BuildContext context, String tipo, bool isTablet) async {
+    if (widget.isOfflineMode) {
+      _mostrarAjudaOffline(context, tipo, isTablet);
+      return;
+    }
+
+    setState(() {
+      _carregandoAjuda = true;
+      _ajudaIA = '';
+    });
+
+    try {
+      // Criar prompt personalizado baseado na pergunta atual
+      final prompt = '''
+Você é um tutor educacional especializado. O aluno está com dúvidas sobre como responder esta pergunta:
+
+"$pergunta"
+
+Tipo de exercício: ${_getTipoTitulo(tipo)}
+
+Por favor, forneça instruções claras e específicas sobre:
+1. Como abordar este tipo de pergunta
+2. Estratégias para encontrar a resposta correta
+3. Dicas práticas para resolver este exercício específico
+4. O que observar na pergunta para não errar
+
+Seja didático, encorajador e específico para esta pergunta. Limite sua resposta a cerca de 200 palavras.
+''';
+
+      final ajudaGerada = await tutorService.aiService.generate(prompt);
+
+      setState(() {
+        _ajudaIA = ajudaGerada;
+        _carregandoAjuda = false;
+      });
+
+      if (mounted) {
+        _mostrarModalAjudaIA(context, tipo, isTablet);
+      }
+    } catch (e) {
+      setState(() {
+        _ajudaIA =
+            'Erro ao gerar ajuda: ${e.toString()}\n\nTente novamente ou consulte as instruções básicas.';
+        _carregandoAjuda = false;
+      });
+      if (mounted) {
+        _mostrarModalAjudaIA(context, tipo, isTablet);
+      }
+    }
+  }
+
+  void _mostrarModalAjudaIA(BuildContext context, String tipo, bool isTablet) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: isTablet ? 600 : double.infinity,
+            margin: EdgeInsets.symmetric(horizontal: isTablet ? 0 : 20),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor,
+              borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+              border: Border.all(
+                color: AppTheme.darkBorderColor,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: EdgeInsets.all(isTablet ? 24 : 20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(isTablet ? 20 : 16),
+                      topRight: Radius.circular(isTablet ? 20 : 16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isTablet ? 12 : 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          borderRadius:
+                              BorderRadius.circular(isTablet ? 12 : 10),
+                        ),
+                        child: Icon(
+                          Icons.auto_awesome_rounded,
+                          color: AppTheme.primaryColor,
+                          size: isTablet ? 24 : 20,
+                        ),
+                      ),
+                      SizedBox(width: isTablet ? 16 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ajuda Inteligente',
+                              style: AppTheme.headingSmall.copyWith(
+                                color: AppTheme.darkTextPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Dicas personalizadas da IA',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Conteúdo
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isTablet ? 24 : 20),
+                    child: _carregandoAjuda
+                        ? _buildLoadingAjuda(isTablet)
+                        : _buildConteudoAjudaIA(isTablet),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingAjuda(bool isTablet) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              strokeWidth: 3,
+            ),
+          ),
+        ),
+        SizedBox(height: isTablet ? 20 : 16),
+        Text(
+          'Gerando dicas personalizadas...',
+          style: AppTheme.bodyLarge.copyWith(
+            color: AppTheme.darkTextSecondaryColor,
+          ),
+        ),
+        SizedBox(height: isTablet ? 8 : 6),
+        Text(
+          'A IA está analisando sua pergunta',
+          style: AppTheme.bodySmall.copyWith(
+            color: AppTheme.darkTextSecondaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConteudoAjudaIA(bool isTablet) {
+    return Container(
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+        border: Border.all(
+          color: AppTheme.primaryColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lightbulb_rounded,
+                color: AppTheme.primaryColor,
+                size: isTablet ? 24 : 20,
+              ),
+              SizedBox(width: isTablet ? 8 : 6),
+              Text(
+                'Dicas da IA para esta pergunta:',
+                style: AppTheme.bodyLarge.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          Text(
+            _ajudaIA,
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarAjudaOffline(BuildContext context, String tipo, bool isTablet) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: isTablet ? 500 : double.infinity,
+            margin: EdgeInsets.symmetric(horizontal: isTablet ? 0 : 20),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor,
+              borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+              border: Border.all(
+                color: AppTheme.darkBorderColor,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: EdgeInsets.all(isTablet ? 24 : 20),
+                  decoration: BoxDecoration(
+                    color: _getTipoColor(tipo).withOpacity(0.1),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(isTablet ? 20 : 16),
+                      topRight: Radius.circular(isTablet ? 20 : 16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isTablet ? 12 : 10),
+                        decoration: BoxDecoration(
+                          color: _getTipoColor(tipo).withOpacity(0.2),
+                          borderRadius:
+                              BorderRadius.circular(isTablet ? 12 : 10),
+                        ),
+                        child: Icon(
+                          _getTipoIcon(tipo),
+                          color: _getTipoColor(tipo),
+                          size: isTablet ? 24 : 20,
+                        ),
+                      ),
+                      SizedBox(width: isTablet ? 16 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Como responder?',
+                              style: AppTheme.headingSmall.copyWith(
+                                color: AppTheme.darkTextPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              _getTipoTitulo(tipo),
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: _getTipoColor(tipo),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Conteúdo
+                Padding(
+                  padding: EdgeInsets.all(isTablet ? 24 : 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _getAjudaContent(tipo, isTablet),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<Widget> _getAjudaContent(String tipo, bool isTablet) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return [
+          _buildAjudaItem(
+            '1️⃣',
+            'Leia a pergunta com atenção',
+            'Certifique-se de entender completamente o que está sendo perguntado.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '2️⃣',
+            'Analise todas as opções',
+            'Leia todas as alternativas antes de escolher. Algumas podem parecer corretas à primeira vista.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '3️⃣',
+            'Clique na opção correta',
+            'Toque na alternativa que você considera correta. A opção selecionada ficará destacada.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '✅',
+            'Confirme sua resposta',
+            'Clique em "Verificar Resposta" para submeter sua escolha.',
+            isTablet,
+          ),
+        ];
+
+      case 'verdadeiro_falso':
+        return [
+          _buildAjudaItem(
+            '📖',
+            'Leia a afirmação cuidadosamente',
+            'Analise cada palavra da afirmação para determinar se ela é verdadeira ou falsa.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '🤔',
+            'Pense criticamente',
+            'Considere se a afirmação é sempre verdadeira, sempre falsa, ou se há exceções.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '✅❌',
+            'Escolha Verdadeiro ou Falso',
+            'Clique no botão verde (Verdadeiro) se a afirmação for correta, ou no botão vermelho (Falso) se for incorreta.',
+            isTablet,
+          ),
+        ];
+
+      case 'completar_frase':
+      default:
+        return [
+          _buildAjudaItem(
+            '📝',
+            'Leia o contexto completo',
+            'Entenda o que está sendo perguntado e o contexto da questão.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '💭',
+            'Pense na resposta',
+            'Use seu conhecimento para formular uma resposta adequada à pergunta.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '⌨️',
+            'Digite sua resposta',
+            'Escreva sua resposta no campo de texto de forma clara e completa.',
+            isTablet,
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          _buildAjudaItem(
+            '🎯',
+            'Seja específico',
+            'Procure ser preciso e direto na sua resposta, evitando informações desnecessárias.',
+            isTablet,
+          ),
+        ];
+    }
+  }
+
+  Widget _buildAjudaItem(
+      String emoji, String titulo, String descricao, bool isTablet) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: isTablet ? 40 : 36,
+          height: isTablet ? 40 : 36,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(isTablet ? 10 : 8),
+          ),
+          child: Center(
+            child: Text(
+              emoji,
+              style: TextStyle(fontSize: isTablet ? 18 : 16),
+            ),
+          ),
+        ),
+        SizedBox(width: isTablet ? 16 : 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: AppTheme.bodyLarge.copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                descricao,
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.darkTextSecondaryColor,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -366,12 +911,64 @@ class _ModernTutoriaInterativaScreenState
   }
 
   Widget _buildHeaderTrailing(bool isTablet) {
-    return StatusIndicator(
-      text: widget.isOfflineMode ? 'Offline' : 'Online',
-      icon: widget.isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
-      color:
-          widget.isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
-      isActive: true,
+    if (widget.isOfflineMode) {
+      return StatusIndicator(
+        text: 'Offline',
+        icon: Icons.wifi_off_rounded,
+        color: AppTheme.warningColor,
+        isActive: true,
+      );
+    }
+
+    // Modo online - mostrar IA e modelo
+    final aiName = _useGemini ? 'Gemini' : 'Ollama';
+    final modelInfo = _useGemini ? 'Pro' : _modeloOllama;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        StatusIndicator(
+          text: 'Online',
+          icon: Icons.wifi_rounded,
+          color: AppTheme.successColor,
+          isActive: true,
+        ),
+        SizedBox(height: 4),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 12 : 8,
+            vertical: isTablet ? 6 : 4,
+          ),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+            border: Border.all(
+              color: AppTheme.primaryColor.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _useGemini ? Icons.auto_awesome_rounded : Icons.memory_rounded,
+                color: AppTheme.primaryColor,
+                size: isTablet ? 16 : 14,
+              ),
+              SizedBox(width: isTablet ? 6 : 4),
+              Text(
+                '$aiName ($modelInfo)',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: isTablet ? 12 : 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -444,38 +1041,69 @@ class _ModernTutoriaInterativaScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tipo do exercício
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 16 : 12,
-                vertical: isTablet ? 8 : 6,
-              ),
-              decoration: BoxDecoration(
-                color: _getTipoColor(tipo).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-                border: Border.all(
-                  color: _getTipoColor(tipo).withOpacity(0.4),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _getTipoIcon(tipo),
-                    color: _getTipoColor(tipo),
-                    size: isTablet ? 20 : 16,
+            // Tipo do exercício e botão de ajuda
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 16 : 12,
+                    vertical: isTablet ? 8 : 6,
                   ),
-                  SizedBox(width: isTablet ? 8 : 6),
-                  Text(
-                    _getTipoTitulo(tipo),
-                    style: AppTheme.bodyMedium.copyWith(
-                      color: _getTipoColor(tipo),
-                      fontWeight: FontWeight.w600,
+                  decoration: BoxDecoration(
+                    color: _getTipoColor(tipo).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                    border: Border.all(
+                      color: _getTipoColor(tipo).withOpacity(0.4),
+                      width: 1,
                     ),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getTipoIcon(tipo),
+                        color: _getTipoColor(tipo),
+                        size: isTablet ? 20 : 16,
+                      ),
+                      SizedBox(width: isTablet ? 8 : 6),
+                      Text(
+                        _getTipoTitulo(tipo),
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: _getTipoColor(tipo),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Botão de ajuda
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.infoColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                    border: Border.all(
+                      color: AppTheme.infoColor.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: IconButton(
+                    onPressed: () => _mostrarAjuda(context, tipo, isTablet),
+                    icon: Icon(
+                      Icons.help_outline_rounded,
+                      color: AppTheme.infoColor,
+                      size: isTablet ? 20 : 18,
+                    ),
+                    tooltip: 'Como responder?',
+                    padding: EdgeInsets.all(isTablet ? 8 : 6),
+                    constraints: BoxConstraints(
+                      minWidth: isTablet ? 40 : 36,
+                      minHeight: isTablet ? 40 : 36,
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: isTablet ? 24 : 20),
 

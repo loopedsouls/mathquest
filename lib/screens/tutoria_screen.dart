@@ -223,189 +223,191 @@ class _TutoriaScreenState extends State<TutoriaScreen> {
         middle: Text('Sistema de Tutoria Inteligente'),
         backgroundColor: CupertinoColors.systemGrey6,
       ),
-      child: Center(
-        child: Padding(
+      child: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: _isLoading
-              ? const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CupertinoActivityIndicator(radius: 20),
-                    SizedBox(height: 24),
-                    Text(
-                      'Inicializando sistema...',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ),
-                  ],
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            CupertinoColors.activeBlue.withOpacity(0.1),
-                            CupertinoColors.systemGreen.withOpacity(0.1),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+          child: Center(
+            child: _isLoading
+                ? const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CupertinoActivityIndicator(radius: 20),
+                      SizedBox(height: 24),
+                      Text(
+                        'Inicializando sistema...',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: CupertinoColors.systemGrey,
                         ),
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            _isOfflineMode
-                                ? CupertinoIcons.wifi_slash
-                                : CupertinoIcons.book_solid,
-                            size: 80,
-                            color: _isOfflineMode
-                                ? CupertinoColors.systemOrange
-                                : CupertinoColors.activeBlue,
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              CupertinoColors.activeBlue.withOpacity(0.1),
+                              CupertinoColors.systemGreen.withOpacity(0.1),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _isOfflineMode
-                                ? 'Modo Offline Ativado'
-                                : 'Sistema de Tutoria Inteligente',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              _isOfflineMode
+                                  ? CupertinoIcons.wifi_slash
+                                  : CupertinoIcons.book_solid,
+                              size: 80,
                               color: _isOfflineMode
                                   ? CupertinoColors.systemOrange
                                   : CupertinoColors.activeBlue,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      _isOfflineMode
-                          ? 'Aprenda matemática mesmo sem conexão! Temos exercícios pré-carregados para você.'
-                          : 'Desafie-se e melhore suas habilidades matemáticas com IA generativa adaptativa.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.systemGrey,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _isOfflineMode
-                            ? CupertinoColors.systemOrange.withOpacity(0.1)
-                            : CupertinoColors.activeGreen.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isOfflineMode
-                                ? CupertinoIcons.exclamationmark_triangle
-                                : CupertinoIcons.checkmark_circle,
-                            color: _isOfflineMode
-                                ? CupertinoColors.systemOrange
-                                : CupertinoColors.activeGreen,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
+                            const SizedBox(height: 16),
+                            Text(
                               _isOfflineMode
-                                  ? 'Sem conexão com IA - usando exercícios offline'
-                                  : 'IA conectada - experiência completa disponível',
+                                  ? 'Modo Offline Ativado'
+                                  : 'Sistema de Tutoria Inteligente',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                                 color: _isOfflineMode
                                     ? CupertinoColors.systemOrange
-                                    : CupertinoColors.activeGreen,
-                                fontWeight: FontWeight.w500,
+                                    : CupertinoColors.activeBlue,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    if (_error != null && !_isOfflineMode) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          ],
                         ),
-                        child: Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: CupertinoColors.systemRed,
-                            fontSize: 16,
-                          ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        _isOfflineMode
+                            ? 'Aprenda matemática mesmo sem conexão! Temos exercícios pré-carregados para você.'
+                            : 'Desafie-se e melhore suas habilidades matemáticas com IA generativa adaptativa.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: CupertinoColors.systemGrey,
+                          height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: _isOfflineMode
+                              ? CupertinoColors.systemOrange.withOpacity(0.1)
+                              : CupertinoColors.activeGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _isOfflineMode
+                                  ? CupertinoIcons.exclamationmark_triangle
+                                  : CupertinoIcons.checkmark_circle,
+                              color: _isOfflineMode
+                                  ? CupertinoColors.systemOrange
+                                  : CupertinoColors.activeGreen,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _isOfflineMode
+                                    ? 'Sem conexão com IA - usando exercícios offline'
+                                    : 'IA conectada - experiência completa disponível',
+                                style: TextStyle(
+                                  color: _isOfflineMode
+                                      ? CupertinoColors.systemOrange
+                                      : CupertinoColors.activeGreen,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      if (_error != null && !_isOfflineMode) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemRed.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: CupertinoColors.systemRed,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      CupertinoButton.filled(
+                        onPressed: _startTutoria,
+                        borderRadius: BorderRadius.circular(16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isOfflineMode
+                                  ? CupertinoIcons.book
+                                  : CupertinoIcons.rocket,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isOfflineMode
+                                  ? 'Iniciar Tutoria Offline'
+                                  : 'Iniciar Tutoria Inteligente',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      CupertinoButton(
+                        onPressed: _goToConfig,
+                        color: CupertinoColors.systemGrey4,
+                        borderRadius: BorderRadius.circular(16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(CupertinoIcons.settings),
+                            SizedBox(width: 8),
+                            Text(
+                              'Configurações Avançadas',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Funcionalidades:',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildFeatureList(),
                     ],
-                    CupertinoButton.filled(
-                      onPressed: _startTutoria,
-                      borderRadius: BorderRadius.circular(16),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isOfflineMode
-                                ? CupertinoIcons.book
-                                : CupertinoIcons.rocket,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isOfflineMode
-                                ? 'Iniciar Tutoria Offline'
-                                : 'Iniciar Tutoria Inteligente',
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    CupertinoButton(
-                      onPressed: _goToConfig,
-                      color: CupertinoColors.systemGrey4,
-                      borderRadius: BorderRadius.circular(16),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(CupertinoIcons.settings),
-                          SizedBox(width: 8),
-                          Text(
-                            'Configurações Avançadas',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Funcionalidades:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.activeBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureList(),
-                  ],
-                ),
+                  ),
+          ),
         ),
       ),
     );
@@ -1327,6 +1329,8 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
   bool _useGemini = true;
   Map<String, dynamic>? _exercicioAtual;
   int _exercicioIndex = 0;
+  int _exerciciosRespondidos = 0; // Contador de exercícios respondidos
+  bool _mostrarEstatisticas = false; // Flag para mostrar estatísticas
 
   @override
   void initState() {
@@ -1453,6 +1457,16 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
       setState(() => _nivelDificuldade--);
     }
 
+    // Incrementar contador de exercícios respondidos
+    _exerciciosRespondidos++;
+
+    // Mostrar estatísticas a cada 10 exercícios respondidos
+    if (_exerciciosRespondidos % 10 == 0) {
+      setState(() {
+        _mostrarEstatisticas = true;
+      });
+    }
+
     setState(() {
       _respostaCorreta = correta;
       feedback = correta
@@ -1501,6 +1515,7 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
       _respostaCorreta = null;
       feedback = '';
       explicacao = '';
+      _mostrarEstatisticas = false; // Ocultar estatísticas ao avançar
     });
   }
 
@@ -1616,7 +1631,44 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
 
             const SizedBox(height: 30),
 
-            _buildEstatisticas(),
+            // Mostrar estatísticas apenas a cada 10 exercícios ou quando solicitado
+            if (_mostrarEstatisticas) ...[
+              _buildEstatisticas(),
+              const SizedBox(height: 16),
+            ] else if (_exerciciosRespondidos > 0 && _exerciciosRespondidos % 10 != 0) ...[
+              // Botão para mostrar estatísticas manualmente
+              Center(
+                child: CupertinoButton(
+                  onPressed: () {
+                    setState(() {
+                      _mostrarEstatisticas = true;
+                    });
+                  },
+                  color: CupertinoColors.activeBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        CupertinoIcons.chart_bar,
+                        color: CupertinoColors.activeBlue,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ver Estatísticas (${historico.length} exercícios)',
+                        style: const TextStyle(
+                          color: CupertinoColors.activeBlue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+            ],
           ],
         ),
       ),
@@ -1928,12 +1980,37 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '📊 Suas Estatísticas',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.activeBlue,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '📊 Suas Estatísticas',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.activeBlue,
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  setState(() {
+                    _mostrarEstatisticas = false;
+                  });
+                },
+                child: const Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Relatório após ${_exerciciosRespondidos} exercícios respondidos',
+            style: const TextStyle(
+              fontSize: 12,
+              color: CupertinoColors.systemGrey,
             ),
           ),
           const SizedBox(height: 12),
@@ -1953,6 +2030,16 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
               fontWeight: FontWeight.w500,
               color: CupertinoColors.activeGreen,
             ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '💡 As estatísticas aparecem automaticamente a cada 10 exercícios!',
+            style: TextStyle(
+              fontSize: 12,
+              color: CupertinoColors.systemGrey,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

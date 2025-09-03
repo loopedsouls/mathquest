@@ -10,12 +10,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(
+    return CupertinoApp(
       title:
           'Sistema de Tutoria Inteligente de Matemática Desplugado com IA Generativa',
       theme: CupertinoThemeData(
         primaryColor: CupertinoColors.activeBlue,
-        brightness: Brightness.light,
+        brightness: Brightness.dark,
       ),
       home: TutoriaScreen(),
     );

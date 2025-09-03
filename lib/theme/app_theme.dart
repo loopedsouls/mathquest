@@ -15,13 +15,17 @@ class AppTheme {
 
   // === CORES DE STATUS ===
   static Color successColor = const Color(0xFF03BC62); // color3
-  static Color errorColor = const Color(0xFFE53E3E); // Vermelho moderno para erro
-  static Color warningColor = const Color(0xFFFF8C00); // Laranja moderno para aviso
+  static Color errorColor =
+      const Color(0xFFE53E3E); // Vermelho moderno para erro
+  static Color warningColor =
+      const Color(0xFFFF8C00); // Laranja moderno para aviso
   static Color infoColor = const Color(0xFF3182CE); // Azul moderno para info
 
   // === CORES PARA MODO ESCURO ===
-  static Color darkBackgroundColor = const Color(0xFF121212); // Preto suave moderno
-  static Color darkSurfaceColor = const Color(0xFF1E1E1E); // Cinza escuro moderno
+  static Color darkBackgroundColor =
+      const Color(0xFF121212); // Preto suave moderno
+  static Color darkSurfaceColor =
+      const Color(0xFF1E1E1E); // Cinza escuro moderno
   static Color darkCardColor = const Color(0xFF2D2D2D); // Cinza médio moderno
 
   static Color darkTextPrimaryColor = const Color(0xFFFFFFFF); // Branco puro
@@ -29,14 +33,17 @@ class AppTheme {
   static Color darkTextHintColor = const Color(0xFF757575); // Cinza médio
 
   static Color darkBorderColor = const Color(0xFF404040); // Cinza para bordas
-  static Color darkDividerColor = const Color(0xFF404040); // Cinza para divisores
+  static Color darkDividerColor =
+      const Color(0xFF404040); // Cinza para divisores
 
   // === CORES PARA MODO CLARO ===
-  static Color lightBackgroundColor = const Color(0xFFFAFAFA); // Branco suave moderno
+  static Color lightBackgroundColor =
+      const Color(0xFFFAFAFA); // Branco suave moderno
   static Color lightSurfaceColor = const Color(0xFFFFFFFF); // Branco puro
   static Color lightCardColor = const Color(0xFFFFFFFF); // Branco puro
 
-  static Color lightTextPrimaryColor = const Color(0xFF2D3748); // Cinza escuro moderno
+  static Color lightTextPrimaryColor =
+      const Color(0xFF2D3748); // Cinza escuro moderno
   static Color lightTextSecondaryColor = const Color(0xFF4A5568); // Cinza médio
   static Color lightTextHintColor = const Color(0xFF718096); // Cinza claro
 
@@ -44,9 +51,12 @@ class AppTheme {
   static Color lightDividerColor = const Color(0xFFE2E8F0); // Cinza muito claro
 
   // === CORES MODERNAS - Glassmorphism & Elevações ===
-  static Color glassLight = const Color(0xFFFFFFFF).withOpacity(0.8); // Branco translúcido
-  static Color glassDark = const Color(0xFF000000).withOpacity(0.2); // Preto translúcido
-  static Color blurOverlay = const Color(0xFF000000).withOpacity(0.4); // Overlay escuro
+  static Color glassLight =
+      const Color(0xFFFFFFFF).withOpacity(0.8); // Branco translúcido
+  static Color glassDark =
+      const Color(0xFF000000).withOpacity(0.2); // Preto translúcido
+  static Color blurOverlay =
+      const Color(0xFF000000).withOpacity(0.4); // Overlay escuro
 
   // Gradientes Modernos
   static List<Color> modernGradient1 = [
@@ -61,7 +71,7 @@ class AppTheme {
     const Color(0xFF03BC62),
     const Color(0xFF009640)
   ]; // Gradiente terciário verde
-  
+
   // Gradientes Neutros para Backgrounds
   static List<Color> neutralGradient1 = [
     const Color(0xFFF7FAFC),
@@ -110,11 +120,15 @@ class AppTheme {
   );
 
   // === CORES DE PERMISSÃO ===
-  static Color assignmentPermissionColor = const Color(0xFF3182CE); // Azul moderno
+  static Color assignmentPermissionColor =
+      const Color(0xFF3182CE); // Azul moderno
   static Color gradePermissionColor = const Color(0xFF03BC62); // Verde (mantém)
-  static Color submissionPermissionColor = const Color(0xFF805AD5); // Roxo moderno
-  static Color profilePermissionColor = const Color(0xFFFF8C00); // Laranja moderno
-  static Color announcementPermissionColor = const Color(0xFFE53E3E); // Vermelho moderno
+  static Color submissionPermissionColor =
+      const Color(0xFF805AD5); // Roxo moderno
+  static Color profilePermissionColor =
+      const Color(0xFFFF8C00); // Laranja moderno
+  static Color announcementPermissionColor =
+      const Color(0xFFE53E3E); // Vermelho moderno
   static Color neutroColor = const Color(0xFF718096); // Cinza neutro moderno
 
   // === MÉTODOS UTILITÁRIOS ===

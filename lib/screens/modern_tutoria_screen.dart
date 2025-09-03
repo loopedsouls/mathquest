@@ -228,40 +228,67 @@ class _TutoriaScreenState extends State<TutoriaScreen>
           opacity: _fadeAnimation,
           child: SlideTransition(
             position: _slideAnimation,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: isDesktop ? 80 : (isTablet ? 40 : 20),
-                vertical: isTablet ? 40 : 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header principal
-                  _buildHeroSection(isTablet, isDesktop),
-                  SizedBox(height: isTablet ? 40 : 30),
-
-                  // Status do sistema
-                  _buildStatusSection(isTablet),
-                  SizedBox(height: isTablet ? 40 : 30),
-
-                  // Botões de ação principais
-                  _buildActionButtons(isTablet),
-                  SizedBox(height: isTablet ? 40 : 30),
-
-                  // Seção de recursos
-                  _buildFeaturesSection(isTablet),
-
-                  // Error display
-                  if (_error != null) ...[
-                    SizedBox(height: isTablet ? 30 : 20),
-                    _buildErrorSection(isTablet),
-                  ],
-                ],
-              ),
-            ),
+            child: isDesktop
+                ? _buildDesktopLayout()
+                : _buildMobileTabletLayout(isTablet),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: Row(
+        children: [
+          // Menu lateral esquerdo (estilo Ren'Py)
+          Expanded(
+            flex: 2,
+            child: _buildLeftMenu(),
+          ),
+          const SizedBox(width: 40),
+          // Informações à direita
+          Expanded(
+            flex: 3,
+            child: _buildRightInfo(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTabletLayout(bool isTablet) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 40 : 20,
+        vertical: isTablet ? 40 : 20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header principal
+          _buildHeroSection(isTablet, false),
+          SizedBox(height: isTablet ? 40 : 30),
+
+          // Status do sistema
+          _buildStatusSection(isTablet),
+          SizedBox(height: isTablet ? 40 : 30),
+
+          // Botões de ação principais
+          _buildActionButtons(isTablet),
+          SizedBox(height: isTablet ? 40 : 30),
+
+          // Seção de recursos
+          _buildFeaturesSection(isTablet),
+
+          // Error display
+          if (_error != null) ...[
+            SizedBox(height: isTablet ? 30 : 20),
+            _buildErrorSection(isTablet),
+          ],
+        ],
+      ),
     );
   }
 
@@ -520,6 +547,374 @@ class _TutoriaScreenState extends State<TutoriaScreen>
       ),
     );
   }
+
+  // Menu lateral esquerdo estilo Ren'Py
+  Widget _buildLeftMenu() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.darkSurfaceColor,
+            AppTheme.darkCardColor,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppTheme.primaryColor.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: AppTheme.strongShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Menu principal estilo Ren'Py
+          _buildMenuButton(
+            icon: Icons.rocket_launch_rounded,
+            title: _isOfflineMode
+                ? 'Iniciar Tutoria Offline'
+                : 'Iniciar Tutoria IA',
+            subtitle: _isOfflineMode
+                ? 'Exercícios pré-definidos'
+                : 'Com inteligência artificial',
+            onPressed: _startTutoria,
+            isPrimary: true,
+          ),
+
+          const SizedBox(height: 20),
+
+          _buildMenuButton(
+            icon: Icons.settings_rounded,
+            title: 'Configurações',
+            subtitle: 'Personalizar experiência',
+            onPressed: _goToConfig,
+            isPrimary: false,
+          ),
+
+          const SizedBox(height: 20),
+
+          _buildMenuButton(
+            icon: Icons.help_outline_rounded,
+            title: 'Ajuda & Tutorial',
+            subtitle: 'Como usar o sistema',
+            onPressed: () {
+              // TODO: Implementar tela de ajuda
+            },
+            isPrimary: false,
+          ),
+
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+
+  // Botão de menu estilo Ren'Py
+  Widget _buildMenuButton({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onPressed,
+    required bool isPrimary,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: isPrimary
+                  ? LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor.withOpacity(0.2),
+                        AppTheme.primaryDarkColor.withOpacity(0.1),
+                      ],
+                    )
+                  : null,
+              color: isPrimary ? null : AppTheme.darkCardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isPrimary
+                    ? AppTheme.primaryColor.withOpacity(0.4)
+                    : AppTheme.darkBorderColor.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isPrimary
+                        ? AppTheme.primaryColor.withOpacity(0.2)
+                        : AppTheme.darkTextHintColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isPrimary
+                        ? AppTheme.primaryColor
+                        : AppTheme.darkTextSecondaryColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTheme.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isPrimary
+                              ? AppTheme.primaryColor
+                              : AppTheme.darkTextPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: isPrimary
+                      ? AppTheme.primaryColor.withOpacity(0.7)
+                      : AppTheme.darkTextHintColor,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Painel de informações à direita
+  Widget _buildRightInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header de boas-vindas
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: AppTheme.modernGradient2,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: AppTheme.mediumShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Bem-vindo ao MathQuest!',
+                style: AppTheme.displaySmall.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _isOfflineMode
+                    ? 'Modo offline ativo. Exercícios básicos disponíveis para prática.'
+                    : 'Sistema de IA conectado. Experiência completa de aprendizado disponível.',
+                style: AppTheme.bodyLarge.copyWith(
+                  color: Colors.white.withOpacity(0.9),
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 32),
+
+        // Recursos principais
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: AppTheme.darkCardColor,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppTheme.darkBorderColor.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: AppTheme.softShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Recursos Disponíveis',
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.darkTextPrimaryColor,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _buildFeatureCardDesktop(
+                        Icons.trending_up_rounded,
+                        'Exercícios\nAdaptativos',
+                        'Dificuldade ajustada automaticamente',
+                        AppTheme.primaryColor,
+                      ),
+                      _buildFeatureCardDesktop(
+                        Icons.psychology_rounded,
+                        'Explicações\ncom IA',
+                        'Passo-a-passo detalhado',
+                        AppTheme.secondaryColor,
+                      ),
+                      _buildFeatureCardDesktop(
+                        Icons.analytics_rounded,
+                        'Progresso\nDetalhado',
+                        'Acompanhe seu desempenho',
+                        AppTheme.infoColor,
+                      ),
+                      _buildFeatureCardDesktop(
+                        Icons.quiz_rounded,
+                        'Múltiplos\nFormatos',
+                        'Diversos tipos de exercícios',
+                        AppTheme.accentColor,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Estatísticas rápidas
+                if (!_isOfflineMode) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          color: AppTheme.primaryColor,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'IA Generativa Ativa',
+                                style: AppTheme.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              Text(
+                                'Exercícios únicos gerados em tempo real',
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Card de recurso para desktop
+  Widget _buildFeatureCardDesktop(
+      IconData icon, String title, String description, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: AppTheme.bodyLarge.copyWith(
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.darkTextSecondaryColor,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _FeatureItem {
@@ -535,3 +930,5 @@ class _FeatureItem {
     required this.color,
   });
 }
+
+// Card de recurso para desktop

@@ -6,6 +6,7 @@ import '../widgets/modern_components.dart';
 import 'modern_tutoria_interativa_screen.dart';
 import 'modern_configuracao_screen.dart';
 import 'modern_quiz_screen.dart';
+import 'modern_quiz_verdadeiro_falso_screen.dart';
 
 class TutoriaScreen extends StatefulWidget {
   const TutoriaScreen({super.key});
@@ -153,6 +154,18 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ModernQuizScreen(
+          isOfflineMode: _isOfflineMode,
+          topico: 'Matemática Geral',
+          dificuldade: 'médio',
+        ),
+      ),
+    );
+  }
+
+  void _startQuizVerdadeiroFalso() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ModernQuizVerdadeiroFalsoScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'Matemática Geral',
           dificuldade: 'médio',
@@ -408,9 +421,21 @@ class _TutoriaScreenState extends State<TutoriaScreen>
         ),
         SizedBox(height: isTablet ? 16 : 12),
         ModernButton(
-          text: _isOfflineMode ? 'Quiz Matemático Offline' : 'Quiz com IA',
+          text: _isOfflineMode
+              ? 'Quiz Múltipla Escolha'
+              : 'Quiz Múltipla Escolha',
           icon: Icons.quiz_rounded,
           onPressed: _startQuiz,
+          isPrimary: true,
+          isFullWidth: true,
+        ),
+        SizedBox(height: isTablet ? 16 : 12),
+        ModernButton(
+          text: _isOfflineMode
+              ? 'Quiz Verdadeiro/Falso'
+              : 'Quiz Verdadeiro/Falso',
+          icon: Icons.check_box_rounded,
+          onPressed: _startQuizVerdadeiroFalso,
           isPrimary: true,
           isFullWidth: true,
         ),
@@ -609,9 +634,21 @@ class _TutoriaScreenState extends State<TutoriaScreen>
 
           _buildMenuButton(
             icon: Icons.quiz_rounded,
-            title: _isOfflineMode ? 'Quiz Matemático Offline' : 'Quiz com IA',
+            title: _isOfflineMode
+                ? 'Quiz Múltipla Escolha'
+                : 'Quiz Múltipla Escolha',
             subtitle: 'Múltipla escolha interativa',
             onPressed: _startQuiz,
+            isPrimary: true,
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildMenuButton(
+            icon: Icons.check_box_rounded,
+            title: 'Quiz Verdadeiro/Falso',
+            subtitle: 'Formato sim ou não',
+            onPressed: _startQuizVerdadeiroFalso,
             isPrimary: true,
           ),
 

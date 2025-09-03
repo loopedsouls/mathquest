@@ -153,7 +153,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
     final isDesktop = screenWidth >= 1024;
-    
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
       body: Container(
@@ -239,18 +239,18 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                   // Header principal
                   _buildHeroSection(isTablet, isDesktop),
                   SizedBox(height: isTablet ? 40 : 30),
-                  
+
                   // Status do sistema
                   _buildStatusSection(isTablet),
                   SizedBox(height: isTablet ? 40 : 30),
-                  
+
                   // Botões de ação principais
                   _buildActionButtons(isTablet),
                   SizedBox(height: isTablet ? 40 : 30),
-                  
+
                   // Seção de recursos
                   _buildFeaturesSection(isTablet),
-                  
+
                   // Error display
                   if (_error != null) ...[
                     SizedBox(height: isTablet ? 30 : 20),
@@ -276,7 +276,10 @@ class _TutoriaScreenState extends State<TutoriaScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: _isOfflineMode
-                    ? [AppTheme.warningColor, AppTheme.warningColor.withOpacity(0.7)]
+                    ? [
+                        AppTheme.warningColor,
+                        AppTheme.warningColor.withOpacity(0.7)
+                      ]
                     : [AppTheme.primaryColor, AppTheme.primaryLightColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -284,7 +287,9 @@ class _TutoriaScreenState extends State<TutoriaScreen>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (_isOfflineMode ? AppTheme.warningColor : AppTheme.primaryColor)
+                  color: (_isOfflineMode
+                          ? AppTheme.warningColor
+                          : AppTheme.primaryColor)
                       .withOpacity(0.4),
                   blurRadius: 20,
                   spreadRadius: 4,
@@ -292,7 +297,9 @@ class _TutoriaScreenState extends State<TutoriaScreen>
               ],
             ),
             child: Icon(
-              _isOfflineMode ? Icons.wifi_off_rounded : Icons.psychology_rounded,
+              _isOfflineMode
+                  ? Icons.wifi_off_rounded
+                  : Icons.psychology_rounded,
               size: isDesktop ? 60 : (isTablet ? 50 : 40),
               color: Colors.white,
             ),
@@ -300,7 +307,8 @@ class _TutoriaScreenState extends State<TutoriaScreen>
           SizedBox(height: isTablet ? 24 : 20),
           Text(
             'MathQuest',
-            style: (isDesktop ? AppTheme.displayMedium : AppTheme.headingLarge).copyWith(
+            style: (isDesktop ? AppTheme.displayMedium : AppTheme.headingLarge)
+                .copyWith(
               color: AppTheme.darkTextPrimaryColor,
               fontWeight: FontWeight.bold,
             ),
@@ -311,8 +319,11 @@ class _TutoriaScreenState extends State<TutoriaScreen>
             _isOfflineMode
                 ? 'Modo Offline Ativado'
                 : 'Tutoria Inteligente de Matemática',
-            style: (isTablet ? AppTheme.headingSmall : AppTheme.bodyLarge).copyWith(
-              color: _isOfflineMode ? AppTheme.warningColor : AppTheme.primaryColor,
+            style: (isTablet ? AppTheme.headingSmall : AppTheme.bodyLarge)
+                .copyWith(
+              color: _isOfflineMode
+                  ? AppTheme.warningColor
+                  : AppTheme.primaryColor,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
@@ -346,8 +357,11 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     return Column(
       children: [
         ModernButton(
-          text: _isOfflineMode ? 'Iniciar Tutoria Offline' : 'Iniciar Tutoria Inteligente',
-          icon: _isOfflineMode ? Icons.book_rounded : Icons.rocket_launch_rounded,
+          text: _isOfflineMode
+              ? 'Iniciar Tutoria Offline'
+              : 'Iniciar Tutoria Inteligente',
+          icon:
+              _isOfflineMode ? Icons.book_rounded : Icons.rocket_launch_rounded,
           onPressed: _startTutoria,
           isPrimary: true,
           isFullWidth: true,
@@ -425,7 +439,8 @@ class _TutoriaScreenState extends State<TutoriaScreen>
               mainAxisSpacing: isTablet ? 20 : 16,
             ),
             itemCount: features.length,
-            itemBuilder: (context, index) => _buildFeatureCard(features[index], isTablet),
+            itemBuilder: (context, index) =>
+                _buildFeatureCard(features[index], isTablet),
           ),
         ],
       ),
@@ -520,5 +535,3 @@ class _FeatureItem {
     required this.color,
   });
 }
-
-

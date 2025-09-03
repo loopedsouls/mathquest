@@ -5,7 +5,7 @@ import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Configurar orientações permitidas e UI overlay
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -13,7 +13,7 @@ void main() {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  
+
   // Configurar a UI overlay com cores modernas
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -23,7 +23,7 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  
+
   runApp(const MathTutorApp());
 }
 
@@ -47,7 +47,7 @@ class MathTutorApp extends StatelessWidget {
 
 class ResponsiveWrapper extends StatelessWidget {
   final Widget child;
-  
+
   const ResponsiveWrapper({
     super.key,
     required this.child,
@@ -60,7 +60,7 @@ class ResponsiveWrapper extends StatelessWidget {
         // Definir breakpoints responsivos
         final isTablet = constraints.maxWidth >= 768;
         final isDesktop = constraints.maxWidth >= 1024;
-        
+
         return Container(
           width: double.infinity,
           height: double.infinity,

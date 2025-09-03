@@ -28,7 +28,7 @@ class ModernButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: isFullWidth ? double.infinity : (width ?? (isTablet ? 280 : 250)),
@@ -36,10 +36,13 @@ class ModernButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? AppTheme.primaryColor : AppTheme.secondaryColor,
+          backgroundColor:
+              isPrimary ? AppTheme.primaryColor : AppTheme.secondaryColor,
           foregroundColor: Colors.white,
           elevation: isPrimary ? 8 : 4,
-          shadowColor: isPrimary ? AppTheme.primaryColor.withOpacity(0.3) : Colors.black26,
+          shadowColor: isPrimary
+              ? AppTheme.primaryColor.withOpacity(0.3)
+              : Colors.black26,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -101,7 +104,7 @@ class ModernCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: width,
@@ -152,7 +155,7 @@ class ResponsiveHeader extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
     final isDesktop = screenWidth >= 1024;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 32 : (isTablet ? 24 : 16),
@@ -230,7 +233,7 @@ class StatusIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       padding: EdgeInsets.symmetric(
@@ -304,7 +307,7 @@ class ModernProgressIndicator extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
     final progressColor = color ?? AppTheme.primaryColor;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -391,7 +394,7 @@ class ModernTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
-    
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(isTablet ? 16 : 12),

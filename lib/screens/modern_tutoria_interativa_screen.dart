@@ -24,11 +24,10 @@ class ModernTutoriaInterativaScreen extends StatefulWidget {
 }
 
 class _ModernTutoriaInterativaScreenState
-    extends State<ModernTutoriaInterativaScreen>
-    with TickerProviderStateMixin {
+    extends State<ModernTutoriaInterativaScreen> with TickerProviderStateMixin {
   late MathTutorService tutorService;
   final TextEditingController _respostaController = TextEditingController();
-  
+
   String pergunta = '';
   String explicacao = '';
   String feedback = '';
@@ -143,7 +142,8 @@ class _ModernTutoriaInterativaScreenState
 
       if (exerciciosNivel.isNotEmpty) {
         setState(() {
-          _exercicioAtual = exerciciosNivel[_exercicioIndex % exerciciosNivel.length];
+          _exercicioAtual =
+              exerciciosNivel[_exercicioIndex % exerciciosNivel.length];
           pergunta = _exercicioAtual!['pergunta'] ?? '';
         });
         _cardAnimationController.reset();
@@ -180,7 +180,7 @@ class _ModernTutoriaInterativaScreenState
 
   Future<void> _verificarResposta() async {
     setState(() => carregando = true);
-    
+
     String resposta = _respostaSelecionada ?? _respostaController.text.trim();
     if (resposta.isEmpty) {
       setState(() => carregando = false);
@@ -191,12 +191,14 @@ class _ModernTutoriaInterativaScreenState
     String explicacaoResposta = '';
 
     if (widget.isOfflineMode && _exercicioAtual != null) {
-      final respostaCorreta = _exercicioAtual!['resposta_correta'].toString().toLowerCase();
+      final respostaCorreta =
+          _exercicioAtual!['resposta_correta'].toString().toLowerCase();
       correta = resposta.toLowerCase() == respostaCorreta;
       explicacaoResposta = _exercicioAtual!['explicacao'] ?? '';
     } else if (!widget.isOfflineMode) {
       try {
-        final resultado = await tutorService.verificarResposta(pergunta, resposta);
+        final resultado =
+            await tutorService.verificarResposta(pergunta, resposta);
         correta = resultado['correta'] as bool;
         explicacaoResposta = resultado['explicacao'] ?? '';
       } catch (e) {
@@ -303,12 +305,14 @@ class _ModernTutoriaInterativaScreenState
             children: [
               // Header responsivo
               ResponsiveHeader(
-                title: widget.isOfflineMode ? 'Tutoria Offline' : 'Tutoria Inteligente',
+                title: widget.isOfflineMode
+                    ? 'Tutoria Offline'
+                    : 'Tutoria Inteligente',
                 subtitle: 'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
                 showBackButton: true,
                 trailing: _buildHeaderTrailing(isTablet),
               ),
-              
+
               // Conteúdo principal
               Expanded(
                 child: SingleChildScrollView(
@@ -320,28 +324,29 @@ class _ModernTutoriaInterativaScreenState
                       // Status e progresso
                       _buildStatusProgress(isTablet),
                       SizedBox(height: isTablet ? 30 : 20),
-                      
+
                       // Card do exercício
                       carregando
                           ? _buildLoadingCard(isTablet)
                           : _buildExercicioCard(isTablet),
                       SizedBox(height: isTablet ? 24 : 16),
-                      
+
                       // Seção de feedback
                       if (_respostaCorreta != null) ...[
                         _buildFeedbackSection(isTablet),
                         SizedBox(height: isTablet ? 24 : 16),
                       ],
-                      
+
                       // Botões de ação
                       _buildActionButtons(isTablet),
                       SizedBox(height: isTablet ? 30 : 20),
-                      
+
                       // Estatísticas (quando mostrar)
                       if (_mostrarEstatisticas) ...[
                         _buildEstatisticas(isTablet),
                         SizedBox(height: isTablet ? 24 : 16),
-                      ] else if (_exerciciosRespondidos > 0 && _exerciciosRespondidos % 10 != 0) ...[
+                      ] else if (_exerciciosRespondidos > 0 &&
+                          _exerciciosRespondidos % 10 != 0) ...[
                         _buildStatsButton(isTablet),
                         SizedBox(height: isTablet ? 20 : 16),
                       ],
@@ -360,7 +365,8 @@ class _ModernTutoriaInterativaScreenState
     return StatusIndicator(
       text: widget.isOfflineMode ? 'Offline' : 'Online',
       icon: widget.isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
-      color: widget.isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
+      color:
+          widget.isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
       isActive: true,
     );
   }
@@ -468,7 +474,7 @@ class _ModernTutoriaInterativaScreenState
               ),
             ),
             SizedBox(height: isTablet ? 24 : 20),
-            
+
             // Pergunta
             Text(
               pergunta,
@@ -478,7 +484,7 @@ class _ModernTutoriaInterativaScreenState
               ),
             ),
             SizedBox(height: isTablet ? 24 : 20),
-            
+
             // Interface do tipo
             _buildTipoInterface(tipo, isTablet),
           ],
@@ -507,7 +513,7 @@ class _ModernTutoriaInterativaScreenState
         final index = entry.key;
         final opcao = entry.value.toString();
         final isSelected = _respostaSelecionada == opcao;
-        
+
         return Container(
           margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
           child: InkWell(
@@ -565,7 +571,8 @@ class _ModernTutoriaInterativaScreenState
                         color: isSelected
                             ? AppTheme.primaryColor
                             : AppTheme.darkTextPrimaryColor,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -735,7 +742,7 @@ class _ModernTutoriaInterativaScreenState
                   ],
                 ),
               ),
-              
+
               // Explicação
               if (explicacao.isNotEmpty) ...[
                 SizedBox(height: isTablet ? 16 : 12),
@@ -796,7 +803,8 @@ class _ModernTutoriaInterativaScreenState
             child: ModernButton(
               text: 'Verificar Resposta',
               icon: Icons.check_rounded,
-              onPressed: (_respostaSelecionada != null || _respostaController.text.isNotEmpty)
+              onPressed: (_respostaSelecionada != null ||
+                      _respostaController.text.isNotEmpty)
                   ? _verificarResposta
                   : null,
               isLoading: carregando,
@@ -838,7 +846,8 @@ class _ModernTutoriaInterativaScreenState
   Widget _buildEstatisticas(bool isTablet) {
     final totalExercicios = historico.length;
     final corretos = historico.where((h) => h['correta'] == 'Correto').length;
-    final taxaAcerto = totalExercicios > 0 ? (corretos / totalExercicios * 100).round() : 0;
+    final taxaAcerto =
+        totalExercicios > 0 ? (corretos / totalExercicios * 100).round() : 0;
 
     return ModernCard(
       hasGlow: true,
@@ -874,9 +883,12 @@ class _ModernTutoriaInterativaScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Exercícios', totalExercicios.toString(), Icons.quiz_rounded, isTablet),
-              _buildStatItem('Corretos', corretos.toString(), Icons.check_circle_rounded, isTablet),
-              _buildStatItem('Taxa', '$taxaAcerto%', Icons.trending_up_rounded, isTablet),
+              _buildStatItem('Exercícios', totalExercicios.toString(),
+                  Icons.quiz_rounded, isTablet),
+              _buildStatItem('Corretos', corretos.toString(),
+                  Icons.check_circle_rounded, isTablet),
+              _buildStatItem(
+                  'Taxa', '$taxaAcerto%', Icons.trending_up_rounded, isTablet),
             ],
           ),
           SizedBox(height: isTablet ? 20 : 16),
@@ -909,7 +921,8 @@ class _ModernTutoriaInterativaScreenState
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, bool isTablet) {
+  Widget _buildStatItem(
+      String label, String value, IconData icon, bool isTablet) {
     return Column(
       children: [
         Container(

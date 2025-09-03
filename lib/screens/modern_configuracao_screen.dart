@@ -9,7 +9,8 @@ class ModernConfiguracaoScreen extends StatefulWidget {
   const ModernConfiguracaoScreen({super.key});
 
   @override
-  State<ModernConfiguracaoScreen> createState() => _ModernConfiguracaoScreenState();
+  State<ModernConfiguracaoScreen> createState() =>
+      _ModernConfiguracaoScreenState();
 }
 
 class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
@@ -19,7 +20,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
   String status = '';
   bool _useGeminiDefault = true;
   String _modeloOllama = 'llama2';
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -97,7 +98,8 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
     setState(() => carregando = true);
     try {
       if (_useGeminiDefault) {
-        final geminiService = GeminiService(apiKey: apiKeyController.text.trim());
+        final geminiService =
+            GeminiService(apiKey: apiKeyController.text.trim());
         final isAvailable = await geminiService.isServiceAvailable();
         status = isAvailable
             ? '✅ Conexão com Gemini funcionando!'
@@ -152,7 +154,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                   subtitle: 'Configure os serviços de IA e preferências',
                   showBackButton: true,
                 ),
-                
+
                 // Conteúdo principal
                 Expanded(
                   child: SingleChildScrollView(
@@ -164,29 +166,29 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                         // Seleção de serviço
                         _buildServiceSelector(isTablet),
                         SizedBox(height: isTablet ? 30 : 20),
-                        
+
                         // Configuração do Gemini
                         if (_useGeminiDefault) ...[
                           _buildGeminiConfig(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
-                        
+
                         // Configuração do Ollama
                         if (!_useGeminiDefault) ...[
                           _buildOllamaConfig(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
-                        
+
                         // Botões de ação
                         _buildActionButtons(isTablet),
                         SizedBox(height: isTablet ? 30 : 20),
-                        
+
                         // Status
                         if (status.isNotEmpty) ...[
                           _buildStatusCard(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
-                        
+
                         // Informações adicionais
                         _buildInfoSection(isTablet),
                       ],
@@ -575,7 +577,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
   Widget _buildStatusCard(bool isTablet) {
     final isSuccess = status.contains('✅');
     final isError = status.contains('❌');
-    
+
     Color statusColor = AppTheme.infoColor;
     if (isSuccess) statusColor = AppTheme.successColor;
     if (isError) statusColor = AppTheme.errorColor;
@@ -654,7 +656,8 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
     );
   }
 
-  Widget _buildInfoItem(String title, String description, IconData icon, bool isTablet) {
+  Widget _buildInfoItem(
+      String title, String description, IconData icon, bool isTablet) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

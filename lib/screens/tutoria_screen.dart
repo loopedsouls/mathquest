@@ -1635,7 +1635,8 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
             if (_mostrarEstatisticas) ...[
               _buildEstatisticas(),
               const SizedBox(height: 16),
-            ] else if (_exerciciosRespondidos > 0 && _exerciciosRespondidos % 10 != 0) ...[
+            ] else if (_exerciciosRespondidos > 0 &&
+                _exerciciosRespondidos % 10 != 0) ...[
               // Botão para mostrar estatísticas manualmente
               Center(
                 child: CupertinoButton(
@@ -1646,7 +1647,8 @@ class _TutoriaInterativaScreenState extends State<TutoriaInterativaScreen> {
                   },
                   color: CupertinoColors.activeBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

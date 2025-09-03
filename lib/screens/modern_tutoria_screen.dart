@@ -331,7 +331,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                 colors: _isOfflineMode
                     ? [
                         AppTheme.warningColor,
-                        AppTheme.warningColor.withOpacity(0.7)
+                        AppTheme.warningColor.withValues(alpha: 0.7)
                       ]
                     : [AppTheme.primaryColor, AppTheme.primaryLightColor],
                 begin: Alignment.topLeft,
@@ -343,7 +343,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                   color: (_isOfflineMode
                           ? AppTheme.warningColor
                           : AppTheme.primaryColor)
-                      .withOpacity(0.4),
+                      .withValues(alpha: 0.4),
                   blurRadius: 20,
                   spreadRadius: 4,
                 ),
@@ -524,10 +524,10 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     return Container(
       padding: EdgeInsets.all(isTablet ? 20 : 16),
       decoration: BoxDecoration(
-        color: feature.color.withOpacity(0.1),
+        color: feature.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
         border: Border.all(
-          color: feature.color.withOpacity(0.3),
+          color: feature.color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -609,7 +609,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.3),
+          color: AppTheme.primaryColor.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: AppTheme.strongShadow,
@@ -702,17 +702,17 @@ class _TutoriaScreenState extends State<TutoriaScreen>
               gradient: isPrimary
                   ? LinearGradient(
                       colors: [
-                        AppTheme.primaryColor.withOpacity(0.2),
-                        AppTheme.primaryDarkColor.withOpacity(0.1),
+                        AppTheme.primaryColor.withValues(alpha: 0.2),
+                        AppTheme.primaryDarkColor.withValues(alpha: 0.1),
                       ],
                     )
                   : null,
-              color: isPrimary ? null : AppTheme.darkCardColor.withOpacity(0.5),
+              color: isPrimary ? null : AppTheme.darkCardColor.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isPrimary
-                    ? AppTheme.primaryColor.withOpacity(0.4)
-                    : AppTheme.darkBorderColor.withOpacity(0.3),
+                    ? AppTheme.primaryColor.withValues(alpha: 0.4)
+                    : AppTheme.darkBorderColor.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -723,8 +723,8 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                   height: 48,
                   decoration: BoxDecoration(
                     color: isPrimary
-                        ? AppTheme.primaryColor.withOpacity(0.2)
-                        : AppTheme.darkTextHintColor.withOpacity(0.2),
+                        ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                        : AppTheme.darkTextHintColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -762,7 +762,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: isPrimary
-                      ? AppTheme.primaryColor.withOpacity(0.7)
+                      ? AppTheme.primaryColor.withValues(alpha: 0.7)
                       : AppTheme.darkTextHintColor,
                   size: 16,
                 ),
@@ -808,7 +808,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                     ? 'Modo offline ativo. Exercícios básicos disponíveis para prática.'
                     : 'Sistema de IA conectado. Experiência completa de aprendizado disponível.',
                 style: AppTheme.bodyLarge.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   height: 1.5,
                 ),
               ),
@@ -826,7 +826,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
               color: AppTheme.darkCardColor,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppTheme.darkBorderColor.withOpacity(0.3),
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
                 width: 1,
               ),
               boxShadow: AppTheme.softShadow,
@@ -883,10 +883,10 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -936,10 +936,10 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),

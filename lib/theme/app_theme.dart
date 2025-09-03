@@ -52,11 +52,11 @@ class AppTheme {
 
   // === CORES MODERNAS - Glassmorphism & Elevações ===
   static Color glassLight =
-      const Color(0xFFFFFFFF).withOpacity(0.8); // Branco translúcido
+      const Color(0xFFFFFFFF).withValues(alpha: 0.8); // Branco translúcido
   static Color glassDark =
-      const Color(0xFF000000).withOpacity(0.2); // Preto translúcido
+      const Color(0xFF000000).withValues(alpha: 0.2); // Preto translúcido
   static Color blurOverlay =
-      const Color(0xFF000000).withOpacity(0.4); // Overlay escuro
+      const Color(0xFF000000).withValues(alpha: 0.4); // Overlay escuro
 
   // Gradientes Modernos
   static List<Color> modernGradient1 = [
@@ -85,7 +85,7 @@ class AppTheme {
   // Sombras Modernas
   static List<BoxShadow> softShadow = [
     BoxShadow(
-      color: const Color(0xFF000000).withOpacity(0.06),
+      color: const Color(0xFF000000).withValues(alpha: 0.06),
       blurRadius: 10,
       offset: const Offset(0, 4),
     ),
@@ -93,7 +93,7 @@ class AppTheme {
 
   static List<BoxShadow> mediumShadow = [
     BoxShadow(
-      color: const Color(0xFF000000).withOpacity(0.12),
+      color: const Color(0xFF000000).withValues(alpha: 0.12),
       blurRadius: 20,
       offset: const Offset(0, 8),
     ),
@@ -101,7 +101,7 @@ class AppTheme {
 
   static List<BoxShadow> strongShadow = [
     BoxShadow(
-      color: const Color(0xFF000000).withOpacity(0.25),
+      color: const Color(0xFF000000).withValues(alpha: 0.25),
       blurRadius: 40,
       offset: const Offset(0, 16),
     ),
@@ -416,7 +416,8 @@ class AppTheme {
         borderRadius: BorderRadius.circular(16),
         color: lightCardColor,
         boxShadow: softShadow,
-        border: Border.all(color: lightBorderColor.withOpacity(0.1), width: 1),
+        border: Border.all(
+            color: lightBorderColor.withValues(alpha: 0.1), width: 1),
       );
 
   static BoxDecoration get modernCardDark => BoxDecoration(
@@ -424,22 +425,25 @@ class AppTheme {
         color: darkCardColor,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000000).withOpacity(0.3), // Sombra neutra
+            color:
+                const Color(0xFF000000).withValues(alpha: 0.3), // Sombra neutra
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(color: darkBorderColor.withOpacity(0.2), width: 1),
+        border:
+            Border.all(color: darkBorderColor.withValues(alpha: 0.2), width: 1),
       );
 
   static BoxDecoration modernGlassCard(bool isDark) => BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color:
-            isDark ? glassDark.withOpacity(0.3) : glassLight.withOpacity(0.7),
+        color: isDark
+            ? glassDark.withValues(alpha: 0.3)
+            : glassLight.withValues(alpha: 0.7),
         border: Border.all(
           color: isDark
-              ? darkBorderColor.withOpacity(0.3)
-              : lightBorderColor.withOpacity(0.2),
+              ? darkBorderColor.withValues(alpha: 0.3)
+              : lightBorderColor.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: isDark ? mediumShadow : softShadow,

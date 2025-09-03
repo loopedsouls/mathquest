@@ -213,10 +213,10 @@ Responda apenas com "Resposta armazenada na memória" para confirmar que você p
       final confirmacao = await tutorService.aiService.generate(promptMemoria);
 
       // Log opcional para debug (pode ser removido em produção)
-      print('IA confirmou armazenamento: $confirmacao');
+      debugPrint('IA confirmou armazenamento: $confirmacao');
     } catch (e) {
       // Falha silenciosa - não impacta a experiência do usuário
-      print('Erro ao armazenar resposta na memória da IA: $e');
+      debugPrint('Erro ao armazenar resposta na memória da IA: $e');
     }
   }
 
@@ -407,11 +407,13 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
         _mostrarModalAjudaIA(context, tipo, isTablet);
       }
     } catch (e) {
-      setState(() {
-        _ajudaIA =
-            'Erro ao gerar ajuda: ${e.toString()}\n\nTente novamente ou consulte as instruções básicas.';
-        _carregandoAjuda = false;
-      });
+      if (mounted) {
+        setState(() {
+          _ajudaIA =
+              'Erro ao gerar ajuda: ${e.toString()}\n\nTente novamente ou consulte as instruções básicas.';
+          _carregandoAjuda = false;
+        });
+      }
       if (mounted) {
         _mostrarModalAjudaIA(context, tipo, isTablet);
       }
@@ -445,7 +447,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                 Container(
                   padding: EdgeInsets.all(isTablet ? 24 : 20),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(isTablet ? 20 : 16),
                       topRight: Radius.circular(isTablet ? 20 : 16),
@@ -456,7 +458,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                       Container(
                         padding: EdgeInsets.all(isTablet ? 12 : 10),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
                           borderRadius:
                               BorderRadius.circular(isTablet ? 12 : 10),
                         ),
@@ -478,7 +480,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               'Dicas personalizadas da IA',
                               style: AppTheme.bodyMedium.copyWith(
@@ -558,10 +560,10 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
     return Container(
       padding: EdgeInsets.all(isTablet ? 20 : 16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.05),
+        color: AppTheme.primaryColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.2),
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -622,7 +624,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                 Container(
                   padding: EdgeInsets.all(isTablet ? 24 : 20),
                   decoration: BoxDecoration(
-                    color: _getTipoColor(tipo).withOpacity(0.1),
+                    color: _getTipoColor(tipo).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(isTablet ? 20 : 16),
                       topRight: Radius.circular(isTablet ? 20 : 16),
@@ -633,7 +635,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                       Container(
                         padding: EdgeInsets.all(isTablet ? 12 : 10),
                         decoration: BoxDecoration(
-                          color: _getTipoColor(tipo).withOpacity(0.2),
+                          color: _getTipoColor(tipo).withValues(alpha: 0.2),
                           borderRadius:
                               BorderRadius.circular(isTablet ? 12 : 10),
                         ),
@@ -655,7 +657,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               _getTipoTitulo(tipo),
                               style: AppTheme.bodyMedium.copyWith(
@@ -793,7 +795,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
           width: isTablet ? 40 : 36,
           height: isTablet ? 40 : 36,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(isTablet ? 10 : 8),
           ),
           child: Center(
@@ -815,7 +817,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 descricao,
                 style: AppTheme.bodyMedium.copyWith(
@@ -934,17 +936,17 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
           color: AppTheme.successColor,
           isActive: true,
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Container(
           padding: EdgeInsets.symmetric(
             horizontal: isTablet ? 12 : 8,
             vertical: isTablet ? 6 : 4,
           ),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
             border: Border.all(
-              color: AppTheme.primaryColor.withOpacity(0.3),
+              color: AppTheme.primaryColor.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -1051,10 +1053,10 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                     vertical: isTablet ? 8 : 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _getTipoColor(tipo).withOpacity(0.2),
+                    color: _getTipoColor(tipo).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                     border: Border.all(
-                      color: _getTipoColor(tipo).withOpacity(0.4),
+                      color: _getTipoColor(tipo).withValues(alpha: 0.4),
                       width: 1,
                     ),
                   ),
@@ -1081,10 +1083,10 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                 // Botão de ajuda
                 Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.infoColor.withOpacity(0.1),
+                    color: AppTheme.infoColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                     border: Border.all(
-                      color: AppTheme.infoColor.withOpacity(0.3),
+                      color: AppTheme.infoColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -1155,7 +1157,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               padding: EdgeInsets.all(isTablet ? 20 : 16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.primaryColor.withOpacity(0.2)
+                    ? AppTheme.primaryColor.withValues(alpha: 0.2)
                     : AppTheme.darkSurfaceColor,
                 borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                 border: Border.all(
@@ -1228,7 +1230,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               padding: EdgeInsets.all(isTablet ? 20 : 16),
               decoration: BoxDecoration(
                 color: _respostaSelecionada == 'verdadeiro'
-                    ? AppTheme.successColor.withOpacity(0.2)
+                    ? AppTheme.successColor.withValues(alpha: 0.2)
                     : AppTheme.darkSurfaceColor,
                 borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                 border: Border.all(
@@ -1273,7 +1275,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               padding: EdgeInsets.all(isTablet ? 20 : 16),
               decoration: BoxDecoration(
                 color: _respostaSelecionada == 'falso'
-                    ? AppTheme.errorColor.withOpacity(0.2)
+                    ? AppTheme.errorColor.withValues(alpha: 0.2)
                     : AppTheme.darkSurfaceColor,
                 borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                 border: Border.all(
@@ -1338,13 +1340,13 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                   color: (_respostaCorreta == true
                           ? AppTheme.successColor
                           : AppTheme.errorColor)
-                      .withOpacity(0.2),
+                      .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                   border: Border.all(
                     color: (_respostaCorreta == true
                             ? AppTheme.successColor
                             : AppTheme.errorColor)
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                     width: 1,
                   ),
                 ),
@@ -1381,10 +1383,10 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                 Container(
                   padding: EdgeInsets.all(isTablet ? 16 : 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.infoColor.withOpacity(0.1),
+                    color: AppTheme.infoColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                     border: Border.all(
-                      color: AppTheme.infoColor.withOpacity(0.3),
+                      color: AppTheme.infoColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -1527,7 +1529,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
           Container(
             padding: EdgeInsets.all(isTablet ? 16 : 12),
             decoration: BoxDecoration(
-              color: AppTheme.successColor.withOpacity(0.1),
+              color: AppTheme.successColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
             ),
             child: Row(

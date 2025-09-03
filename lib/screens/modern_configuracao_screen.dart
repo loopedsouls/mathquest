@@ -258,7 +258,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                     padding: EdgeInsets.all(isTablet ? 20 : 16),
                     decoration: BoxDecoration(
                       color: _selectedAI == 'gemini'
-                          ? AppTheme.primaryColor.withOpacity(0.2)
+                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
                           : AppTheme.darkSurfaceColor,
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                       border: Border.all(
@@ -319,7 +319,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
                     padding: EdgeInsets.all(isTablet ? 20 : 16),
                     decoration: BoxDecoration(
                       color: _selectedAI == 'ollama'
-                          ? AppTheme.secondaryColor.withOpacity(0.2)
+                          ? AppTheme.secondaryColor.withValues(alpha: 0.2)
                           : AppTheme.darkSurfaceColor,
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                       border: Border.all(
@@ -415,10 +415,10 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
           Container(
             padding: EdgeInsets.all(isTablet ? 16 : 12),
             decoration: BoxDecoration(
-              color: AppTheme.infoColor.withOpacity(0.1),
+              color: AppTheme.infoColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
               border: Border.all(
-                color: AppTheme.infoColor.withOpacity(0.3),
+                color: AppTheme.infoColor.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -538,10 +538,10 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
           Container(
             padding: EdgeInsets.all(isTablet ? 16 : 12),
             decoration: BoxDecoration(
-              color: AppTheme.warningColor.withOpacity(0.1),
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
               border: Border.all(
-                color: AppTheme.warningColor.withOpacity(0.3),
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -702,7 +702,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
           width: isTablet ? 40 : 32,
           height: isTablet ? 40 : 32,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.2),
+            color: AppTheme.primaryColor.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           child: Icon(

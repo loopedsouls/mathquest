@@ -41,7 +41,7 @@ class ModernButton extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: isPrimary ? 8 : 4,
           shadowColor: isPrimary
-              ? AppTheme.primaryColor.withOpacity(0.3)
+              ? AppTheme.primaryColor.withValues(alpha: 0.3)
               : Colors.black26,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -113,13 +113,13 @@ class ModernCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
         color: AppTheme.darkCardColor,
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.2),
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: hasGlow
             ? [
                 BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.3),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -172,7 +172,7 @@ class ResponsiveHeader extends StatelessWidget {
                 size: isTablet ? 28 : 24,
               ),
               style: IconButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -241,10 +241,10 @@ class StatusIndicator extends StatelessWidget {
         vertical: isTablet ? 16 : 12,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(isActive ? 0.15 : 0.05),
+        color: color.withValues(alpha: isActive ? 0.15 : 0.05),
         borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
         border: Border.all(
-          color: color.withOpacity(isActive ? 0.3 : 0.1),
+          color: color.withValues(alpha: isActive ? 0.3 : 0.1),
           width: 1.5,
         ),
       ),
@@ -260,7 +260,7 @@ class StatusIndicator extends StatelessWidget {
               boxShadow: isActive
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(0.4),
+                        color: color.withValues(alpha: 0.4),
                         blurRadius: 8,
                         spreadRadius: 2,
                       ),
@@ -348,12 +348,12 @@ class ModernProgressIndicator extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     progressColor,
-                    progressColor.withOpacity(0.8),
+                    progressColor.withValues(alpha: 0.8),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: progressColor.withOpacity(0.3),
+                    color: progressColor.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),

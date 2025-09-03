@@ -260,7 +260,7 @@ Dificuldade: $dificuldade
       _processarRespostaIA(response);
     } catch (e) {
       // Fallback para pergunta offline em caso de erro
-      print('Erro ao gerar pergunta: $e');
+      debugPrint('Erro ao gerar pergunta: $e');
       _carregarPerguntaOffline();
     }
   }
@@ -321,7 +321,7 @@ Dificuldade: $dificuldade
         };
       });
     } catch (e) {
-      print('Erro ao processar resposta da IA: $e');
+      debugPrint('Erro ao processar resposta da IA: $e');
       _carregarPerguntaOffline();
     }
   }
@@ -551,7 +551,7 @@ Dificuldade: $dificuldade
             vertical: isTablet ? 6 : 4,
           ),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.2),
+            color: AppTheme.primaryColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
           ),
           child: Text(
@@ -563,14 +563,14 @@ Dificuldade: $dificuldade
             ),
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Container(
           padding: EdgeInsets.symmetric(
             horizontal: isTablet ? 12 : 8,
             vertical: isTablet ? 6 : 4,
           ),
           decoration: BoxDecoration(
-            color: AppTheme.successColor.withOpacity(0.2),
+            color: AppTheme.successColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
           ),
           child: Text(
@@ -684,10 +684,10 @@ Dificuldade: $dificuldade
                     vertical: isTablet ? 8 : 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.2),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                     border: Border.all(
-                      color: AppTheme.primaryColor.withOpacity(0.4),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.4),
                       width: 1,
                     ),
                   ),
@@ -717,7 +717,7 @@ Dificuldade: $dificuldade
                       vertical: isTablet ? 6 : 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.infoColor.withOpacity(0.2),
+                      color: AppTheme.infoColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
                     ),
                     child: Text(
@@ -758,7 +758,7 @@ Dificuldade: $dificuldade
                     padding: EdgeInsets.all(isTablet ? 20 : 16),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppTheme.primaryColor.withOpacity(0.2)
+                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
                           : AppTheme.darkSurfaceColor,
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                       border: Border.all(
@@ -1008,7 +1008,7 @@ Dificuldade: $dificuldade
             width: isTablet ? 56 : 48,
             height: isTablet ? 56 : 48,
             decoration: BoxDecoration(
-              color: cor.withOpacity(0.2),
+              color: cor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -1085,7 +1085,7 @@ Dificuldade: $dificuldade
                 Container(
                   padding: EdgeInsets.all(isTablet ? 24 : 20),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(isTablet ? 20 : 16),
                       topRight: Radius.circular(isTablet ? 20 : 16),
@@ -1137,8 +1137,8 @@ Dificuldade: $dificuldade
                               BorderRadius.circular(isTablet ? 16 : 12),
                           border: Border.all(
                             color: isCorreta
-                                ? AppTheme.successColor.withOpacity(0.3)
-                                : AppTheme.errorColor.withOpacity(0.3),
+                                ? AppTheme.successColor.withValues(alpha: 0.3)
+                                : AppTheme.errorColor.withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -1154,8 +1154,10 @@ Dificuldade: $dificuldade
                                   ),
                                   decoration: BoxDecoration(
                                     color: isCorreta
-                                        ? AppTheme.successColor.withOpacity(0.2)
-                                        : AppTheme.errorColor.withOpacity(0.2),
+                                        ? AppTheme.successColor
+                                            .withValues(alpha: 0.2)
+                                        : AppTheme.errorColor
+                                            .withValues(alpha: 0.2),
                                     borderRadius:
                                         BorderRadius.circular(isTablet ? 8 : 6),
                                   ),
@@ -1200,7 +1202,7 @@ Dificuldade: $dificuldade
                               ),
                             ),
                             if (!isCorreta) ...[
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 'Resposta correta: ${resposta['resposta_correta']}',
                                 style: AppTheme.bodySmall.copyWith(

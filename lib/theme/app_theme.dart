@@ -3,85 +3,104 @@ import 'package:flutter/material.dart';
 /// App Theme Configuration - Apenas tema escuro padrão
 class AppTheme {
   // === CORES PRIMÁRIAS - Design System Moderno ===
-  static Color primaryColor = Color(0xFF6366F1); // Indigo 500
-  static Color primaryDarkColor = Color(0xFF4338CA); // Indigo 700
-  static Color primaryLightColor = Color(0xFF818CF8); // Indigo 400
-  static Color primaryAccent = Color(0xFFA855F7); // Purple 500
+  static Color primaryColor = const Color(0xFF03BC62); // color3
+  static Color primaryDarkColor = const Color(0xFF009640); // color5
+  static Color primaryLightColor = const Color(0xFF04CF73); // color2
+  static Color primaryAccent = const Color(0xFF01A951); // color4
 
   // === CORES SECUNDÁRIAS ===
-  static Color secondaryColor = Color(0xFF10B981); // Emerald 500
-  static Color secondaryDarkColor = Color(0xFF047857); // Emerald 700
-  static Color secondaryLightColor = Color(0xFF34D399); // Emerald 400
+  static Color secondaryColor = const Color(0xFF05E284); // color1
+  static Color secondaryDarkColor = const Color(0xFF009640); // color5
+  static Color secondaryLightColor = const Color(0xFF04CF73); // color2
 
   // === CORES DE STATUS ===
-  static Color successColor = Color(0xFF10B981); // Verde
-  static Color errorColor = Color(0xFFEF4444); // Vermelho
-  static Color warningColor = Color(0xFFF59E0B); // Amarelo/Laranja
-  static Color infoColor = Color(0xFF06B6D4); // Cyan
+  static Color successColor = const Color(0xFF03BC62); // color3
+  static Color errorColor = const Color(0xFFE53E3E); // Vermelho moderno para erro
+  static Color warningColor = const Color(0xFFFF8C00); // Laranja moderno para aviso
+  static Color infoColor = const Color(0xFF3182CE); // Azul moderno para info
 
   // === CORES PARA MODO ESCURO ===
-  static Color darkBackgroundColor = Color(0xFF0F172A);
-  static Color darkSurfaceColor = Color(0xFF1E293B);
-  static Color darkCardColor = Color(0xFF1E293B);
+  static Color darkBackgroundColor = const Color(0xFF121212); // Preto suave moderno
+  static Color darkSurfaceColor = const Color(0xFF1E1E1E); // Cinza escuro moderno
+  static Color darkCardColor = const Color(0xFF2D2D2D); // Cinza médio moderno
 
-  static Color darkTextPrimaryColor = Color(0xFFFFFFFF);
-  static Color darkTextSecondaryColor = Color(0xFF94A3B8);
-  static Color darkTextHintColor = Color(0xFF64748B);
+  static Color darkTextPrimaryColor = const Color(0xFFFFFFFF); // Branco puro
+  static Color darkTextSecondaryColor = const Color(0xFFB3B3B3); // Cinza claro
+  static Color darkTextHintColor = const Color(0xFF757575); // Cinza médio
 
-  static Color darkBorderColor = Color(0xFF334155);
-  static Color darkDividerColor = Color(0xFF334155);
+  static Color darkBorderColor = const Color(0xFF404040); // Cinza para bordas
+  static Color darkDividerColor = const Color(0xFF404040); // Cinza para divisores
 
   // === CORES PARA MODO CLARO ===
-  static Color lightBackgroundColor = Color(0xFFF8FAFC);
-  static Color lightSurfaceColor = Color(0xFFFFFFFF);
-  static Color lightCardColor = Color(0xFFFFFFFF);
+  static Color lightBackgroundColor = const Color(0xFFFAFAFA); // Branco suave moderno
+  static Color lightSurfaceColor = const Color(0xFFFFFFFF); // Branco puro
+  static Color lightCardColor = const Color(0xFFFFFFFF); // Branco puro
 
-  static Color lightTextPrimaryColor = Color(0xFF0F172A);
-  static Color lightTextSecondaryColor = Color(0xFF475569);
-  static Color lightTextHintColor = Color(0xFF64748B);
+  static Color lightTextPrimaryColor = const Color(0xFF2D3748); // Cinza escuro moderno
+  static Color lightTextSecondaryColor = const Color(0xFF4A5568); // Cinza médio
+  static Color lightTextHintColor = const Color(0xFF718096); // Cinza claro
 
-  static Color lightBorderColor = Color(0xFFE2E8F0);
-  static Color lightDividerColor = Color(0xFFE2E8F0);
+  static Color lightBorderColor = const Color(0xFFE2E8F0); // Cinza muito claro
+  static Color lightDividerColor = const Color(0xFFE2E8F0); // Cinza muito claro
 
   // === CORES MODERNAS - Glassmorphism & Elevações ===
-  static Color glassLight = Color(0xFFFFFFFF).withOpacity(0.1);
-  static Color glassDark = Color(0xFF000000).withOpacity(0.1);
-  static Color blurOverlay = Color(0xFF000000).withOpacity(0.4);
+  static Color glassLight = const Color(0xFFFFFFFF).withOpacity(0.8); // Branco translúcido
+  static Color glassDark = const Color(0xFF000000).withOpacity(0.2); // Preto translúcido
+  static Color blurOverlay = const Color(0xFF000000).withOpacity(0.4); // Overlay escuro
 
   // Gradientes Modernos
-  static List<Color> modernGradient1 = [Color(0xFF667EEA), Color(0xFF764BA2)];
-  static List<Color> modernGradient2 = [Color(0xFFF093FB), Color(0xFFF5576C)];
-  static List<Color> modernGradient3 = [Color(0xFF4FACFE), Color(0xFF00F2FE)];
+  static List<Color> modernGradient1 = [
+    const Color(0xFF05E284),
+    const Color(0xFF009640)
+  ]; // Gradiente primário verde
+  static List<Color> modernGradient2 = [
+    const Color(0xFF04CF73),
+    const Color(0xFF01A951)
+  ]; // Gradiente secundário verde
+  static List<Color> modernGradient3 = [
+    const Color(0xFF03BC62),
+    const Color(0xFF009640)
+  ]; // Gradiente terciário verde
+  
+  // Gradientes Neutros para Backgrounds
+  static List<Color> neutralGradient1 = [
+    const Color(0xFFF7FAFC),
+    const Color(0xFFEDF2F7)
+  ]; // Gradiente claro neutro
+  static List<Color> neutralGradient2 = [
+    const Color(0xFF2D3748),
+    const Color(0xFF1A202C)
+  ]; // Gradiente escuro neutro
 
   // Sombras Modernas
   static List<BoxShadow> softShadow = [
     BoxShadow(
-      color: Color(0xFF000000).withOpacity(0.06),
+      color: const Color(0xFF000000).withOpacity(0.06),
       blurRadius: 10,
-      offset: Offset(0, 4),
+      offset: const Offset(0, 4),
     ),
   ];
 
   static List<BoxShadow> mediumShadow = [
     BoxShadow(
-      color: Color(0xFF000000).withOpacity(0.12),
+      color: const Color(0xFF000000).withOpacity(0.12),
       blurRadius: 20,
-      offset: Offset(0, 8),
+      offset: const Offset(0, 8),
     ),
   ];
 
   static List<BoxShadow> strongShadow = [
     BoxShadow(
-      color: Color(0xFF000000).withOpacity(0.25),
+      color: const Color(0xFF000000).withOpacity(0.25),
       blurRadius: 40,
-      offset: Offset(0, 16),
+      offset: const Offset(0, 16),
     ),
   ];
 
   // === CORES COMPLEMENTARES ===
-  static Color accentColor = Color(0xFF8B5CF6); // Purple
-  static Color highlightColor = Color(0xFFFBBF24); // Yellow highlight
-  static Color overlayColor = Color(0x80000000); // Semi-transparent black
+  static Color accentColor = const Color(0xFF04CF73); // color2
+  static Color highlightColor = const Color(0xFF05E284); // color1
+  static Color overlayColor = const Color(0x80000000); // Overlay escuro neutro
 
   // === GRADIENTES ===
   static LinearGradient primaryGradient = LinearGradient(
@@ -91,12 +110,12 @@ class AppTheme {
   );
 
   // === CORES DE PERMISSÃO ===
-  static Color assignmentPermissionColor = Color(0xFF6366F1); // Indigo
-  static Color gradePermissionColor = Color(0xFF10B981); // Emerald
-  static Color submissionPermissionColor = Color(0xFFF59E0B); // Amber
-  static Color profilePermissionColor = Color(0xFF06B6D4); // Cyan
-  static Color announcementPermissionColor = Color(0xFF8B5CF6); // Purple
-  static Color neutroColor = Color(0xFF64748B); // Neutral
+  static Color assignmentPermissionColor = const Color(0xFF3182CE); // Azul moderno
+  static Color gradePermissionColor = const Color(0xFF03BC62); // Verde (mantém)
+  static Color submissionPermissionColor = const Color(0xFF805AD5); // Roxo moderno
+  static Color profilePermissionColor = const Color(0xFFFF8C00); // Laranja moderno
+  static Color announcementPermissionColor = const Color(0xFFE53E3E); // Vermelho moderno
+  static Color neutroColor = const Color(0xFF718096); // Cinza neutro moderno
 
   // === MÉTODOS UTILITÁRIOS ===
   /// Retorna a cor baseada na severidade do log
@@ -115,24 +134,24 @@ class AppTheme {
     }
   }
 
-  static Color excelentColor = Color(0xFF10B981); // Verde
-  static Color bomColor = Color(0xFF6366F1); // Azul
-  static Color regularColor = Color(0xFFF59E0B); // Amarelo
-  static Color baixoColor = Color(0xFFEF4444); // Vermelho
+  static Color excelentColor = const Color(0xFF03BC62); // Verde - excelente
+  static Color bomColor = const Color(0xFF3182CE); // Azul - bom
+  static Color regularColor = const Color(0xFFFF8C00); // Laranja - regular
+  static Color baixoColor = const Color(0xFFE53E3E); // Vermelho - baixo
 
   // === HELPER METHODS (opcional, pode remover se não usar) ===
   static Color getUserTypeColor(String userType) {
     switch (userType.toLowerCase()) {
       case 'admin':
-        return errorColor;
+        return errorColor; // Vermelho para admin
       case 'professor':
-        return primaryColor;
+        return primaryColor; // Verde para professor
       case 'gestor':
-        return secondaryDarkColor;
+        return const Color(0xFF805AD5); // Roxo para gestor
       case 'aluno':
-        return secondaryColor;
+        return const Color(0xFF3182CE); // Azul para aluno
       default:
-        return darkTextHintColor;
+        return neutroColor; // Cinza neutro
     }
   }
 
@@ -189,7 +208,7 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
       textTheme: TextTheme(
@@ -250,7 +269,7 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
       textTheme: TextTheme(
@@ -308,108 +327,109 @@ class AppTheme {
   static Color get primaryDark => primaryDarkColor;
 
   // === MISSING GETTERS FOR TEXT STYLES - Modernos ===
-  static TextStyle get displayLarge => TextStyle(
-    fontSize: 57,
-    fontWeight: FontWeight.w400,
-    letterSpacing: -0.25,
-    height: 1.12,
-  );
+  static TextStyle get displayLarge => const TextStyle(
+        fontSize: 57,
+        fontWeight: FontWeight.w400,
+        letterSpacing: -0.25,
+        height: 1.12,
+      );
 
-  static TextStyle get displayMedium => TextStyle(
-    fontSize: 45,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.16,
-  );
+  static TextStyle get displayMedium => const TextStyle(
+        fontSize: 45,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: 1.16,
+      );
 
-  static TextStyle get displaySmall => TextStyle(
-    fontSize: 36,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.22,
-  );
+  static TextStyle get displaySmall => const TextStyle(
+        fontSize: 36,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: 1.22,
+      );
 
-  static TextStyle get headingSmall => TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
-    height: 1.33,
-  );
+  static TextStyle get headingSmall => const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+        height: 1.33,
+      );
 
-  static TextStyle get bodyLarge => TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.5,
-    height: 1.5,
-  );
+  static TextStyle get bodyLarge => const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+        height: 1.5,
+      );
 
-  static TextStyle get bodyMedium => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.25,
-    height: 1.43,
-  );
+  static TextStyle get bodyMedium => const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.25,
+        height: 1.43,
+      );
 
-  static TextStyle get bodySmall => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.4,
-    height: 1.33,
-  );
+  static TextStyle get bodySmall => const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.4,
+        height: 1.33,
+      );
 
-  static TextStyle get caption => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.4,
-    height: 1.33,
-  );
+  static TextStyle get caption => const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.4,
+        height: 1.33,
+      );
 
-  static TextStyle get headingLarge => TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
-    height: 1.25,
-  );
+  static TextStyle get headingLarge => const TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        height: 1.25,
+      );
 
-  static TextStyle get headingMedium => TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.25,
-    height: 1.29,
-  );
+  static TextStyle get headingMedium => const TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.25,
+        height: 1.29,
+      );
 
   // === COMPONENTES MODERNOS ===
   static BoxDecoration get modernCard => BoxDecoration(
-    borderRadius: BorderRadius.circular(16),
-    color: lightCardColor,
-    boxShadow: softShadow,
-    border: Border.all(color: lightBorderColor.withOpacity(0.1), width: 1),
-  );
+        borderRadius: BorderRadius.circular(16),
+        color: lightCardColor,
+        boxShadow: softShadow,
+        border: Border.all(color: lightBorderColor.withOpacity(0.1), width: 1),
+      );
 
   static BoxDecoration get modernCardDark => BoxDecoration(
-    borderRadius: BorderRadius.circular(16),
-    color: darkCardColor,
-    boxShadow: [
-      BoxShadow(
-        color: Color(0xFF000000).withOpacity(0.3),
-        blurRadius: 15,
-        offset: Offset(0, 8),
-      ),
-    ],
-    border: Border.all(color: darkBorderColor.withOpacity(0.2), width: 1),
-  );
+        borderRadius: BorderRadius.circular(16),
+        color: darkCardColor,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000000).withOpacity(0.3), // Sombra neutra
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: darkBorderColor.withOpacity(0.2), width: 1),
+      );
 
   static BoxDecoration modernGlassCard(bool isDark) => BoxDecoration(
-    borderRadius: BorderRadius.circular(20),
-    color: isDark ? glassDark.withOpacity(0.3) : glassLight.withOpacity(0.7),
-    border: Border.all(
-      color: isDark
-          ? darkBorderColor.withOpacity(0.3)
-          : lightBorderColor.withOpacity(0.2),
-      width: 1,
-    ),
-    boxShadow: isDark ? mediumShadow : softShadow,
-  );
+        borderRadius: BorderRadius.circular(20),
+        color:
+            isDark ? glassDark.withOpacity(0.3) : glassLight.withOpacity(0.7),
+        border: Border.all(
+          color: isDark
+              ? darkBorderColor.withOpacity(0.3)
+              : lightBorderColor.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: isDark ? mediumShadow : softShadow,
+      );
 
   // === MISSING GETTERS FOR SPACING AND RADIUS ===
   static double get spacing => 16.0;
@@ -428,15 +448,15 @@ class AppTheme {
   static Color get backgroundColor => darkBackgroundColor;
 
   // === MISSING GETTERS FOR BUTTON STYLES ===
-  static TextStyle get button =>
-      TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white);
+  static TextStyle get button => const TextStyle(
+      fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white);
 
   static ButtonStyle get buttonStyle => ElevatedButton.styleFrom(
-    backgroundColor: primaryColor,
-    foregroundColor: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-  );
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      );
 
   // === MISSING SNACKBAR METHODS ===
   static void showSuccessSnackBar(BuildContext context, String message) {
@@ -446,21 +466,21 @@ class AppTheme {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ],
         ),
         backgroundColor: successColor,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -472,21 +492,21 @@ class AppTheme {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error, color: Colors.white, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.error, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ],
         ),
         backgroundColor: errorColor,
-        duration: Duration(seconds: 4),
+        duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -498,21 +518,21 @@ class AppTheme {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.warning, color: Colors.white, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.warning, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ],
         ),
         backgroundColor: warningColor,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -524,21 +544,21 @@ class AppTheme {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info, color: Colors.white, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.info, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ],
         ),
         backgroundColor: infoColor,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

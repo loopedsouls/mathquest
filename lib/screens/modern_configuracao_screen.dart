@@ -149,7 +149,7 @@ class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
             child: Column(
               children: [
                 // Header responsivo
-                ResponsiveHeader(
+                const ResponsiveHeader(
                   title: 'Configurações',
                   subtitle: 'Configure os serviços de IA e preferências',
                   showBackButton: true,

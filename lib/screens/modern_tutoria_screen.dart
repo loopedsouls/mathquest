@@ -776,33 +776,32 @@ class _TutoriaScreenState extends State<TutoriaScreen>
                 const SizedBox(height: 24),
 
                 Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: 1.2,
+                  child: Column(
                     children: [
                       _buildFeatureCardDesktop(
                         Icons.trending_up_rounded,
-                        'Exercícios\nAdaptativos',
+                        'Exercícios Adaptativos',
                         'Dificuldade ajustada automaticamente',
                         AppTheme.primaryColor,
                       ),
+                      const SizedBox(height: 20),
                       _buildFeatureCardDesktop(
                         Icons.psychology_rounded,
-                        'Explicações\ncom IA',
+                        'Explicações com IA',
                         'Passo-a-passo detalhado',
                         AppTheme.secondaryColor,
                       ),
+                      const SizedBox(height: 20),
                       _buildFeatureCardDesktop(
                         Icons.analytics_rounded,
-                        'Progresso\nDetalhado',
+                        'Progresso Detalhado',
                         'Acompanhe seu desempenho',
                         AppTheme.infoColor,
                       ),
+                      const SizedBox(height: 20),
                       _buildFeatureCardDesktop(
                         Icons.quiz_rounded,
-                        'Múltiplos\nFormatos',
+                        'Múltiplos Formatos',
                         'Diversos tipos de exercícios',
                         AppTheme.accentColor,
                       ),
@@ -876,40 +875,37 @@ class _TutoriaScreenState extends State<TutoriaScreen>
           width: 1,
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+          Icon(
+            icon,
+            color: color,
+            size: 24,
           ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: AppTheme.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-              color: color,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title.replaceAll('\n', ' '),
+                  style: AppTheme.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: AppTheme.bodySmall.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

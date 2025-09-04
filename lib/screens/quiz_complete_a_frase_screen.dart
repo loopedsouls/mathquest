@@ -854,8 +854,8 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               // Header responsivo
               ResponsiveHeader(
                 title: widget.isOfflineMode
-                    ? 'Tutoria Offline'
-                    : 'Tutoria Inteligente',
+                    ? 'Quiz Complete a Frase Offline'
+                    : 'Quiz Complete a Frase Inteligente',
                 subtitle: _buildSubtitle(),
                 showBackButton: true,
                 trailing: _buildHeaderTrailing(isTablet),

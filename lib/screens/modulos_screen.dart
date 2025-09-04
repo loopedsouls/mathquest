@@ -5,9 +5,12 @@ import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
-import '../unused/quiz_multipla_escolha_screen.dart';
-import '../unused/quiz_verdadeiro_falso_screen.dart';
-import '../unused/quiz_complete_a_frase_screen.dart';
+import 'module_tutor_screen.dart';
+
+// Configuração para o programador - definir como false na produção
+// ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão
+// Definir como 'true' apenas durante desenvolvimento/testes
+const bool debugUnlockAllModules = true;
 
 class ModulosScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -706,8 +709,9 @@ class _ModulosScreenState extends State<ModulosScreen>
     final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
             ?[modulo.anoEscolar] ??
         false;
-    final isDesbloqueado = _progresso!
-        .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+    final isDesbloqueado = debugUnlockAllModules ||
+        _progresso!
+            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
     final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
     final exerciciosConsecutivos =
         _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
@@ -1151,8 +1155,9 @@ class _ModulosScreenState extends State<ModulosScreen>
     final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
             ?[modulo.anoEscolar] ??
         false;
-    final isDesbloqueado = _progresso!
-        .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+    final isDesbloqueado = debugUnlockAllModules ||
+        _progresso!
+            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
     final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
     final exerciciosConsecutivos =
         _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
@@ -1353,177 +1358,16 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   void _iniciarModulo(ModuloBNCC modulo) {
-    // Mostra seletor de tipo de quiz
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.darkSurfaceColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _buildQuizTypePicker(modulo),
-    );
-  }
-
-  Widget _buildQuizTypePicker(ModuloBNCC modulo) {
-    final isTablet = MediaQuery.of(context).size.width >= 768;
-
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 24 : 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppTheme.darkBorderColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-          Text(
-            'Escolha o tipo de exercício',
-            style: AppTheme.headingMedium.copyWith(
-              fontSize: isTablet ? 18 : 16,
-            ),
-          ),
-          SizedBox(height: isTablet ? 8 : 6),
-          Text(
-            '${modulo.unidadeTematica} - ${modulo.anoEscolar}',
-            style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-            ),
-          ),
-          SizedBox(height: isTablet ? 24 : 20),
-          _buildQuizOption(
-            'Múltipla Escolha',
-            'Questões com alternativas',
-            Icons.quiz_rounded,
-            () => _navegarParaQuiz('multipla_escolha', modulo),
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 12 : 10),
-          _buildQuizOption(
-            'Verdadeiro ou Falso',
-            'Afirmações para julgar',
-            Icons.check_box_outline_blank_rounded,
-            () => _navegarParaQuiz('verdadeiro_falso', modulo),
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 12 : 10),
-          _buildQuizOption(
-            'Complete a Frase',
-            'Preencher lacunas',
-            Icons.edit_outlined,
-            () => _navegarParaQuiz('complete_frase', modulo),
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuizOption(String titulo, String descricao, IconData icon,
-      VoidCallback onTap, bool isTablet) {
-    return Material(
-      color: AppTheme.darkBackgroundColor,
-      borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-        child: Container(
-          padding: EdgeInsets.all(isTablet ? 16 : 12),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: AppTheme.darkBorderColor,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: isTablet ? 40 : 32,
-                height: isTablet ? 40 : 32,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: isTablet ? 20 : 16,
-                ),
-              ),
-              SizedBox(width: isTablet ? 16 : 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titulo,
-                      style: AppTheme.headingSmall.copyWith(
-                        fontSize: isTablet ? 16 : 14,
-                      ),
-                    ),
-                    SizedBox(height: isTablet ? 4 : 2),
-                    Text(
-                      descricao,
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.darkTextSecondaryColor,
-                        fontSize: isTablet ? 12 : 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: AppTheme.darkTextSecondaryColor,
-                size: isTablet ? 16 : 14,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _navegarParaQuiz(String tipo, ModuloBNCC modulo) {
-    Navigator.pop(context); // Fecha o bottom sheet
-
-    Widget quizScreen;
-    switch (tipo) {
-      case 'multipla_escolha':
-        quizScreen = QuizMultiplaEscolhaScreen(
-          isOfflineMode: widget.isOfflineMode,
-          topico: modulo.unidadeTematica,
-          dificuldade: _progresso!.nivelUsuario.nome.toLowerCase(),
-        );
-        break;
-      case 'verdadeiro_falso':
-        quizScreen = QuizVerdadeiroFalsoScreen(
-          isOfflineMode: widget.isOfflineMode,
-          topico: modulo.unidadeTematica,
-          dificuldade: _progresso!.nivelUsuario.nome.toLowerCase(),
-        );
-        break;
-      case 'complete_frase':
-        quizScreen = QuizCompleteAFraseScreen(
-          topico: modulo.unidadeTematica,
-          dificuldade: _progresso!.nivelUsuario.nome.toLowerCase(),
-        );
-        break;
-      default:
-        return;
-    }
-
+    // Navega diretamente para o tutor de IA
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => quizScreen),
+      MaterialPageRoute(
+        builder: (context) => ModuleTutorScreen(
+          modulo: modulo,
+          progresso: _progresso!,
+          isOfflineMode: widget.isOfflineMode,
+        ),
+      ),
     ).then((_) => _carregarProgresso()); // Recarrega progresso ao voltar
   }
 

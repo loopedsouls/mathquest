@@ -94,14 +94,17 @@ class QuizHelperService {
       );
 
       if (kDebugMode) {
-        final promptPreview = prompt.length > 100 ? '${prompt.substring(0, 100)}...' : prompt;
+        final promptPreview =
+            prompt.length > 100 ? '${prompt.substring(0, 100)}...' : prompt;
         print('📝 Prompt gerado: $promptPreview');
       }
 
       final response = await tutorService.aiService.generate(prompt);
 
       if (kDebugMode) {
-        final responsePreview = response.length > 200 ? '${response.substring(0, 200)}...' : response;
+        final responsePreview = response.length > 200
+            ? '${response.substring(0, 200)}...'
+            : response;
         print('🤖 Resposta da IA: $responsePreview');
       }
 
@@ -109,7 +112,9 @@ class QuizHelperService {
 
       if (pergunta != null && kDebugMode) {
         final perguntaText = pergunta['pergunta']?.toString() ?? '';
-        final perguntaPreview = perguntaText.length > 50 ? '${perguntaText.substring(0, 50)}...' : perguntaText;
+        final perguntaPreview = perguntaText.length > 50
+            ? '${perguntaText.substring(0, 50)}...'
+            : perguntaText;
         print('✅ Pergunta processada com sucesso: $perguntaPreview');
       } else if (kDebugMode) {
         print('❌ Falha ao processar resposta da IA');

@@ -4,7 +4,6 @@ import 'cache_ia_service.dart';
 import 'ia_service.dart';
 
 class QuizHelperService {
-
   /// Gera pergunta inteligente usando cache quando possível
   static Future<Map<String, dynamic>?> gerarPerguntaInteligente({
     required String unidade,
@@ -56,14 +55,30 @@ class QuizHelperService {
     required String dificuldade,
   }) async {
     try {
+      if (kDebugMode) {
+        print(
+            '🤖 Iniciando geração via IA: $tipoQuiz - $unidade - $dificuldade');
+      }
+
       // Cria serviço AI baseado nas preferências do usuário
       final prefs = await SharedPreferences.getInstance();
       final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
       final apiKey = prefs.getString('gemini_api_key');
       final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
 
+      if (kDebugMode) {
+        print('🔧 IA selecionada: $selectedAI');
+        print('🔑 API Key definida: ${apiKey != null && apiKey.isNotEmpty}');
+      }
+
       AIService aiService;
       if (selectedAI == 'gemini') {
+        if (apiKey == null || apiKey.isEmpty) {
+          if (kDebugMode) {
+            print('❌ API Key do Gemini não configurada');
+          }
+          return null;
+        }
         aiService = GeminiService(apiKey: apiKey);
       } else {
         aiService = OllamaService(defaultModel: modeloOllama);
@@ -78,13 +93,25 @@ class QuizHelperService {
         dificuldade: dificuldade,
       );
 
-      final response = await tutorService.aiService.generate(prompt);
-      final pergunta = _processarRespostaIA(response, tipoQuiz);
-      
-      if (pergunta != null && kDebugMode) {
-        print('🤖 Pergunta gerada via IA: ${pergunta['pergunta']?.substring(0, 50)}...');
+      if (kDebugMode) {
+        print('📝 Prompt gerado: ${prompt.substring(0, 100)}...');
       }
-      
+
+      final response = await tutorService.aiService.generate(prompt);
+
+      if (kDebugMode) {
+        print('🤖 Resposta da IA: ${response.substring(0, 200)}...');
+      }
+
+      final pergunta = _processarRespostaIA(response, tipoQuiz);
+
+      if (pergunta != null && kDebugMode) {
+        print(
+            '✅ Pergunta processada com sucesso: ${pergunta['pergunta']?.substring(0, 50)}...');
+      } else if (kDebugMode) {
+        print('❌ Falha ao processar resposta da IA');
+      }
+
       return pergunta;
     } catch (e) {
       if (kDebugMode) {
@@ -160,7 +187,8 @@ Características:
   }
 
   /// Processa a resposta da IA e extrai os componentes
-  static Map<String, dynamic>? _processarRespostaIA(String response, String tipoQuiz) {
+  static Map<String, dynamic>? _processarRespostaIA(
+      String response, String tipoQuiz) {
     try {
       final linhas = response
           .split('\n')
@@ -194,11 +222,13 @@ Características:
 
     for (String linha in linhas) {
       linha = linha.trim();
-      
+
       if (linha.startsWith('PERGUNTA:')) {
         pergunta = linha.substring(9).trim();
-      } else if (linha.startsWith('A)') || linha.startsWith('B)') || 
-                 linha.startsWith('C)') || linha.startsWith('D)')) {
+      } else if (linha.startsWith('A)') ||
+          linha.startsWith('B)') ||
+          linha.startsWith('C)') ||
+          linha.startsWith('D)')) {
         opcoes.add(linha.substring(2).trim());
       } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
         respostaCorreta = linha.substring(17).trim();
@@ -227,7 +257,7 @@ Características:
 
     for (String linha in linhas) {
       linha = linha.trim();
-      
+
       if (linha.startsWith('PERGUNTA:')) {
         pergunta = linha.substring(9).trim();
       } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
@@ -256,7 +286,7 @@ Características:
 
     for (String linha in linhas) {
       linha = linha.trim();
-      
+
       if (linha.startsWith('PERGUNTA:')) {
         pergunta = linha.substring(9).trim();
       } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
@@ -295,7 +325,7 @@ Características:
   static Future<void> limparCacheSeNecessario() async {
     final stats = await CacheIAService.obterEstatisticasCache();
     final totalPerguntas = stats['total_perguntas_cache'] ?? 0;
-    
+
     // Se o cache está muito grande (mais de 1000 perguntas), otimiza
     if (totalPerguntas > 1000) {
       await CacheIAService.otimizarCache();

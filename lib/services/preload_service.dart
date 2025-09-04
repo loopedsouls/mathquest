@@ -112,7 +112,7 @@ class PreloadService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_creditsKey, credits);
     // Força a sincronização para garantir que os dados sejam salvos imediatamente
-    await prefs.commit();
+    await prefs.reload();
 
     // Log de debug temporário
     if (kDebugMode) {
@@ -252,7 +252,7 @@ class PreloadService {
       await setCredits(generated);
 
       // Força a sincronização dos dados para garantir que foram salvos
-      await prefs.commit();
+      await prefs.reload();
 
       onProgress(
           totalQuestions,

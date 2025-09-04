@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,16 +5,16 @@ import 'database_service.dart';
 import 'preload_service.dart';
 
 class CacheIAService {
-  static const int _maxCachePorParametro = 50; // Máximo de perguntas por combinação
+// Máximo de perguntas por combinação
   static const int _diasExpiracao = 30; // Cache expira em 30 dias
-  static const double _taxaUsoCache = 0.7; // 70% das vezes usa cache, 30% gera nova
+// 70% das vezes usa cache, 30% gera nova
 
   // Estatísticas de cache
   static int _cacheHits = 0;
   static int _cacheMisses = 0;
   static int _perguntasGeradas = 0;
 
-  /// Gera ou busca uma pergunta do cache de forma inteligente
+  /// Busca uma pergunta no cache (sem gerar nova)
   static Future<Map<String, dynamic>?> obterPergunta({
     required String unidade,
     required String ano,
@@ -31,220 +30,51 @@ class CacheIAService {
       final preloadEnabled = await PreloadService.isPreloadEnabled();
       final hasCredits = await PreloadService.hasCredits();
       
-      // Se preload ativo e há créditos, SEMPRE prioriza cache
-      bool deveUsarCache;
-      if (preloadEnabled && hasCredits) {
-        deveUsarCache = true;
-        if (kDebugMode) {
-          print('🎯 Modo preload ativo - priorizando cache');
-        }
-      } else {
-        // Decide normalmente se deve usar cache ou gerar nova pergunta
-        deveUsarCache = await _deveUsarCache(
-          unidade: unidade,
-          ano: ano,
-          tipoQuiz: tipoQuiz,
-          dificuldade: dificuldade,
-        );
-      }
-
-      Map<String, dynamic>? pergunta;
-
-      if (deveUsarCache) {
-        // Tenta buscar no cache primeiro
-        pergunta = await DatabaseService.buscarPerguntaCache(
-          unidade: unidade,
-          ano: ano,
-          tipoQuiz: tipoQuiz,
-          dificuldade: dificuldade,
-        );
-
-        if (pergunta != null) {
-          // Usa um crédito se disponível (só no modo preload)
-          bool creditUsed = false;
-          if (preloadEnabled && hasCredits) {
-            creditUsed = await PreloadService.useCredit();
-          }
-          
-          _cacheHits++;
-          if (kDebugMode) {
-            print('🎯 Cache HIT: ${unidade}_${ano}_$tipoQuiz${creditUsed ? " (crédito usado)" : ""}');
-          }
-          
-          // Se os créditos acabaram, inicia precarregamento em background
-          if (preloadEnabled && !await PreloadService.hasCredits()) {
-            _startBackgroundPreload();
-          }
-          
-          return pergunta;
-        } else if (preloadEnabled && hasCredits) {
-          // Se modo preload ativo mas não achou no cache, força geração para manter créditos
-          if (kDebugMode) {
-            print('⚠️ Modo preload ativo mas pergunta não encontrada no cache');
-          }
-        }
-      }
-
-      // Cache miss ou decisão de gerar nova - gera pergunta via IA
-      _cacheMisses++;
-      _perguntasGeradas++;
-      
-      if (kDebugMode) {
-              
-      if (kDebugMode) {
-        print('🔄 Gerando nova pergunta: ${unidade}_${ano}_$tipoQuiz');
-      }
-      }
-      
-      pergunta = await _gerarNovaPergunta(
+      // Tenta buscar no cache
+      final pergunta = await DatabaseService.buscarPerguntaCache(
         unidade: unidade,
         ano: ano,
         tipoQuiz: tipoQuiz,
         dificuldade: dificuldade,
-        fonteIA: fonteIA,
       );
-
       if (pergunta != null) {
-        // Salva no cache para uso futuro
-        await _salvarNoCache(
-          unidade: unidade,
-          ano: ano,
-          tipoQuiz: tipoQuiz,
-          dificuldade: dificuldade,
-          pergunta: pergunta,
-          fonteIA: fonteIA ?? 'gemini',
-        );
-
-        // Gerencia o tamanho do cache
-        await _gerenciarTamanhoCache(
-          unidade: unidade,
-          ano: ano,
-          tipoQuiz: tipoQuiz,
-          dificuldade: dificuldade,
-        );
+        // Usa um crédito se disponível (só no modo preload)
+        bool creditUsed = false;
+        if (preloadEnabled && hasCredits) {
+          creditUsed = await PreloadService.useCredit();
+        }
+        
+        _cacheHits++;
+        if (kDebugMode) {
+          print('🎯 Cache HIT: ${unidade}_${ano}_$tipoQuiz${creditUsed ? " (crédito usado)" : ""}');
+        }
+        
+        // Se os créditos acabaram, inicia precarregamento em background
+        if (preloadEnabled && !await PreloadService.hasCredits()) {
+          _startBackgroundPreload();
+        }
+        
+        return pergunta;
       }
 
-      return pergunta;
-
-    } catch (e) {
+      // Cache miss
+      _cacheMisses++;
       if (kDebugMode) {
-        print('❌ Erro ao obter pergunta: $e');
+        print('❌ Cache MISS: ${unidade}_${ano}_$tipoQuiz');
       }
-      return null;
-    }
-  }
-
-  /// Decide se deve usar cache baseado em estatísticas e disponibilidade
-  static Future<bool> _deveUsarCache({
-    required String unidade,
-    required String ano,
-    required String tipoQuiz,
-    required String dificuldade,
-  }) async {
-    // Garante que o banco está inicializado
-    await DatabaseService.database;
-    
-    // Conta quantas perguntas existem no cache para estes parâmetros
-    final countCache = await DatabaseService.contarPerguntasCache(
-      unidade: unidade,
-      ano: ano,
-      tipoQuiz: tipoQuiz,
-      dificuldade: dificuldade,
-    );
-
-    // Se não há perguntas no cache, deve gerar
-    if (countCache == 0) return false;
-
-    // Se há poucas perguntas (menos de 5), gera mais algumas
-    if (countCache < 5) {
-      return Random().nextDouble() < 0.3; // 30% chance de usar cache
-    }
-
-    // Se há muitas perguntas, usa cache mais frequentemente
-    if (countCache >= _maxCachePorParametro) {
-      return Random().nextDouble() < 0.9; // 90% chance de usar cache
-    }
-
-    // Chance normal de usar cache
-    return Random().nextDouble() < _taxaUsoCache;
-  }
-
-  /// Gera uma nova pergunta via prompt direto (para integração com sistema atual)
-  static Future<Map<String, dynamic>?> _gerarNovaPergunta({
-    required String unidade,
-    required String ano,
-    required String tipoQuiz,
-    required String dificuldade,
-    String? fonteIA,
-  }) async {
-    try {
-      // Retorna null para que o sistema atual gere a pergunta
-      // Esta função será expandida quando integrar diretamente com IA
-      return null;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Erro ao gerar pergunta via IA: $e');
-      }
-      return null;
-    }
-  }
-
-  /// Salva a pergunta no cache
-  static Future<void> _salvarNoCache({
-    required String unidade,
-    required String ano,
-    required String tipoQuiz,
-    required String dificuldade,
-    required Map<String, dynamic> pergunta,
-    required String fonteIA,
-  }) async {
-    try {
-      // Garante que o banco está inicializado
-      await DatabaseService.database;
       
-      await DatabaseService.salvarPerguntaCache(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-        pergunta: pergunta['pergunta'] as String,
-        opcoes: pergunta['opcoes'] as List<String>?,
-        respostaCorreta: pergunta['resposta_correta'] as String,
-        explicacao: pergunta['explicacao'] as String?,
-        fonteIA: fonteIA,
-      );
+      return null;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Erro ao salvar no cache: $e');
+        print('❌ Erro ao buscar no cache: $e');
       }
+      return null;
     }
   }
 
-  /// Gerencia o tamanho do cache removendo perguntas antigas ou menos usadas
-  static Future<void> _gerenciarTamanhoCache({
-    required String unidade,
-    required String ano,
-    required String tipoQuiz,
-    required String dificuldade,
-  }) async {
-    try {
-      final count = await DatabaseService.contarPerguntasCache(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-      );
 
-      // Se excedeu o limite, remove perguntas antigas
-      if (count > _maxCachePorParametro) {
-        await DatabaseService.limparCacheAntigo(diasParaExpirar: _diasExpiracao);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Erro ao gerenciar cache: $e');
-      }
-    }
-  }
+
+
 
   /// Pré-carrega perguntas no cache para melhorar a experiência
   static Future<void> preCarregarCache({

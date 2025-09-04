@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:sqflite/sqflite.dart';
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../models/progresso_usuario.dart';
 
@@ -14,16 +15,29 @@ class DatabaseService {
   static const String _tableCacheIA = 'cache_ia';
   static const String _tableConquistas = 'conquistas_usuario';
 
+  // Inicialização do banco para desktop
+  static Future<void> _initializeDatabaseFactory() async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Inicializa sqflite_ffi para plataformas desktop
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  }
+
   // Singleton pattern
   static Future<Database> get database async {
     if (_database != null) return _database!;
+
+    // Inicializa factory se necessário
+    await _initializeDatabaseFactory();
+
     _database = await _initDatabase();
     return _database!;
   }
 
   static Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), _databaseName);
-    
+
     return await openDatabase(
       path,
       version: _databaseVersion,
@@ -101,13 +115,18 @@ class DatabaseService {
     ''');
 
     // Índices para performance
-    await db.execute('CREATE INDEX idx_cache_ia_chave ON $_tableCacheIA(chave_cache)');
-    await db.execute('CREATE INDEX idx_cache_ia_params ON $_tableCacheIA(unidade, ano, tipo_quiz, dificuldade)');
-    await db.execute('CREATE INDEX idx_estatisticas_modulo ON $_tableEstatisticas(usuario_id, unidade, ano)');
-    await db.execute('CREATE INDEX idx_conquistas_usuario ON $_tableConquistas(usuario_id, conquista_id)');
+    await db.execute(
+        'CREATE INDEX idx_cache_ia_chave ON $_tableCacheIA(chave_cache)');
+    await db.execute(
+        'CREATE INDEX idx_cache_ia_params ON $_tableCacheIA(unidade, ano, tipo_quiz, dificuldade)');
+    await db.execute(
+        'CREATE INDEX idx_estatisticas_modulo ON $_tableEstatisticas(usuario_id, unidade, ano)');
+    await db.execute(
+        'CREATE INDEX idx_conquistas_usuario ON $_tableConquistas(usuario_id, conquista_id)');
   }
 
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
     // Implementar migração de dados quando necessário
     if (oldVersion < newVersion) {
       // Futuras migrações aqui
@@ -116,15 +135,17 @@ class DatabaseService {
 
   // === MÉTODOS DE PROGRESSO ===
 
-  static Future<void> salvarProgresso(ProgressoUsuario progresso, {String usuarioId = 'default'}) async {
+  static Future<void> salvarProgresso(ProgressoUsuario progresso,
+      {String usuarioId = 'default'}) async {
     final db = await database;
-    
+
     final dados = {
       'usuario_id': usuarioId,
       'modulos_completos': jsonEncode(progresso.modulosCompletos),
       'nivel_usuario': progresso.nivelUsuario.index,
       'pontos_por_unidade': jsonEncode(progresso.pontosPorUnidade),
-      'exercicios_corretos_consecutivos': jsonEncode(progresso.exerciciosCorretosConsecutivos),
+      'exercicios_corretos_consecutivos':
+          jsonEncode(progresso.exerciciosCorretosConsecutivos),
       'taxa_acerto_por_modulo': jsonEncode(progresso.taxaAcertoPorModulo),
       'ultima_atualizacao': progresso.ultimaAtualizacao.toIso8601String(),
       'total_exercicios_respondidos': progresso.totalExerciciosRespondidos,
@@ -139,9 +160,10 @@ class DatabaseService {
     );
   }
 
-  static Future<ProgressoUsuario?> carregarProgresso({String usuarioId = 'default'}) async {
+  static Future<ProgressoUsuario?> carregarProgresso(
+      {String usuarioId = 'default'}) async {
     final db = await database;
-    
+
     final results = await db.query(
       _tableProgresso,
       where: 'usuario_id = ?',
@@ -153,7 +175,7 @@ class DatabaseService {
     if (results.isEmpty) return null;
 
     final dados = results.first;
-    
+
     return ProgressoUsuario(
       modulosCompletos: Map<String, Map<String, bool>>.from(
         jsonDecode(dados['modulos_completos'] as String).map(
@@ -161,9 +183,12 @@ class DatabaseService {
         ),
       ),
       nivelUsuario: NivelUsuario.values[dados['nivel_usuario'] as int],
-      pontosPorUnidade: Map<String, int>.from(jsonDecode(dados['pontos_por_unidade'] as String)),
-      exerciciosCorretosConsecutivos: Map<String, int>.from(jsonDecode(dados['exercicios_corretos_consecutivos'] as String)),
-      taxaAcertoPorModulo: Map<String, double>.from(jsonDecode(dados['taxa_acerto_por_modulo'] as String)),
+      pontosPorUnidade: Map<String, int>.from(
+          jsonDecode(dados['pontos_por_unidade'] as String)),
+      exerciciosCorretosConsecutivos: Map<String, int>.from(
+          jsonDecode(dados['exercicios_corretos_consecutivos'] as String)),
+      taxaAcertoPorModulo: Map<String, double>.from(
+          jsonDecode(dados['taxa_acerto_por_modulo'] as String)),
       ultimaAtualizacao: DateTime.parse(dados['ultima_atualizacao'] as String),
       totalExerciciosRespondidos: dados['total_exercicios_respondidos'] as int,
       totalExerciciosCorretos: dados['total_exercicios_corretos'] as int,
@@ -181,7 +206,7 @@ class DatabaseService {
     String usuarioId = 'default',
   }) async {
     final db = await database;
-    
+
     final dados = {
       'usuario_id': usuarioId,
       'unidade': unidade,
@@ -206,7 +231,7 @@ class DatabaseService {
     String usuarioId = 'default',
   }) async {
     final db = await database;
-    
+
     final results = await db.query(
       _tableEstatisticas,
       where: 'usuario_id = ? AND unidade = ? AND ano = ?',
@@ -240,7 +265,9 @@ class DatabaseService {
     required String tipoQuiz,
     required String dificuldade,
   }) {
-    return '${unidade}_${ano}_${tipoQuiz}_$dificuldade'.toLowerCase().replaceAll(' ', '_');
+    return '${unidade}_${ano}_${tipoQuiz}_$dificuldade'
+        .toLowerCase()
+        .replaceAll(' ', '_');
   }
 
   static Future<Map<String, dynamic>?> buscarPerguntaCache({
@@ -282,7 +309,9 @@ class DatabaseService {
 
     return {
       'pergunta': dados['pergunta'] as String,
-      'opcoes': dados['opcoes'] != null ? jsonDecode(dados['opcoes'] as String) : null,
+      'opcoes': dados['opcoes'] != null
+          ? jsonDecode(dados['opcoes'] as String)
+          : null,
       'resposta_correta': dados['resposta_correta'] as String,
       'explicacao': dados['explicacao'] as String?,
       'fonte_ia': dados['fonte_ia'] as String,
@@ -339,7 +368,7 @@ class DatabaseService {
     String? dificuldade,
   }) async {
     final db = await database;
-    
+
     String whereClause = '1=1';
     List<dynamic> whereArgs = [];
 
@@ -370,7 +399,8 @@ class DatabaseService {
 
   static Future<void> limparCacheAntigo({int diasParaExpirar = 30}) async {
     final db = await database;
-    final dataExpiracao = DateTime.now().subtract(Duration(days: diasParaExpirar));
+    final dataExpiracao =
+        DateTime.now().subtract(Duration(days: diasParaExpirar));
 
     await db.delete(
       _tableCacheIA,
@@ -402,7 +432,8 @@ class DatabaseService {
     );
   }
 
-  static Future<List<String>> carregarConquistasDesbloqueadas({String usuarioId = 'default'}) async {
+  static Future<List<String>> carregarConquistasDesbloqueadas(
+      {String usuarioId = 'default'}) async {
     final db = await database;
 
     final results = await db.query(
@@ -420,21 +451,26 @@ class DatabaseService {
   static Future<void> resetarDados({String usuarioId = 'default'}) async {
     final db = await database;
 
-    await db.delete(_tableProgresso, where: 'usuario_id = ?', whereArgs: [usuarioId]);
-    await db.delete(_tableEstatisticas, where: 'usuario_id = ?', whereArgs: [usuarioId]);
-    await db.delete(_tableConquistas, where: 'usuario_id = ?', whereArgs: [usuarioId]);
+    await db.delete(_tableProgresso,
+        where: 'usuario_id = ?', whereArgs: [usuarioId]);
+    await db.delete(_tableEstatisticas,
+        where: 'usuario_id = ?', whereArgs: [usuarioId]);
+    await db.delete(_tableConquistas,
+        where: 'usuario_id = ?', whereArgs: [usuarioId]);
   }
 
   static Future<Map<String, dynamic>> obterEstatisticasGerais() async {
     final db = await database;
 
-    final progressoCount = await db.rawQuery('SELECT COUNT(*) as count FROM $_tableProgresso');
-    final cacheCount = await db.rawQuery('SELECT COUNT(*) as count FROM $_tableCacheIA');
-    final conquistasCount = await db.rawQuery('SELECT COUNT(*) as count FROM $_tableConquistas');
-    
+    final progressoCount =
+        await db.rawQuery('SELECT COUNT(*) as count FROM $_tableProgresso');
+    final cacheCount =
+        await db.rawQuery('SELECT COUNT(*) as count FROM $_tableCacheIA');
+    final conquistasCount =
+        await db.rawQuery('SELECT COUNT(*) as count FROM $_tableConquistas');
+
     final cacheSize = await db.rawQuery(
-      'SELECT SUM(LENGTH(pergunta) + COALESCE(LENGTH(opcoes), 0) + LENGTH(resposta_correta)) as size FROM $_tableCacheIA'
-    );
+        'SELECT SUM(LENGTH(pergunta) + COALESCE(LENGTH(opcoes), 0) + LENGTH(resposta_correta)) as size FROM $_tableCacheIA');
 
     return {
       'usuarios_registrados': progressoCount.first['count'] as int,

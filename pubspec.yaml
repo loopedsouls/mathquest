@@ -44,6 +44,7 @@ dependencies:
   
   # Para banco de dados local
   sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0  # Para suporte a Windows/Linux/macOS
   path: ^1.8.3
   intl: ^0.20.2
 

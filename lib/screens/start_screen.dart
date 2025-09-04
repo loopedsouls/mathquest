@@ -7,14 +7,14 @@ import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
 import 'quiz_verdadeiro_falso_screen.dart';
 
-class TutoriaScreen extends StatefulWidget {
-  const TutoriaScreen({super.key});
+class StartScreen extends StatefulWidget {
+  const StartScreen({super.key});
 
   @override
-  State<TutoriaScreen> createState() => _TutoriaScreenState();
+  State<StartScreen> createState() => _StartScreenState();
 }
 
-class _TutoriaScreenState extends State<TutoriaScreen>
+class _StartScreenState extends State<StartScreen>
     with TickerProviderStateMixin {
   final GeminiService geminiService = GeminiService();
   bool _isLoading = true;
@@ -131,7 +131,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
   void _startTutoria() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ModernTutoriaInterativaScreen(
+        builder: (context) => QuizCompleteAFraseScreen(
           isOfflineMode: _isOfflineMode,
           exerciciosOffline: _exerciciosOffline,
         ),
@@ -143,7 +143,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
     Navigator.of(context)
         .push(
           MaterialPageRoute(
-            builder: (context) => const ModernConfiguracaoScreen(),
+            builder: (context) => const ConfiguracaoScreen(),
           ),
         )
         .then((_) => _checkAIServices());
@@ -152,7 +152,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
   void _startQuiz() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ModernQuizScreen(
+        builder: (context) => QuizMultiplaEscolhaScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'Matemática Geral',
           dificuldade: 'médio',
@@ -164,7 +164,7 @@ class _TutoriaScreenState extends State<TutoriaScreen>
   void _startQuizVerdadeiroFalso() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ModernQuizVerdadeiroFalsoScreen(
+        builder: (context) => QuizVerdadeiroFalsoScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'Matemática Geral',
           dificuldade: 'médio',

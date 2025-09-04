@@ -5,23 +5,23 @@ import '../services/ia_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-class ModernTutoriaInterativaScreen extends StatefulWidget {
+class QuizCompleteAFraseScreen extends StatefulWidget {
   final bool isOfflineMode;
   final List<Map<String, dynamic>> exerciciosOffline;
 
-  const ModernTutoriaInterativaScreen({
+  const QuizCompleteAFraseScreen({
     super.key,
     required this.isOfflineMode,
     required this.exerciciosOffline,
   });
 
   @override
-  State<ModernTutoriaInterativaScreen> createState() =>
-      _ModernTutoriaInterativaScreenState();
+  State<QuizCompleteAFraseScreen> createState() =>
+      _QuizCompleteAFraseScreenState();
 }
 
-class _ModernTutoriaInterativaScreenState
-    extends State<ModernTutoriaInterativaScreen> with TickerProviderStateMixin {
+class _QuizCompleteAFraseScreenState
+    extends State<QuizCompleteAFraseScreen> with TickerProviderStateMixin {
   late MathTutorService tutorService;
   final TextEditingController _respostaController = TextEditingController();
 

@@ -39,7 +39,7 @@ class MathTutorApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Usar tema escuro como padrão
       home: const ResponsiveWrapper(
-        child: TutoriaScreen(),
+        child: StartScreen(),
       ),
     );
   }

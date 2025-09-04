@@ -4,15 +4,14 @@ import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 
-class ModernConfiguracaoScreen extends StatefulWidget {
-  const ModernConfiguracaoScreen({super.key});
+class ConfiguracaoScreen extends StatefulWidget {
+  const ConfiguracaoScreen({super.key});
 
   @override
-  State<ModernConfiguracaoScreen> createState() =>
-      _ModernConfiguracaoScreenState();
+  State<ConfiguracaoScreen> createState() => _ConfiguracaoScreenState();
 }
 
-class _ModernConfiguracaoScreenState extends State<ModernConfiguracaoScreen>
+class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     with TickerProviderStateMixin {
   final TextEditingController apiKeyController = TextEditingController();
   bool carregando = false;

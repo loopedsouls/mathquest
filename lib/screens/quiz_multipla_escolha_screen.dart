@@ -6,12 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
 
-class ModernQuizScreen extends StatefulWidget {
+class QuizMultiplaEscolhaScreen extends StatefulWidget {
   final bool isOfflineMode;
   final String? topico;
   final String? dificuldade;
 
-  const ModernQuizScreen({
+  const QuizMultiplaEscolhaScreen({
     super.key,
     this.isOfflineMode = false,
     this.topico,
@@ -19,10 +19,10 @@ class ModernQuizScreen extends StatefulWidget {
   });
 
   @override
-  State<ModernQuizScreen> createState() => _ModernQuizScreenState();
+  State<QuizMultiplaEscolhaScreen> createState() => _QuizMultiplaEscolhaScreenState();
 }
 
-class _ModernQuizScreenState extends State<ModernQuizScreen>
+class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     with TickerProviderStateMixin {
   late MathTutorService tutorService;
 

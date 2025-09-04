@@ -6,12 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
 
-class ModernQuizVerdadeiroFalsoScreen extends StatefulWidget {
+class QuizVerdadeiroFalsoScreen extends StatefulWidget {
   final bool isOfflineMode;
   final String? topico;
   final String? dificuldade;
 
-  const ModernQuizVerdadeiroFalsoScreen({
+  const QuizVerdadeiroFalsoScreen({
     super.key,
     this.isOfflineMode = false,
     this.topico,
@@ -19,12 +19,12 @@ class ModernQuizVerdadeiroFalsoScreen extends StatefulWidget {
   });
 
   @override
-  State<ModernQuizVerdadeiroFalsoScreen> createState() =>
-      _ModernQuizVerdadeiroFalsoScreenState();
+  State<QuizVerdadeiroFalsoScreen> createState() =>
+      _QuizVerdadeiroFalsoScreenState();
 }
 
-class _ModernQuizVerdadeiroFalsoScreenState
-    extends State<ModernQuizVerdadeiroFalsoScreen>
+class _QuizVerdadeiroFalsoScreenState
+    extends State<QuizVerdadeiroFalsoScreen>
     with TickerProviderStateMixin {
   late MathTutorService tutorService;
 

@@ -657,19 +657,21 @@ class _ModulosScreenState extends State<ModulosScreen>
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Column(
-            children: _buildDesktopCardRows(modulos, cardWidth, spacing, numColumns),
+            children:
+                _buildDesktopCardRows(modulos, cardWidth, spacing, numColumns),
           );
         },
       ),
     );
   }
 
-  List<Widget> _buildDesktopCardRows(List<dynamic> modulos, double cardWidth, double spacing, int numColumns) {
+  List<Widget> _buildDesktopCardRows(
+      List<dynamic> modulos, double cardWidth, double spacing, int numColumns) {
     List<Widget> rows = [];
-    
+
     for (int i = 0; i < modulos.length; i += numColumns) {
       final rowModulos = modulos.skip(i).take(numColumns).toList();
-      
+
       rows.add(
         IntrinsicHeight(
           child: Row(
@@ -683,19 +685,18 @@ class _ModulosScreenState extends State<ModulosScreen>
                 ),
               ],
               // Preenche espaço restante se a linha não estiver completa
-              if (rowModulos.length < numColumns)
-                Expanded(child: Container()),
+              if (rowModulos.length < numColumns) Expanded(child: Container()),
             ],
           ),
         ),
       );
-      
+
       // Adiciona espaçamento entre linhas (exceto após a última)
       if (i + numColumns < modulos.length) {
         rows.add(SizedBox(height: spacing));
       }
     }
-    
+
     return rows;
   }
 

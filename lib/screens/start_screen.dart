@@ -142,16 +142,7 @@ class _StartScreenState extends State<StartScreen>
       ),
     );
   }
-  void _startTutoria() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ModulosScreen(
-          isOfflineMode: _isOfflineMode,
-          exerciciosOffline: _exerciciosOffline,
-        ),
-      ),
-    );
-  }
+
 
   void _goToConfig() {
     Navigator.of(context)
@@ -483,7 +474,7 @@ class _StartScreenState extends State<StartScreen>
               : 'Quiz Complete a Frase',
           icon:
               _isOfflineMode ? Icons.book_rounded : Icons.rocket_launch_rounded,
-          onPressed: _startTutoria,
+          onPressed: _startQuizCompleteFrase,
           isPrimary: true,
           isFullWidth: true,
         ),
@@ -714,7 +705,7 @@ class _StartScreenState extends State<StartScreen>
               children: [
                 _buildVisualNovelButton(
                   title: 'Iniciar Tutoria',
-                  onPressed: _startTutoria,
+                  onPressed: _goToModulos,
                 ),
                 
                 const SizedBox(height: 20),

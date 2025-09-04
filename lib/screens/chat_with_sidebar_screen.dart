@@ -31,6 +31,7 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   final List<ChatMessage> _messages = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late MathTutorService _tutorService;
   bool _isLoading = false;
@@ -153,6 +154,7 @@ Dê boas-vindas ao aluno de forma amigável e apresente o módulo usando formata
           text: response,
           isUser: false,
           timestamp: DateTime.now(),
+          aiProvider: _useGemini ? 'gemini' : 'ollama',
         ));
       } catch (e) {
         _addMessage(ChatMessage(
@@ -160,6 +162,7 @@ Dê boas-vindas ao aluno de forma amigável e apresente o módulo usando formata
               'Olá! Sou seu tutor de matemática! 🧮✨\n\nVamos estudar sobre ${widget.modulo!.titulo}. O que você gostaria de aprender hoje?',
           isUser: false,
           timestamp: DateTime.now(),
+          aiProvider: _useGemini ? 'gemini' : 'ollama',
         ));
       }
     } else {
@@ -391,6 +394,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
     final isMobile = screenWidth < 768;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppTheme.darkBackgroundColor,
       drawer: isMobile ? _buildMobileDrawer() : null,
       body: Container(
@@ -479,7 +483,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Scaffold.of(context).openDrawer(),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             icon: const Icon(Icons.menu_rounded),
             tooltip: 'Conversas',
           ),
@@ -652,111 +656,112 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
     final isSelected = _conversaAtual?.id == conversa.id;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isTablet ? 8 : (isMobile ? 4 : 6)),
-      child: Material(
-        color: isSelected
-            ? AppTheme.primaryColor.withValues(alpha: 0.2)
-            : AppTheme.darkBackgroundColor,
-        borderRadius: BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
-        child: InkWell(
-          onTap: () {
-            _carregarConversa(conversa);
-            if (isMobile) Navigator.pop(context); // Fecha drawer em mobile
-          },
+        margin: EdgeInsets.only(bottom: isTablet ? 8 : (isMobile ? 4 : 6)),
+        child: Material(
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.2)
+              : AppTheme.darkBackgroundColor,
           borderRadius:
               BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
-          child: Container(
-            padding: EdgeInsets.all(isTablet ? 16 : (isMobile ? 8 : 12)),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: isSelected
-                    ? AppTheme.primaryColor
-                    : AppTheme.darkBorderColor,
-                width: 1,
+          child: InkWell(
+            onTap: () {
+              _carregarConversa(conversa);
+              if (isMobile) Navigator.pop(context); // Fecha drawer em mobile
+            },
+            borderRadius:
+                BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
+            child: Container(
+              padding: EdgeInsets.all(isTablet ? 16 : (isMobile ? 8 : 12)),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : AppTheme.darkBorderColor,
+                  width: 1,
+                ),
+                borderRadius:
+                    BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
               ),
-              borderRadius:
-                  BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        conversa.titulo,
-                        style: AppTheme.headingSmall.copyWith(
-                          fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
-                          color: isSelected
-                              ? AppTheme.primaryColor
-                              : AppTheme.darkTextPrimaryColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversa.titulo,
+                          style: AppTheme.headingSmall.copyWith(
+                            fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
+                            color: isSelected
+                                ? AppTheme.primaryColor
+                                : AppTheme.darkTextPrimaryColor,
+                          ),
+                          maxLines: isMobile ? 1 : 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: isMobile ? 1 : 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _deletarConversa(conversa);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_outline, size: 16),
-                              SizedBox(width: 8),
-                              Text('Excluir'),
-                            ],
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            _deletarConversa(conversa);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, size: 16),
+                                SizedBox(width: 8),
+                                Text('Excluir'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          size: isMobile ? 14 : 16,
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 6 : 8,
+                          vertical: isMobile ? 2 : 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentColor.withValues(alpha: 0.2),
+                          borderRadius:
+                              BorderRadius.circular(isMobile ? 8 : 12),
+                        ),
+                        child: Text(
+                          conversa.contexto,
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.accentColor,
+                            fontSize: isTablet ? 10 : (isMobile ? 8 : 9),
                           ),
                         ),
-                      ],
-                      icon: Icon(
-                        Icons.more_vert_rounded,
-                        size: isMobile ? 14 : 16,
-                        color: AppTheme.darkTextSecondaryColor,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 6 : 8,
-                        vertical: isMobile ? 2 : 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
-                      ),
-                      child: Text(
-                        conversa.contexto,
+                      const Spacer(),
+                      Text(
+                        _formatarData(conversa.ultimaAtualizacao),
                         style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.accentColor,
+                          color: AppTheme.darkTextSecondaryColor,
                           fontSize: isTablet ? 10 : (isMobile ? 8 : 9),
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      _formatarData(conversa.ultimaAtualizacao),
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.darkTextSecondaryColor,
-                        fontSize: isTablet ? 10 : (isMobile ? 8 : 9),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   String _formatarData(DateTime data) {

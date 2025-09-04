@@ -38,6 +38,8 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  bool _conversaSalva = false;
+
   late MathTutorService _tutorService;
   bool _isLoading = false;
   bool _tutorInitialized = false;
@@ -48,7 +50,6 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   // Sistema de conversas
   Conversa? _conversaAtual;
   String _tituloConversa = 'Nova Conversa';
-  bool _conversaSalva = false;
 
   @override
   void initState() {
@@ -162,6 +163,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
         text: response,
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -169,6 +171,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
             'Olá! Sou seu tutor de matemática! 🧮✨\n\nVamos estudar sobre ${widget.modulo.titulo}. O que você gostaria de aprender hoje?',
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } finally {
       setState(() {
@@ -289,6 +292,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
         text: response,
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -296,6 +300,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
             'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } finally {
       setState(() {
@@ -504,19 +509,28 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
 
     final buffer = StringBuffer();
     buffer.writeln('# Conversa - ${widget.modulo.titulo}\n');
-    buffer.writeln('**Módulo:** ${widget.modulo.unidadeTematica} - ${widget.modulo.anoEscolar}\n');
-    buffer.writeln('**Data:** ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}\n');
+    buffer.writeln(
+        '**Módulo:** ${widget.modulo.unidadeTematica} - ${widget.modulo.anoEscolar}\n');
+    buffer.writeln(
+        '**Data:** ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}\n');
     buffer.writeln('---\n');
 
     for (final message in _messages) {
-      final role = message.isUser ? '👤 **Você**' : '🤖 **Tutor**';
-      buffer.writeln('$role:');
-      buffer.writeln(message.text);
+      if (message.isUser) {
+        buffer.writeln('👤 **Você**:');
+        buffer.writeln(message.text);
+      } else {
+        final aiName = message.aiProvider != null
+            ? (message.aiProvider == 'gemini' ? 'Gemini' : 'Ollama')
+            : 'Tutor';
+        buffer.writeln('🤖 **Tutor ($aiName)**:');
+        buffer.writeln(message.text);
+      }
       buffer.writeln('');
     }
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -540,7 +554,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
 
     try {
       final pdf = pw.Document();
-      
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -560,7 +574,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
               pw.SizedBox(height: 20),
               pw.Text(
                 'Módulo: ${widget.modulo.titulo}',
-                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                style:
+                    pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
               pw.Text(
                 'Unidade Temática: ${widget.modulo.unidadeTematica}',
@@ -585,14 +600,20 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                       padding: const pw.EdgeInsets.all(12),
                       margin: const pw.EdgeInsets.only(bottom: 16),
                       decoration: pw.BoxDecoration(
-                        color: message.isUser ? PdfColors.blue100 : PdfColors.grey100,
+                        color: message.isUser
+                            ? PdfColors.blue100
+                            : PdfColors.grey100,
                         borderRadius: pw.BorderRadius.circular(8),
                       ),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text(
-                            message.isUser ? '👤 Você:' : '🤖 Tutor de Matemática:',
+                            message.isUser
+                                ? '👤 Você:'
+                                : message.aiProvider != null
+                                    ? '🤖 Tutor (${message.aiProvider == 'gemini' ? 'Gemini' : 'Ollama'}):'
+                                    : '🤖 Tutor de Matemática:',
                             style: pw.TextStyle(
                               fontWeight: pw.FontWeight.bold,
                               fontSize: 12,
@@ -616,9 +637,9 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
 
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
-        name: 'MathQuest_Conversa_${widget.modulo.titulo.replaceAll(' ', '_')}.pdf',
+        name:
+            'MathQuest_Conversa_${widget.modulo.titulo.replaceAll(' ', '_')}.pdf',
       );
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -638,10 +659,11 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
         .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // Remove italic
         .replaceAll(RegExp(r'`(.*?)`'), r'$1') // Remove code
         .replaceAll(RegExp(r'#{1,6}\s*'), '') // Remove headers
-        .replaceAll(RegExp(r'\$\$(.*?)\$\$'), r'[$1]') // LaTeX block -> brackets
+        .replaceAll(
+            RegExp(r'\$\$(.*?)\$\$'), r'[$1]') // LaTeX block -> brackets
         .replaceAll(RegExp(r'\$(.*?)\$'), r'[$1]') // LaTeX inline -> brackets
         .replaceAll(RegExp(r'>\s*'), '• '); // Quote -> bullet
-    
+
     return cleaned;
   }
 
@@ -727,12 +749,17 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _useGemini ? Colors.blue.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                        color: _useGemini
+                            ? Colors.blue.withValues(alpha: 0.2)
+                            : Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _useGemini ? Colors.blue.withValues(alpha: 0.5) : Colors.orange.withValues(alpha: 0.5),
+                          color: _useGemini
+                              ? Colors.blue.withValues(alpha: 0.5)
+                              : Colors.orange.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
@@ -777,7 +804,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                     value: 'copy',
                     child: Row(
                       children: [
-                        Icon(Icons.copy_rounded, color: AppTheme.darkTextPrimaryColor),
+                        Icon(Icons.copy_rounded,
+                            color: AppTheme.darkTextPrimaryColor),
                         const SizedBox(width: 8),
                         Text('Copiar Conversa', style: AppTheme.bodyMedium),
                       ],
@@ -787,7 +815,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                     value: 'pdf',
                     child: Row(
                       children: [
-                        Icon(Icons.picture_as_pdf_rounded, color: AppTheme.darkTextPrimaryColor),
+                        Icon(Icons.picture_as_pdf_rounded,
+                            color: AppTheme.darkTextPrimaryColor),
                         const SizedBox(width: 8),
                         Text('Gerar PDF', style: AppTheme.bodyMedium),
                       ],
@@ -876,9 +905,57 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                         height: 1.5,
                       ),
                     )
-                  : LatexMarkdownWidget(
-                      data: message.text,
-                      isTablet: isTablet,
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (message.aiProvider != null) ...[
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: message.aiProvider == 'gemini'
+                                      ? Colors.blue.withValues(alpha: 0.2)
+                                      : Colors.orange.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: message.aiProvider == 'gemini'
+                                        ? Colors.blue.withValues(alpha: 0.5)
+                                        : Colors.orange.withValues(alpha: 0.5),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  message.aiProvider == 'gemini'
+                                      ? 'Gemini'
+                                      : 'Ollama',
+                                  style: AppTheme.bodySmall.copyWith(
+                                    color: message.aiProvider == 'gemini'
+                                        ? Colors.blue
+                                        : Colors.orange,
+                                    fontSize: isTablet ? 10 : 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                  fontSize: isTablet ? 10 : 9,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        LatexMarkdownWidget(
+                          data: message.text,
+                          isTablet: isTablet,
+                        ),
+                      ],
                     ),
             ),
           ),
@@ -946,7 +1023,9 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _useGemini ? 'Gemini está pensando' : 'Ollama está pensando',
+                          _useGemini
+                              ? 'Gemini está pensando'
+                              : 'Ollama está pensando',
                           style: AppTheme.bodySmall.copyWith(
                             color: AppTheme.darkTextSecondaryColor,
                             fontSize: isTablet ? 12 : 10,

@@ -59,11 +59,13 @@ class ChatMessage {
   final String text;
   final bool isUser;
   final DateTime timestamp;
+  final String? aiProvider; // 'gemini', 'ollama', ou null para mensagens do usuário
 
   ChatMessage({
     required this.text,
     required this.isUser,
     required this.timestamp,
+    this.aiProvider,
   });
 
   Map<String, dynamic> toJson() {
@@ -71,6 +73,7 @@ class ChatMessage {
       'text': text,
       'isUser': isUser,
       'timestamp': timestamp.toIso8601String(),
+      'aiProvider': aiProvider,
     };
   }
 
@@ -79,6 +82,7 @@ class ChatMessage {
       text: json['text'],
       isUser: json['isUser'],
       timestamp: DateTime.parse(json['timestamp']),
+      aiProvider: json['aiProvider'],
     );
   }
 }

@@ -559,7 +559,9 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                         ],
                         LatexMarkdownWidget(
                           data: message.text,
-                      isTablet: isTablet,
+                          isTablet: isTablet,
+                        ),
+                      ],
                     ),
             ),
           ),

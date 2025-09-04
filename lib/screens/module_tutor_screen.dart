@@ -801,6 +801,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
           ),
           Row(
             children: [
+              const QueueStatusIndicator(),
               ModernButton(
                 text: 'Atividades',
                 onPressed: _showActivityGenerator,

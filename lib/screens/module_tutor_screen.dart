@@ -10,6 +10,7 @@ import '../models/conversa.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../widgets/latex_markdown_widget.dart';
+import '../widgets/queue_status_indicator.dart';
 import '../services/ia_service.dart';
 import '../services/conversa_service.dart';
 import '../services/ai_queue_service.dart';

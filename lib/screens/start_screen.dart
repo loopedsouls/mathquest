@@ -6,6 +6,7 @@ import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
 import 'quiz_verdadeiro_falso_screen.dart';
+import 'ajuda_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -169,6 +170,14 @@ class _StartScreenState extends State<StartScreen>
           topico: 'Matemática Geral',
           dificuldade: 'médio',
         ),
+      ),
+    );
+  }
+
+  void _goToAjuda() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AjudaScreen(),
       ),
     );
   }
@@ -667,9 +676,7 @@ class _StartScreenState extends State<StartScreen>
             icon: Icons.help_outline_rounded,
             title: 'Ajuda & Tutorial',
             subtitle: 'Como usar o sistema',
-            onPressed: () {
-              // TODO: Implementar tela de ajuda
-            },
+            onPressed: _goToAjuda,
             isPrimary: false,
           ),
 

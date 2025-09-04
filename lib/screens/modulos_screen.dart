@@ -134,13 +134,13 @@ class _ModulosScreenState extends State<ModulosScreen>
   Widget _buildDesktopLayout() {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       width: double.infinity,
       height: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.02, // 2% of screen width
-        vertical: screenHeight * 0.02,   // 2% of screen height
+        vertical: screenHeight * 0.02, // 2% of screen height
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +221,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildDesktopHeader() {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,6 +403,8 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildDesktopStreakCard() {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,16 +414,21 @@ class _ModulosScreenState extends State<ModulosScreen>
               Icon(
                 Icons.local_fire_department_rounded,
                 color: AppTheme.accentColor,
-                size: 24,
+                size: 20,
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Sequência',
-                style: AppTheme.headingMedium.copyWith(fontSize: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sequência',
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: screenWidth > 1400 ? 16 : 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const StreakWidget(),
         ],
       ),
@@ -485,7 +492,7 @@ class _ModulosScreenState extends State<ModulosScreen>
   Widget _buildDesktopStatItem(
       String value, String label, IconData icon, Color color) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -532,7 +539,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildDesktopModulesHeader() {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Row(
       children: [
         Icon(
@@ -556,9 +563,10 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildDesktopUnidadesSelector() {
     final unidades = ModulosBNCCData.obterUnidadesTematicas();
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return SizedBox(
-      height: 60,
+      height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: unidades.length,
@@ -569,19 +577,23 @@ class _ModulosScreenState extends State<ModulosScreen>
               _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
 
           return Container(
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(right: 12),
             child: Material(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               color: isSelected
                   ? AppTheme.primaryColor
                   : AppTheme.darkSurfaceColor,
-              elevation: isSelected ? 4 : 0,
+              elevation: isSelected ? 2 : 0,
               child: InkWell(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => setState(() => _unidadeSelecionada = unidade),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  constraints: BoxConstraints(
+                    minWidth: screenWidth * 0.08,
+                    maxWidth: screenWidth * 0.15,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -591,14 +603,16 @@ class _ModulosScreenState extends State<ModulosScreen>
                           color: isSelected
                               ? Colors.white
                               : AppTheme.darkTextPrimaryColor,
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Container(
-                        width: 60,
-                        height: 4,
+                        width: 40,
+                        height: 3,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
                           color: isSelected
@@ -631,20 +645,58 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildDesktopModulosGrid() {
     final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1.4,
+    // Calcula largura do card baseado no número de colunas
+    final numColumns = screenWidth > 1600 ? 3 : 2;
+    const spacing = 16.0;
+    final availableWidth = screenWidth * 0.6 - (spacing * (numColumns + 1));
+    final cardWidth = availableWidth / numColumns;
+
+    return SingleChildScrollView(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            children: _buildDesktopCardRows(modulos, cardWidth, spacing, numColumns),
+          );
+        },
       ),
-      itemCount: modulos.length,
-      itemBuilder: (context, index) {
-        final modulo = modulos[index];
-        return _buildDesktopModuloCard(modulo);
-      },
     );
+  }
+
+  List<Widget> _buildDesktopCardRows(List<dynamic> modulos, double cardWidth, double spacing, int numColumns) {
+    List<Widget> rows = [];
+    
+    for (int i = 0; i < modulos.length; i += numColumns) {
+      final rowModulos = modulos.skip(i).take(numColumns).toList();
+      
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (int j = 0; j < rowModulos.length; j++) ...[
+                if (j > 0) SizedBox(width: spacing),
+                SizedBox(
+                  width: cardWidth,
+                  child: _buildDesktopModuloCard(rowModulos[j]),
+                ),
+              ],
+              // Preenche espaço restante se a linha não estiver completa
+              if (rowModulos.length < numColumns)
+                Expanded(child: Container()),
+            ],
+          ),
+        ),
+      );
+      
+      // Adiciona espaçamento entre linhas (exceto após a última)
+      if (i + numColumns < modulos.length) {
+        rows.add(SizedBox(height: spacing));
+      }
+    }
+    
+    return rows;
   }
 
   Widget _buildDesktopModuloCard(ModuloBNCC modulo) {
@@ -737,9 +789,9 @@ class _ModulosScreenState extends State<ModulosScreen>
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Conteúdo expandido
+          // Conteúdo que se expande para preencher espaço disponível
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -753,7 +805,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                         : AppTheme.darkTextSecondaryColor,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Expanded(
                   child: Text(
                     modulo.descricao,
@@ -762,7 +814,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                       color: AppTheme.darkTextSecondaryColor,
                       height: 1.4,
                     ),
-                    maxLines: 3,
+                    maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -770,9 +822,7 @@ class _ModulosScreenState extends State<ModulosScreen>
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // Progresso e ações
+          const SizedBox(height: 12), // Progresso e ações
           if (isDesbloqueado) ...[
             if (taxaAcerto > 0) ...[
               ModernProgressIndicator(
@@ -1062,25 +1112,41 @@ class _ModulosScreenState extends State<ModulosScreen>
         horizontal: isTablet ? 24 : 16,
         vertical: isTablet ? 16 : 12,
       ),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isDesktop ? 2 : 1,
-          crossAxisSpacing: isTablet ? 20 : 16,
-          mainAxisSpacing: isTablet ? 20 : 16,
-          childAspectRatio: isDesktop ? 2.5 : (isTablet ? 2.0 : 1.8),
-        ),
-        itemCount: modulos.length,
-        itemBuilder: (context, index) {
-          final modulo = modulos[index];
-          return _buildModuloCard(modulo, isTablet);
-        },
-      ),
+      child: isDesktop
+          ? IntrinsicHeight(
+              child: Wrap(
+                spacing: isTablet ? 20 : 16,
+                runSpacing: isTablet ? 20 : 16,
+                children: modulos.map((modulo) {
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width -
+                            (isTablet ? 88 : 72)) /
+                        2,
+                    child: IntrinsicHeight(
+                      child: _buildModuloCard(modulo, isTablet),
+                    ),
+                  );
+                }).toList(),
+              ),
+            )
+          : ListView.builder(
+              itemCount: modulos.length,
+              itemBuilder: (context, index) {
+                final modulo = modulos[index];
+                return Container(
+                  margin: EdgeInsets.only(bottom: isTablet ? 20 : 16),
+                  child: _buildModuloCard(modulo, isTablet),
+                );
+              },
+            ),
     );
   }
 
   Widget _buildModuloCard(ModuloBNCC modulo, bool isTablet) {
     if (_progresso == null) return const SizedBox.shrink();
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
     final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
             ?[modulo.anoEscolar] ??
         false;
@@ -1095,7 +1161,6 @@ class _ModulosScreenState extends State<ModulosScreen>
       hasGlow: isDesbloqueado,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Header do card
           Row(
@@ -1169,30 +1234,64 @@ class _ModulosScreenState extends State<ModulosScreen>
             ],
           ),
 
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: isTablet ? 12 : 10),
 
-          // Título e descrição
-          Text(
-            modulo.titulo,
-            style: AppTheme.headingMedium.copyWith(
-              fontSize: isTablet ? 16 : 14,
-              color: isDesbloqueado
-                  ? AppTheme.darkTextPrimaryColor
-                  : AppTheme.darkTextSecondaryColor,
-            ),
-          ),
-          SizedBox(height: isTablet ? 8 : 6),
-          Text(
-            modulo.descricao,
-            style: AppTheme.bodySmall.copyWith(
-              fontSize: isTablet ? 12 : 11,
-              color: AppTheme.darkTextSecondaryColor,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          // Conteúdo que se expande no desktop/tablet com Wrap
+          isDesktop
+              ? Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        modulo.titulo,
+                        style: AppTheme.headingMedium.copyWith(
+                          fontSize: isTablet ? 16 : 14,
+                          color: isDesbloqueado
+                              ? AppTheme.darkTextPrimaryColor
+                              : AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 6 : 4),
+                      Expanded(
+                        child: Text(
+                          modulo.descricao,
+                          style: AppTheme.bodySmall.copyWith(
+                            fontSize: isTablet ? 12 : 11,
+                            color: AppTheme.darkTextSecondaryColor,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      modulo.titulo,
+                      style: AppTheme.headingMedium.copyWith(
+                        fontSize: isTablet ? 16 : 14,
+                        color: isDesbloqueado
+                            ? AppTheme.darkTextPrimaryColor
+                            : AppTheme.darkTextSecondaryColor,
+                      ),
+                    ),
+                    SizedBox(height: isTablet ? 6 : 4),
+                    Text(
+                      modulo.descricao,
+                      style: AppTheme.bodySmall.copyWith(
+                        fontSize: isTablet ? 12 : 11,
+                        color: AppTheme.darkTextSecondaryColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
 
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: isTablet ? 12 : 10),
 
           // Progresso e botão
           if (isDesbloqueado) ...[

@@ -71,7 +71,7 @@ class ModernButton extends StatelessWidget {
                   Text(
                     text,
                     style: TextStyle(
-                      fontSize: isTablet ? 18 : 16,
+                      fontSize: isTablet ? 16 : 14,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
                     ),

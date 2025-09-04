@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import 'bncc_old.dart';
 import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
@@ -144,8 +143,9 @@ class _StartScreenState extends State<StartScreen>
   void _startTutoria() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const BnccIaTutorMatematicaScreen(
-         
+        builder: (context) => ModulosScreen(
+          isOfflineMode: _isOfflineMode,
+          exerciciosOffline: _exerciciosOffline,
         ),
       ),
     );

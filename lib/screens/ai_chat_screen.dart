@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../services/ia_service.dart';
+import '../services/conversa_service.dart';
+import '../models/conversa.dart';
 import '../widgets/latex_markdown_widget.dart';
 
 class AIChatScreen extends StatefulWidget {
@@ -26,6 +28,11 @@ class _AIChatScreenState extends State<AIChatScreen>
   bool _useGemini = true;
   String _modeloOllama = 'llama3.2:1b';
   String _aiName = 'IA';
+
+  // Sistema de conversas
+  Conversa? _conversaAtual;
+  String _tituloConversa = 'Nova Conversa';
+  bool _conversaSalva = false;
 
   @override
   void initState() {
@@ -169,6 +176,7 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
       _messages.add(message);
     });
     _scrollToBottom();
+    _salvarConversaAutomaticamente();
   }
 
   void _scrollToBottom() {

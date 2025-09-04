@@ -4,6 +4,7 @@ import '../models/modulo_bncc.dart';
 import '../models/progresso_usuario.dart';
 import '../services/conversa_service.dart';
 import '../services/ia_service.dart';
+import '../services/ai_queue_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../widgets/latex_markdown_widget.dart';
@@ -34,6 +35,7 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late MathTutorService _tutorService;
+  late AIQueueService _aiQueueService;
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
@@ -50,6 +52,7 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   @override
   void initState() {
     super.initState();
+    _aiQueueService = AIQueueService();
     _initializeTypingAnimation();
     _initializeTutor();
     _carregarConversas();
@@ -105,6 +108,10 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
+      
+      // Inicializa o sistema de filas
+      _aiQueueService.initialize(_tutorService);
+      
       setState(() => _tutorInitialized = true);
 
       // Só envia mensagem de boas-vindas se não há conversa selecionada
@@ -368,18 +375,27 @@ Pergunta atual: "$text"
 Responda de forma educativa e clara, usando Markdown e LaTeX.
 ''';
 
-      final response = await _tutorService.aiService.generate(contextPrompt);
+      // Adiciona à fila e aguarda resultado
+      final response = await _aiQueueService.addRequest(
+        conversaId: _conversaAtual?.id ?? 'sidebar_chat_${DateTime.now().millisecondsSinceEpoch}',
+        prompt: contextPrompt,
+        userMessage: text,
+        useGemini: _useGemini,
+        modeloOllama: _modeloOllama,
+      );
+
       _addMessage(ChatMessage(
-        text: response,
+        text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text:
-            'Desculpe, tive um problema para responder. Pode tentar novamente? 😅',
+        text: 'Desculpe, tive um problema para responder. Pode tentar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } finally {
       setState(() => _isLoading = false);

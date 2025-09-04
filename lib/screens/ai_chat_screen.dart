@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../services/ia_service.dart';
 import '../services/conversa_service.dart';
+import '../services/ai_queue_service.dart';
 import '../models/conversa.dart';
 import '../widgets/latex_markdown_widget.dart';
 
@@ -20,6 +21,7 @@ class _AIChatScreenState extends State<AIChatScreen>
   final ScrollController _scrollController = ScrollController();
 
   late MathTutorService _tutorService;
+  late AIQueueService _aiQueueService;
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
@@ -37,6 +39,7 @@ class _AIChatScreenState extends State<AIChatScreen>
   @override
   void initState() {
     super.initState();
+    _aiQueueService = AIQueueService();
     _initializeTypingAnimation();
     _initializeTutor();
   }
@@ -100,6 +103,10 @@ class _AIChatScreenState extends State<AIChatScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
+      
+      // Inicializa o sistema de filas
+      _aiQueueService.initialize(_tutorService);
+      
       setState(() {
         _tutorInitialized = true;
       });
@@ -279,17 +286,24 @@ Responda de forma educativa, clara e apropriada. Se for uma questão matemática
 Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown com LaTeX.
 ''';
 
-      final response = await _tutorService.aiService.generate(contextPrompt);
+      // Adiciona à fila e aguarda resultado
+      final response = await _aiQueueService.addRequest(
+        conversaId: _conversaAtual?.id ?? 'ai_chat_${DateTime.now().millisecondsSinceEpoch}',
+        prompt: contextPrompt,
+        userMessage: text,
+        useGemini: _useGemini,
+        modeloOllama: _modeloOllama,
+      );
+
       _addMessage(ChatMessage(
-        text: response,
+        text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text:
-            'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+        text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',

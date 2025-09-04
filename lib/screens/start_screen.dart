@@ -3,10 +3,7 @@ import 'dart:math' as math;
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
-import 'quiz_multipla_escolha_screen.dart';
-import 'quiz_verdadeiro_falso_screen.dart';
 import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
@@ -23,7 +20,6 @@ class _StartScreenState extends State<StartScreen>
     with TickerProviderStateMixin {
   final GeminiService geminiService = GeminiService();
   bool _isLoading = true;
-  String? _error;
   bool _isOfflineMode = false;
   List<Map<String, dynamic>> _exerciciosOffline = [];
   late AnimationController _animationController;
@@ -128,17 +124,8 @@ class _StartScreenState extends State<StartScreen>
       setState(() {
         _isOfflineMode = true;
         _isLoading = false;
-        _error = 'Erro ao verificar serviços de IA: $e';
       });
     }
-  }
-
-  void _startQuizCompleteFrase() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const QuizCompleteAFraseScreen(),
-      ),
-    );
   }
 
   void _goToConfig() {
@@ -157,30 +144,6 @@ class _StartScreenState extends State<StartScreen>
         builder: (context) => ModulosScreen(
           isOfflineMode: _isOfflineMode,
           exerciciosOffline: _exerciciosOffline,
-        ),
-      ),
-    );
-  }
-
-  void _startQuiz() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => QuizMultiplaEscolhaScreen(
-          isOfflineMode: _isOfflineMode,
-          topico: 'Matemática Geral',
-          dificuldade: 'médio',
-        ),
-      ),
-    );
-  }
-
-  void _startQuizVerdadeiroFalso() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => QuizVerdadeiroFalsoScreen(
-          isOfflineMode: _isOfflineMode,
-          topico: 'Matemática Geral',
-          dificuldade: 'médio',
         ),
       ),
     );
@@ -337,151 +300,32 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildMobileTabletLayout(bool isTablet) {
-    return Stack(
-      children: [
-        // Fundo com decorações matemáticas (igual ao desktop)
-        Positioned.fill(
-          child: _buildMathematicalDecorations(),
-        ),
-        // Conteúdo principal
-        SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: isTablet ? 40 : 20,
-            vertical: isTablet ? 40 : 20,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-
-              // Logo matemática unificada com boas-vindas
-              _buildUnifiedLogoWelcome(isTablet),
-
-              SizedBox(height: isTablet ? 40 : 30),
-
-              // Status do sistema
-              _buildStatusSection(isTablet),
-
-              SizedBox(height: isTablet ? 40 : 30),
-
-              // Botões de ação principais
-              _buildActionButtons(isTablet),
-
-              // Error display
-              if (_error != null) ...[
-                SizedBox(height: isTablet ? 30 : 20),
-                _buildErrorSection(isTablet),
-              ],
-
-              const SizedBox(height: 60),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusSection(bool isTablet) {
-    return StatusIndicator(
-      text: _isOfflineMode ? 'Modo Offline Ativo' : 'IA Conectada',
-      icon: _isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
-      color: _isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
-      isActive: true,
-    );
-  }
-
-  Widget _buildActionButtons(bool isTablet) {
-    return Column(
-      children: [
-        ModernButton(
-          text: '🎯 Módulos BNCC',
-          icon: Icons.school_rounded,
-          onPressed: _goToModulos,
-          isPrimary: true,
-          isFullWidth: true,
-        ),
-        SizedBox(height: isTablet ? 16 : 12),
-        ModernButton(
-          text: _isOfflineMode
-              ? 'Quiz Complete a Frase'
-              : 'Quiz Complete a Frase',
-          icon:
-              _isOfflineMode ? Icons.book_rounded : Icons.rocket_launch_rounded,
-          onPressed: _startQuizCompleteFrase,
-          isPrimary: true,
-          isFullWidth: true,
-        ),
-        SizedBox(height: isTablet ? 16 : 12),
-        ModernButton(
-          text: _isOfflineMode
-              ? 'Quiz Múltipla Escolha'
-              : 'Quiz Múltipla Escolha',
-          icon: Icons.quiz_rounded,
-          onPressed: _startQuiz,
-          isPrimary: true,
-          isFullWidth: true,
-        ),
-        SizedBox(height: isTablet ? 16 : 12),
-        ModernButton(
-          text: _isOfflineMode
-              ? 'Quiz Verdadeiro/Falso'
-              : 'Quiz Verdadeiro/Falso',
-          icon: Icons.check_box_rounded,
-          onPressed: _startQuizVerdadeiroFalso,
-          isPrimary: true,
-          isFullWidth: true,
-        ),
-        SizedBox(height: isTablet ? 16 : 12),
-        ModernButton(
-          text: '🎲 Quiz Alternado (Todos os Tipos)',
-          icon: Icons.shuffle_rounded,
-          onPressed: _startQuizAlternado,
-          isPrimary: true,
-          isFullWidth: true,
-        ),
-        SizedBox(height: isTablet ? 20 : 16),
-        Row(
-          children: [
-            Expanded(
-              child: ModernButton(
-                text: 'Relatórios',
-                icon: Icons.analytics,
-                onPressed: _goToRelatorios,
-                isPrimary: false,
-                isFullWidth: true,
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.darkBackgroundColor,
+            AppTheme.darkSurfaceColor,
           ],
         ),
-        SizedBox(height: isTablet ? 12 : 8),
-        ModernButton(
-          text: 'Configurações',
-          icon: Icons.settings_rounded,
-          onPressed: _goToConfig,
-          isPrimary: false,
-          isFullWidth: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildErrorSection(bool isTablet) {
-    return ModernCard(
+      ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            color: AppTheme.errorColor,
-            size: isTablet ? 24 : 20,
+          // Menu lateral esquerdo (mesmo do desktop, mas adaptado para mobile/tablet)
+          SizedBox(
+            width: isTablet ? 320 : 280,
+            child: _buildLeftMenu(),
           ),
-          SizedBox(width: isTablet ? 16 : 12),
+          // Linha divisória sutil
+          Container(
+            width: 1,
+            color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+          ),
+          // Informações à direita
           Expanded(
-            child: Text(
-              _error!,
-              style: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.errorColor,
-              ),
-            ),
+            child: _buildRightInfo(),
           ),
         ],
       ),
@@ -701,92 +545,6 @@ class _StartScreenState extends State<StartScreen>
           child: _buildMathematicalLogo(),
         ),
       ],
-    );
-  }
-
-  Widget _buildUnifiedLogoWelcome(bool isTablet) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.1),
-            AppTheme.secondaryColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          // Logo compacta
-          Container(
-            width: isTablet ? 100 : 80,
-            height: isTablet ? 100 : 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 15,
-                  spreadRadius: 3,
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.functions_rounded,
-              size: isTablet ? 45 : 35,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-
-          // Título e boas-vindas integrados
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.waving_hand_rounded,
-                size: isTablet ? 28 : 24,
-                color: AppTheme.primaryColor,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'MathQuest',
-                style:
-                    (isTablet ? AppTheme.headingLarge : AppTheme.headingMedium)
-                        .copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isTablet ? 12 : 8),
-          Text(
-            _isOfflineMode
-                ? 'Modo offline ativo • Exercícios básicos disponíveis'
-                : 'Sistema de IA conectado • Experiência completa disponível',
-            style:
-                (isTablet ? AppTheme.bodyMedium : AppTheme.bodySmall).copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 

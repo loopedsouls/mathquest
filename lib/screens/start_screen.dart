@@ -8,6 +8,7 @@ import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
 import 'quiz_verdadeiro_falso_screen.dart';
 import 'ajuda_screen.dart';
+import 'modulos_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -160,6 +161,17 @@ class _StartScreenState extends State<StartScreen>
         .then((_) => _checkAIServices());
   }
 
+  void _goToModulos() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ModulosScreen(
+          isOfflineMode: _isOfflineMode,
+          exerciciosOffline: _exerciciosOffline,
+        ),
+      ),
+    );
+  }
+
   void _startQuiz() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -296,7 +308,7 @@ class _StartScreenState extends State<StartScreen>
       child: Row(
         children: [
           // Menu lateral esquerdo (estilo Visual Novel)
-          Container(
+          SizedBox(
             width: 350,
             child: _buildLeftMenu(),
           ),
@@ -439,6 +451,14 @@ class _StartScreenState extends State<StartScreen>
   Widget _buildActionButtons(bool isTablet) {
     return Column(
       children: [
+        ModernButton(
+          text: '🎯 Módulos BNCC',
+          icon: Icons.school_rounded,
+          onPressed: _goToModulos,
+          isPrimary: true,
+          isFullWidth: true,
+        ),
+        SizedBox(height: isTablet ? 16 : 12),
         ModernButton(
           text: _isOfflineMode
               ? 'Quiz Complete a Frase'
@@ -722,7 +742,7 @@ class _StartScreenState extends State<StartScreen>
     required String title,
     required VoidCallback onPressed,
   }) {
-    return Container(
+    return SizedBox(
       width: 280,
       child: Material(
         color: Colors.transparent,

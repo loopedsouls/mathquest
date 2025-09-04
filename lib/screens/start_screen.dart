@@ -708,56 +708,61 @@ class _StartScreenState extends State<StartScreen>
           
           // Menu principal estilo Visual Novel
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildVisualNovelButton(
-                  title: 'Iniciar Tutoria',
-                  onPressed: _goToModulos,
-                ),
-                
-                const SizedBox(height: 20),
-                 _buildVisualNovelButton(
-                  title: 'Quiz Complete a Frase',
-                  onPressed: _startQuizCompleteFrase,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                _buildVisualNovelButton(
-                  title: 'Quiz Múltipla Escolha',
-                  onPressed: _startQuiz,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                _buildVisualNovelButton(
-                  title: 'Quiz Verdadeiro/Falso',
-                  onPressed: _startQuizVerdadeiroFalso,
-                ),
-                
-                const SizedBox(height: 30),
-                
-                _buildVisualNovelButton(
-                  title: 'Configurações',
-                  onPressed: _goToConfig,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                _buildVisualNovelButton(
-                  title: 'Histórico de Explicações',
-                  onPressed: _goToHistoricoExplicacoes,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                _buildVisualNovelButton(
-                  title: 'Ajuda',
-                  onPressed: _goToAjuda,
-                ),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildVisualNovelButton(
+                    title: 'Iniciar Tutoria',
+                    onPressed: _goToModulos,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                   _buildVisualNovelButton(
+                    title: 'Quiz Complete a Frase',
+                    onPressed: _startQuizCompleteFrase,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  _buildVisualNovelButton(
+                    title: 'Quiz Múltipla Escolha',
+                    onPressed: _startQuiz,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  _buildVisualNovelButton(
+                    title: 'Quiz Verdadeiro/Falso',
+                    onPressed: _startQuizVerdadeiroFalso,
+                  ),
+                  
+                  const SizedBox(height: 30),
+                  
+                  _buildVisualNovelButton(
+                    title: 'Configurações',
+                    onPressed: _goToConfig,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  _buildVisualNovelButton(
+                    title: 'Histórico de Explicações',
+                    onPressed: _goToHistoricoExplicacoes,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  _buildVisualNovelButton(
+                    title: 'Ajuda',
+                    onPressed: _goToAjuda,
+                  ),
+                  
+                  // Espaço extra para garantir que o último botão não fique colado no final
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
           

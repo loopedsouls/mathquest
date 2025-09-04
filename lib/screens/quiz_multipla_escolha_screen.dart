@@ -707,14 +707,16 @@ Dificuldade: $dificuldade
   }
 
   String _buildSubtitle() {
+    String nivel = 'Nível: ${widget.dificuldade?.toUpperCase() ?? 'MÉDIO'}';
+    
     if (widget.isOfflineMode) {
-      return 'Modo Offline';
+      return nivel;
     }
 
     if (_useGemini) {
-      return 'IA: Gemini';
+      return '$nivel • IA: Gemini';
     } else {
-      return 'IA: Ollama ($_modeloOllama)';
+      return '$nivel • IA: Ollama ($_modeloOllama)';
     }
   }
 

@@ -21,6 +21,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   String _selectedAI = 'gemini';
   String _modeloOllama = 'llama2';
   bool _preloadEnabled = false;
+  int _currentCredits = 0;
 
   List<String> _ollamaModels = [];
   bool _loadingModels = false;
@@ -65,6 +66,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
+    final credits = await PreloadService.getCredits();
 
     if (apiKey != null) {
       apiKeyController.text = apiKey;
@@ -76,6 +78,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       _selectedAI = selectedAI;
       _modeloOllama = modeloOllama;
       _preloadEnabled = preloadEnabled;
+      _currentCredits = credits;
     });
 
     if (_selectedAI == 'ollama') {
@@ -636,6 +639,28 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                           color: AppTheme.darkTextSecondaryColor,
                         ),
                       ),
+                      if (_preloadEnabled) ...[
+                        SizedBox(height: isTablet ? 8 : 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.stars_rounded,
+                              color: AppTheme.primaryColor,
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Créditos disponíveis: $_currentCredits',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: _currentCredits > 0 
+                                  ? AppTheme.successColor 
+                                  : AppTheme.warningColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

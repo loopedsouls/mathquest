@@ -2,7 +2,7 @@
 
 ## Resumo das Implementações
 
-Durante esta sessão, completei com sucesso a **Fase 2 e 3** do sistema AdaptiveCheck, implementando um sistema de gamificação robusto e completo.
+Durante esta sessão, completei com sucesso a **Fase 2 e 3** do sistema mathquest, implementando um sistema de gamificação robusto e completo.
 
 ## ✅ Componentes Implementados
 

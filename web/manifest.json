@@ -1,6 +1,6 @@
 {
-    "name": "adaptivecheck",
-    "short_name": "adaptivecheck",
+    "name": "mathquest",
+    "short_name": "mathquest",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

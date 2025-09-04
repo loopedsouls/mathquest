@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'database_service.dart';
+import 'preload_service.dart';
 
 class CacheIAService {
   static const int _maxCachePorParametro = 50; // Máximo de perguntas por combinação
@@ -42,15 +44,20 @@ class CacheIAService {
         );
 
         if (pergunta != null) {
+          // Usa um crédito se disponível
+          final creditUsed = await PreloadService.useCredit();
+          
           _cacheHits++;
           if (kDebugMode) {
-          if (kDebugMode) {
-          print('🎯 Cache HIT: ${unidade}_${ano}_$tipoQuiz');
-        }
+            print('🎯 Cache HIT: ${unidade}_${ano}_$tipoQuiz${creditUsed ? " (crédito usado)" : ""}');
           }
-          if (kDebugMode) {
-            return pergunta;
+          
+          // Se os créditos acabaram, inicia precarregamento em background
+          if (!await PreloadService.hasCredits() && await PreloadService.isPreloadEnabled()) {
+            _startBackgroundPreload();
           }
+          
+          return pergunta;
         }
       }
 
@@ -358,5 +365,40 @@ class CacheIAService {
         print('❌ Erro ao otimizar cache: $e');
       }
     }
+  }
+
+  /// Inicia precarregamento em background quando créditos acabam
+  static void _startBackgroundPreload() {
+    // Executa em background sem bloquear a UI
+    Future.microtask(() async {
+      try {
+        if (await PreloadService.shouldPreload()) {
+          if (kDebugMode) {
+            print('🔄 Iniciando precarregamento em background...');
+          }
+          
+          // Carrega configurações para o precarregamento
+          final prefs = await SharedPreferences.getInstance();
+          final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+          final apiKey = prefs.getString('gemini_api_key');
+          final ollamaModel = prefs.getString('modelo_ollama') ?? 'llama2';
+          
+          await PreloadService.startPreload(
+            selectedAI: selectedAI,
+            apiKey: selectedAI == 'gemini' ? apiKey : null,
+            ollamaModel: selectedAI == 'ollama' ? ollamaModel : null,
+            onProgress: (current, total, status) {
+              if (kDebugMode) {
+                print('📊 Precarregamento: $current/$total - $status');
+              }
+            },
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Erro no precarregamento em background: $e');
+        }
+      }
+    });
   }
 }

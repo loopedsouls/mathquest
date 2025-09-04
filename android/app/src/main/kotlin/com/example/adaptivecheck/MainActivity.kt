@@ -1,4 +1,4 @@
-package com.example.adaptivecheck
+package com.example.mathquest
 
 import io.flutter.embedding.android.FlutterActivity
 

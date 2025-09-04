@@ -9,7 +9,9 @@ import 'ia_service.dart';
 class PreloadService {
   static const String _preloadEnabledKey = 'preload_enabled';
   static const String _lastPreloadKey = 'last_preload_timestamp';
+  static const String _creditsKey = 'preload_credits';
   static const int _totalQuestions = 100;
+  static const int _initialCredits = 100;
   static bool _isPreloading = false;
 
   /// Lista de tópicos para precarregar
@@ -51,13 +53,65 @@ class PreloadService {
     if (!await isPreloadEnabled()) return false;
     if (_isPreloading) return false;
 
+    // Verifica se há créditos suficientes
+    final credits = await getCredits();
+    if (credits > 0) return false; // Ainda há créditos, não precisa precarregar
+
+    // Verifica se a IA está disponível antes de tentar precarregar
+    if (!await _isAIAvailable()) return false;
+
+    return true;
+  }
+
+  /// Verifica se a IA está disponível
+  static Future<bool> _isAIAvailable() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+      
+      if (selectedAI == 'gemini') {
+        final apiKey = prefs.getString('gemini_api_key');
+        if (apiKey == null || apiKey.isEmpty) return false;
+        
+        final gemini = GeminiService(apiKey: apiKey);
+        return await gemini.isServiceAvailable();
+      } else if (selectedAI == 'ollama') {
+        final ollama = OllamaService();
+        return await ollama.isOllamaRunning();
+      }
+      
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Obtém o número atual de créditos
+  static Future<int> getCredits() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastPreload = prefs.getInt(_lastPreloadKey) ?? 0;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    
-    // Precarrega se passou mais de 24 horas ou se nunca foi feito
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    return (now - lastPreload) > oneDayMs;
+    return prefs.getInt(_creditsKey) ?? 0;
+  }
+
+  /// Define o número de créditos
+  static Future<void> setCredits(int credits) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_creditsKey, credits);
+  }
+
+  /// Usa um crédito (retorna true se foi possível usar)
+  static Future<bool> useCredit() async {
+    final currentCredits = await getCredits();
+    if (currentCredits > 0) {
+      await setCredits(currentCredits - 1);
+      return true;
+    }
+    return false;
+  }
+
+  /// Verifica se há créditos disponíveis
+  static Future<bool> hasCredits() async {
+    final credits = await getCredits();
+    return credits > 0;
   }
 
   /// Inicia o precarregamento de perguntas
@@ -130,13 +184,17 @@ class PreloadService {
         }
       }
 
-      // Atualiza timestamp do último precarregamento
+      // Atualiza timestamp do último precarregamento e define créditos
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_lastPreloadKey, DateTime.now().millisecondsSinceEpoch);
+      
+      // Define créditos baseado no número de perguntas geradas com sucesso
+      await setCredits(generated);
 
       onProgress(_totalQuestions, _totalQuestions, 
         'Precarregamento concluído!\n'
         'Geradas: $generated perguntas\n'
+        'Créditos disponíveis: $generated\n'
         'Falhas: $failures');
 
     } catch (e) {

@@ -5,7 +5,7 @@ import '../models/progresso_usuario.dart';
 
 class DatabaseService {
   static Database? _database;
-  static const String _databaseName = 'adaptivecheck.db';
+  static const String _databaseName = 'mathquest.db';
   static const int _databaseVersion = 1;
 
   // Tabelas

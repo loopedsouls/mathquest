@@ -71,9 +71,11 @@ class _ModulosScreenState extends State<ModulosScreen>
       setState(() {
         _carregando = false;
       });
-      ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
-        SnackBar(content: Text('Erro ao carregar progresso: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar progresso: $e')),
+        );
+      }
     }
   }
 
@@ -101,23 +103,9 @@ class _ModulosScreenState extends State<ModulosScreen>
               ? _buildLoadingScreen()
               : FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Column(
-                    children: [
-                      _buildHeader(isTablet),
-                      _buildProgressoGeral(isTablet),
-                      Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 24 : 16,
-                          vertical: isTablet ? 8 : 6,
-                        ),
-                        child: const StreakWidget(),
-                      ),
-                      _buildUnidadesSeletor(isTablet),
-                      Expanded(
-                        child: _buildModulosGrid(isTablet, isDesktop),
-                      ),
-                    ],
-                  ),
+                  child: isDesktop
+                      ? _buildDesktopLayout()
+                      : _buildMobileTabletLayout(isTablet, isDesktop),
                 ),
         ),
       ),
@@ -138,6 +126,703 @@ class _ModulosScreenState extends State<ModulosScreen>
               fontSize: 16,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.02, // 2% of screen width
+        vertical: screenHeight * 0.02,   // 2% of screen height
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sidebar esquerdo - Informações e progresso
+          Expanded(
+            flex: 1,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth * 0.35, // Max 35% of screen width
+                maxHeight: screenHeight * 0.9, // Max 90% of screen height
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(right: 16),
+                child: Column(
+                  children: [
+                    _buildDesktopHeader(),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDesktopProgressCard(),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDesktopStreakCard(),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDesktopStatsCard(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          SizedBox(width: screenWidth * 0.02), // 2% spacing
+
+          // Área principal - Módulos
+          Expanded(
+            flex: 2,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth * 0.6, // Max 60% of screen width
+                maxHeight: screenHeight * 0.9, // Max 90% of screen height
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDesktopModulesHeader(),
+                  SizedBox(height: screenHeight * 0.02),
+                  _buildDesktopUnidadesSelector(),
+                  SizedBox(height: screenHeight * 0.02),
+                  Expanded(
+                    child: _buildDesktopModulosGrid(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTabletLayout(bool isTablet, bool isDesktop) {
+    return Column(
+      children: [
+        _buildHeader(isTablet),
+        _buildProgressoGeral(isTablet),
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: isTablet ? 24 : 16,
+            vertical: isTablet ? 8 : 6,
+          ),
+          child: const StreakWidget(),
+        ),
+        _buildUnidadesSeletor(isTablet),
+        Expanded(
+          child: _buildModulosGrid(isTablet, isDesktop),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.school_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Módulos BNCC',
+                      style: AppTheme.headingLarge.copyWith(
+                        fontSize: screenWidth > 1400 ? 18 : 16,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _progresso != null
+                          ? 'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}'
+                          : 'Carregando...',
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, size: 20),
+                tooltip: 'Voltar',
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ModernButton(
+                  text: 'Dicas',
+                  onPressed: _mostrarRecomendacoes,
+                  isPrimary: false,
+                  icon: Icons.lightbulb_outline_rounded,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ModernButton(
+                  text: 'Relatório',
+                  onPressed: _mostrarRelatorioDetalhado,
+                  isPrimary: false,
+                  icon: Icons.analytics_outlined,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopProgressCard() {
+    if (_progresso == null) return const SizedBox.shrink();
+
+    final progressoGeral = _progresso!.calcularProgressoGeral();
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.trending_up_rounded,
+                color: AppTheme.primaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Progresso Geral',
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: screenWidth > 1400 ? 16 : 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.primaryLightColor.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: 12,
+                  top: 8,
+                  child: Text(
+                    '${(progressoGeral * 100).round()}%',
+                    style: AppTheme.headingLarge.copyWith(
+                      fontSize: screenWidth > 1400 ? 24 : 20,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 12,
+                  bottom: 8,
+                  right: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Módulos Completos',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontSize: 10,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      ModernProgressIndicator(
+                        value: progressoGeral,
+                        label: '',
+                        color: AppTheme.primaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopStreakCard() {
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.local_fire_department_rounded,
+                color: AppTheme.accentColor,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Sequência',
+                style: AppTheme.headingMedium.copyWith(fontSize: 18),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const StreakWidget(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopStatsCard() {
+    if (_progresso == null) return const SizedBox.shrink();
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.bar_chart_rounded,
+                color: AppTheme.successColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Estatísticas',
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: screenWidth > 1400 ? 16 : 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildDesktopStatItem(
+            '${_progresso!.totalExerciciosCorretos}',
+            'Exercícios Corretos',
+            Icons.check_circle_outline,
+            AppTheme.successColor,
+          ),
+          const SizedBox(height: 8),
+          _buildDesktopStatItem(
+            '${_progresso!.pontosPorUnidade.values.fold(0, (a, b) => a + b)}',
+            'Pontos Totais',
+            Icons.stars_rounded,
+            AppTheme.accentColor,
+          ),
+          const SizedBox(height: 8),
+          _buildDesktopStatItem(
+            '${_progresso!.modulosCompletos.values.fold(0, (map, count) => map + count.values.where((v) => v).length)}',
+            'Módulos Completos',
+            Icons.school_rounded,
+            AppTheme.primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopStatItem(
+      String value, String label, IconData icon, Color color) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: screenWidth > 1400 ? 14 : 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppTheme.darkTextSecondaryColor,
+                    fontSize: 9,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopModulesHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return Row(
+      children: [
+        Icon(
+          Icons.dashboard_customize_rounded,
+          color: AppTheme.primaryColor,
+          size: 24,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Módulos de Estudo',
+            style: AppTheme.headingLarge.copyWith(
+              fontSize: screenWidth > 1400 ? 20 : 18,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopUnidadesSelector() {
+    final unidades = ModulosBNCCData.obterUnidadesTematicas();
+
+    return SizedBox(
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: unidades.length,
+        itemBuilder: (context, index) {
+          final unidade = unidades[index];
+          final isSelected = unidade == _unidadeSelecionada;
+          final progresso =
+              _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
+
+          return Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: Material(
+              borderRadius: BorderRadius.circular(16),
+              color: isSelected
+                  ? AppTheme.primaryColor
+                  : AppTheme.darkSurfaceColor,
+              elevation: isSelected ? 4 : 0,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => setState(() => _unidadeSelecionada = unidade),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        unidade,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.darkTextPrimaryColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 60,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : AppTheme.primaryColor.withValues(alpha: 0.3),
+                        ),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progresso,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(2),
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDesktopModulosGrid() {
+    final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+        childAspectRatio: 1.4,
+      ),
+      itemCount: modulos.length,
+      itemBuilder: (context, index) {
+        final modulo = modulos[index];
+        return _buildDesktopModuloCard(modulo);
+      },
+    );
+  }
+
+  Widget _buildDesktopModuloCard(ModuloBNCC modulo) {
+    if (_progresso == null) return const SizedBox.shrink();
+
+    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
+            ?[modulo.anoEscolar] ??
+        false;
+    final isDesbloqueado = _progresso!
+        .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+    final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
+    final exerciciosConsecutivos =
+        _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
+    final taxaAcerto = _progresso!.taxaAcertoPorModulo[chaveModulo] ?? 0.0;
+
+    return ModernCard(
+      hasGlow: isDesbloqueado,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header expandido para desktop
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isCompleto
+                        ? [
+                            AppTheme.successColor,
+                            AppTheme.successColor.withValues(alpha: 0.7)
+                          ]
+                        : isDesbloqueado
+                            ? [
+                                AppTheme.primaryColor,
+                                AppTheme.primaryLightColor
+                              ]
+                            : [
+                                AppTheme.darkBorderColor,
+                                AppTheme.darkBorderColor
+                              ],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isCompleto
+                      ? Icons.check_circle_rounded
+                      : isDesbloqueado
+                          ? Icons.play_circle_outline_rounded
+                          : Icons.lock_outline_rounded,
+                  color: isDesbloqueado
+                      ? Colors.white
+                      : AppTheme.darkTextSecondaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      modulo.anoEscolar,
+                      style: AppTheme.headingMedium.copyWith(
+                        fontSize: 16,
+                        color: isDesbloqueado
+                            ? AppTheme.darkTextPrimaryColor
+                            : AppTheme.darkTextSecondaryColor,
+                      ),
+                    ),
+                    if (isCompleto || exerciciosConsecutivos > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        isCompleto
+                            ? 'Completo!'
+                            : '$exerciciosConsecutivos/${modulo.exerciciosNecessarios} exercícios',
+                        style: TextStyle(
+                          color: isCompleto
+                              ? AppTheme.successColor
+                              : AppTheme.darkTextSecondaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Conteúdo expandido
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  modulo.titulo,
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: 16,
+                    color: isDesbloqueado
+                        ? AppTheme.darkTextPrimaryColor
+                        : AppTheme.darkTextSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Text(
+                    modulo.descricao,
+                    style: AppTheme.bodySmall.copyWith(
+                      fontSize: 12,
+                      color: AppTheme.darkTextSecondaryColor,
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Progresso e ações
+          if (isDesbloqueado) ...[
+            if (taxaAcerto > 0) ...[
+              ModernProgressIndicator(
+                value: exerciciosConsecutivos / modulo.exerciciosNecessarios,
+                label: 'Progresso (${(taxaAcerto * 100).round()}% acerto)',
+                color:
+                    isCompleto ? AppTheme.successColor : AppTheme.primaryColor,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: ModernButton(
+                text: isCompleto ? 'Revisar' : 'Começar',
+                onPressed: () => _iniciarModulo(modulo),
+                isPrimary: !isCompleto,
+                icon: isCompleto
+                    ? Icons.refresh_rounded
+                    : Icons.play_arrow_rounded,
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppTheme.darkTextSecondaryColor,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Bloqueado',
+                    style: TextStyle(
+                      color: AppTheme.darkTextSecondaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

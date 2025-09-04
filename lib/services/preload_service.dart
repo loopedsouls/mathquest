@@ -96,6 +96,8 @@ class PreloadService {
   static Future<void> setCredits(int credits) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_creditsKey, credits);
+    // Força a sincronização para garantir que os dados sejam salvos imediatamente
+    await prefs.commit();
   }
 
   /// Usa um crédito (retorna true se foi possível usar)
@@ -138,6 +140,9 @@ class PreloadService {
     _isPreloading = true;
     
     try {
+      // PRIMEIRO: Inicializa o banco de dados para garantir que está pronto
+      await DatabaseService.database;
+      
       // Obtém a quantidade configurada de perguntas
       final totalQuestions = await getPreloadQuantity();
       
@@ -205,6 +210,9 @@ class PreloadService {
       
       // Define créditos baseado no número de perguntas geradas com sucesso
       await setCredits(generated);
+      
+      // Força a sincronização dos dados para garantir que foram salvos
+      await prefs.commit();
 
       onProgress(totalQuestions, totalQuestions, 
         'Precarregamento concluído!\n'
@@ -229,6 +237,8 @@ class PreloadService {
     required String tipoQuiz,
     required String dificuldade,
   }) async {
+    // Garante que o banco está inicializado antes de salvar
+    await DatabaseService.database;
     String prompt = '';
     
     switch (tipoQuiz) {

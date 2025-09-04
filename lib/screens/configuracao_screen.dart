@@ -83,8 +83,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
-    // Aguarda um pouco para garantir que os créditos sejam lidos corretamente
-    await Future.delayed(const Duration(milliseconds: 100));
     final credits = await PreloadService.getCredits();
     final quantity = await PreloadService.getPreloadQuantity();
 
@@ -845,8 +843,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           ollamaModel: _selectedAI == 'ollama' ? _modeloOllama : null,
           onComplete: () async {
             Navigator.of(context).pop();
-            // Aguarda um pouco para garantir que os créditos foram salvos
-            await Future.delayed(const Duration(milliseconds: 500));
             // Recarrega os créditos após o precarregamento
             final credits = await PreloadService.getCredits();
             setState(() {

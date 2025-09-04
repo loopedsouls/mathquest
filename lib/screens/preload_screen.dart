@@ -183,8 +183,8 @@ class _PreloadScreenState extends State<PreloadScreen>
               _isCompleted = true;
               _gameTimer.cancel();
               
-              // Aguarda 2 segundos e volta
-              Timer(const Duration(seconds: 2), () {
+              // Aguarda 3 segundos para garantir que os créditos sejam salvos
+              Timer(const Duration(seconds: 3), () {
                 widget.onComplete();
               });
             }

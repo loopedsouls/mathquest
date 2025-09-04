@@ -571,47 +571,62 @@ class _StartScreenState extends State<StartScreen>
 
           // Menu principal estilo Visual Novel
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildVisualNovelButton(
-                    title: 'Iniciar',
-                    onPressed: _goToModulos,
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final menuHeight = constraints.maxHeight;
+                final buttonHeight = menuHeight * 0.12; // 12% da altura disponível
+                final spacing = menuHeight * 0.03; // 3% da altura disponível
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: buttonHeight,
+                      child: _buildVisualNovelButton(
+                        title: 'Iniciar',
+                        onPressed: _goToModulos,
+                      ),
+                    ),
 
-                  const SizedBox(height: 20),
-                  _buildVisualNovelButton(
-                    title: 'Modo Quiz',
-                    onPressed: _startQuizAlternado,
-                  ),
+                    SizedBox(height: spacing),
+                    SizedBox(
+                      height: buttonHeight,
+                      child: _buildVisualNovelButton(
+                        title: 'Modo Quiz',
+                        onPressed: _startQuizAlternado,
+                      ),
+                    ),
 
-                  const SizedBox(height: 20),
+                    SizedBox(height: spacing),
+                    SizedBox(
+                      height: buttonHeight,
+                      child: _buildVisualNovelButton(
+                        title: 'Configurações',
+                        onPressed: _goToConfig,
+                      ),
+                    ),
 
-                  _buildVisualNovelButton(
-                    title: 'Configurações',
-                    onPressed: _goToConfig,
-                  ),
+                    SizedBox(height: spacing),
+                    SizedBox(
+                      height: buttonHeight,
+                      child: _buildVisualNovelButton(
+                        title: 'Relatórios',
+                        onPressed: _goToRelatorios,
+                      ),
+                    ),
 
-                  const SizedBox(height: 20),
-
-                  _buildVisualNovelButton(
-                    title: 'Relatórios',
-                    onPressed: _goToRelatorios,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  _buildVisualNovelButton(
-                    title: 'Ajuda',
-                    onPressed: _goToAjuda,
-                  ),
-
-                  // Espaço extra para garantir que o último botão não fique colado no final
-                  const SizedBox(height: 40),
-                ],
-              ),
+                    SizedBox(height: spacing),
+                    SizedBox(
+                      height: buttonHeight,
+                      child: _buildVisualNovelButton(
+                        title: 'Ajuda',
+                        onPressed: _goToAjuda,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 

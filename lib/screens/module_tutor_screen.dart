@@ -12,6 +12,7 @@ import '../widgets/modern_components.dart';
 import '../widgets/latex_markdown_widget.dart';
 import '../services/ia_service.dart';
 import '../services/conversa_service.dart';
+import '../services/ai_queue_service.dart';
 import '../unused/quiz_multipla_escolha_screen.dart';
 import '../unused/quiz_verdadeiro_falso_screen.dart';
 import '../unused/quiz_complete_a_frase_screen.dart';
@@ -41,6 +42,7 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   bool _conversaSalva = false;
 
   late MathTutorService _tutorService;
+  late AIQueueService _aiQueueService;
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
@@ -54,6 +56,7 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   @override
   void initState() {
     super.initState();
+    _aiQueueService = AIQueueService();
     _initializeTypingAnimation();
     _initializeTutor();
   }
@@ -287,17 +290,24 @@ sugira que ele use o **"Gerador de Atividades"** que criará exercícios persona
 Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown com LaTeX.
 ''';
 
-      final response = await _tutorService.aiService.generate(contextPrompt);
+      // Adiciona à fila e aguarda resultado
+      final response = await _aiQueueService.addRequest(
+        conversaId: 'module_${widget.modulo.titulo}',
+        prompt: contextPrompt,
+        userMessage: text,
+        useGemini: _useGemini,
+        modeloOllama: _modeloOllama,
+      );
+
       _addMessage(ChatMessage(
-        text: response,
+        text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text:
-            'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+        text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',

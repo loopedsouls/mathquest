@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
@@ -8,6 +9,7 @@ import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'relatorios_screen.dart';
+import 'ai_chat_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -25,6 +27,10 @@ class _StartScreenState extends State<StartScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  // Informações sobre a IA configurada
+  String _aiName = 'IA';
+  bool _aiAvailable = false;
 
   @override
   void initState() {
@@ -112,18 +118,56 @@ class _StartScreenState extends State<StartScreen>
 
   Future<void> _checkAIServices() async {
     try {
-      final geminiAvailable = await geminiService.isServiceAvailable();
-      final ollamaService = OllamaService();
-      final ollamaAvailable = await ollamaService.isServiceAvailable();
+      final prefs = await SharedPreferences.getInstance();
+      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+      final apiKey = prefs.getString('gemini_api_key');
+      final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama3.2:1b';
+
+      bool isConfigured = false;
+      bool isAvailable = false;
+
+      if (selectedAI == 'gemini') {
+        // Verifica se tem API key configurada
+        if (apiKey != null && apiKey.isNotEmpty) {
+          final geminiService = GeminiService(apiKey: apiKey);
+          isAvailable = await geminiService.isServiceAvailable();
+          isConfigured = true;
+        }
+
+        if (isConfigured && isAvailable) {
+          _aiName = 'Gemini';
+          _aiAvailable = true;
+        } else if (isConfigured && !isAvailable) {
+          _aiName = 'Gemini (Offline)';
+          _aiAvailable = false;
+        } else {
+          _aiName = 'Gemini (Não configurado)';
+          _aiAvailable = false;
+        }
+      } else {
+        // Ollama
+        final ollamaService = OllamaService(defaultModel: modeloOllama);
+        isAvailable = await ollamaService.isServiceAvailable();
+
+        if (isAvailable) {
+          _aiName = 'Ollama ($modeloOllama)';
+          _aiAvailable = true;
+        } else {
+          _aiName = 'Ollama (Offline)';
+          _aiAvailable = false;
+        }
+      }
 
       setState(() {
-        _isOfflineMode = !geminiAvailable && !ollamaAvailable;
+        _isOfflineMode = !_aiAvailable;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _isOfflineMode = true;
         _isLoading = false;
+        _aiName = 'IA (Erro)';
+        _aiAvailable = false;
       });
     }
   }
@@ -177,6 +221,86 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
+  void _goToAIChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AIChatScreen(),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton(bool isTablet, bool isDesktop) {
+    final size = isTablet ? 64.0 : 56.0;
+    final iconSize = isTablet ? 28.0 : 24.0;
+
+    return Tooltip(
+      message: _aiAvailable
+          ? 'Chat com $_aiName'
+          : 'IA não disponível - Configure nas configurações',
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _aiAvailable
+                ? [AppTheme.primaryColor, AppTheme.primaryLightColor]
+                : [AppTheme.darkBorderColor, AppTheme.darkBorderColor],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: _aiAvailable
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(size / 2),
+            onTap: _aiAvailable ? _goToAIChat : null,
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    color: _aiAvailable
+                        ? Colors.white
+                        : AppTheme.darkTextSecondaryColor,
+                    size: iconSize,
+                  ),
+                  if (isTablet) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _aiAvailable ? _aiName : 'IA',
+                      style: TextStyle(
+                        color: _aiAvailable
+                            ? Colors.white
+                            : AppTheme.darkTextSecondaryColor,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -202,6 +326,11 @@ class _StartScreenState extends State<StartScreen>
               : _buildMainContent(isTablet, isDesktop),
         ),
       ),
+      floatingActionButton:
+          _isLoading ? null : _buildFloatingActionButton(isTablet, isDesktop),
+      floatingActionButtonLocation: isDesktop
+          ? FloatingActionButtonLocation.endFloat
+          : FloatingActionButtonLocation.endFloat,
     );
   }
 

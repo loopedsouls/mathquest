@@ -205,22 +205,6 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
-  void _goToHistoricoExplicacoes() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const HistoricoExplicacoesScreen(),
-      ),
-    );
-  }
-
-  void _goToConquistas() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ConquistasScreen(),
-      ),
-    );
-  }
-
   void _goToRelatorios() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -527,16 +511,6 @@ class _StartScreenState extends State<StartScreen>
           children: [
             Expanded(
               child: ModernButton(
-                text: 'Conquistas',
-                icon: Icons.emoji_events,
-                onPressed: _goToConquistas,
-                isPrimary: false,
-                isFullWidth: true,
-              ),
-            ),
-            SizedBox(width: isTablet ? 12 : 8),
-            Expanded(
-              child: ModernButton(
                 text: 'Relatórios',
                 icon: Icons.analytics,
                 onPressed: _goToRelatorios,
@@ -763,8 +737,8 @@ class _StartScreenState extends State<StartScreen>
                   const SizedBox(height: 20),
 
                   _buildVisualNovelButton(
-                    title: 'Histórico de Explicações',
-                    onPressed: _goToHistoricoExplicacoes,
+                    title: 'Relatórios',
+                    onPressed: _goToRelatorios,
                   ),
 
                   const SizedBox(height: 20),

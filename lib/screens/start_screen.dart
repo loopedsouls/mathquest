@@ -709,25 +709,11 @@ class _StartScreenState extends State<StartScreen>
 
                   const SizedBox(height: 20),
                   _buildVisualNovelButton(
-                    title: 'Quiz Complete a Frase',
-                    onPressed: _startQuizCompleteFrase,
+                    title: 'Modo Quiz',
+                    onPressed: _startQuizAlternado,
                   ),
 
                   const SizedBox(height: 20),
-
-                  _buildVisualNovelButton(
-                    title: 'Quiz Múltipla Escolha',
-                    onPressed: _startQuiz,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  _buildVisualNovelButton(
-                    title: 'Quiz Verdadeiro/Falso',
-                    onPressed: _startQuizVerdadeiroFalso,
-                  ),
-
-                  const SizedBox(height: 30),
 
                   _buildVisualNovelButton(
                     title: 'Configurações',

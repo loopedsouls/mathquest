@@ -727,8 +727,9 @@ class _ModulosScreenState extends State<ModulosScreen>
         );
         break;
       case 'complete_frase':
-        quizScreen = const QuizCompleteAFraseScreen(
-         
+        quizScreen = QuizCompleteAFraseScreen(
+          topico: modulo.unidadeTematica,
+          dificuldade: _progresso!.nivelUsuario.nome.toLowerCase(),
         );
         break;
       default:

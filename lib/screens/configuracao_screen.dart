@@ -68,6 +68,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
     final credits = await PreloadService.getCredits();
+    final quantity = await PreloadService.getPreloadQuantity();
 
     if (apiKey != null) {
       apiKeyController.text = apiKey;
@@ -80,6 +81,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       _modeloOllama = modeloOllama;
       _preloadEnabled = preloadEnabled;
       _currentCredits = credits;
+      _preloadQuantity = quantity;
     });
 
     if (_selectedAI == 'ollama') {
@@ -627,7 +629,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Precarregar 100 perguntas',
+                        'Modo Precarregamento Inteligente',
                         style: AppTheme.bodyLarge.copyWith(
                           color: AppTheme.darkTextPrimaryColor,
                           fontWeight: FontWeight.w600,
@@ -635,7 +637,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                       SizedBox(height: isTablet ? 4 : 2),
                       Text(
-                        'Gera perguntas em background para melhorar a velocidade',
+                        'Prioriza perguntas precarregadas nos quizzes',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                         ),
@@ -678,6 +680,73 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ],
             ),
           ),
+          
+          // Controle de quantidade (só aparece se preload estiver ativo)
+          if (_preloadEnabled) ...[
+            SizedBox(height: isTablet ? 16 : 12),
+            Container(
+              padding: EdgeInsets.all(isTablet ? 16 : 12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurfaceColor,
+                borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                border: Border.all(
+                  color: AppTheme.darkBorderColor,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Quantidade de perguntas',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '$_preloadQuantity',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: isTablet ? 12 : 8),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: AppTheme.primaryColor,
+                      inactiveTrackColor: AppTheme.darkBorderColor,
+                      thumbColor: AppTheme.primaryColor,
+                      overlayColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
+                    child: Slider(
+                      value: _preloadQuantity.toDouble(),
+                      min: 10,
+                      max: 200,
+                      divisions: 19, // Divisões de 10 em 10
+                      onChanged: (value) async {
+                        final newQuantity = value.round();
+                        await PreloadService.setPreloadQuantity(newQuantity);
+                        setState(() {
+                          _preloadQuantity = newQuantity;
+                        });
+                      },
+                    ),
+                  ),
+                  Text(
+                    'Define quantos créditos serão gerados (10-200)',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.darkTextSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           
           // Botão para iniciar precarregamento manual
           if (_preloadEnabled) ...[
@@ -727,8 +796,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                       SizedBox(height: isTablet ? 8 : 4),
                       Text(
-                        '• Gera 100 perguntas diversas com 100 créditos\n'
+                        '• Quantidade configurável (10-200 perguntas)\n'
                         '• Cada pergunta usada do cache consome 1 crédito\n'
+                        '• Prioriza sempre perguntas precarregadas nos quizzes\n'
                         '• Recarrega automaticamente quando créditos acabam\n'
                         '• Inclui um mini-jogo durante o carregamento\n'
                         '• Só funciona quando a IA está online',

@@ -295,7 +295,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
               });
             },
             isPrimary: respostaSelecionada == 'Verdadeiro',
-            icon: respostaSelecionada == 'Verdadeiro' ? Icons.check_circle : Icons.check,
+            icon: respostaSelecionada == 'Verdadeiro'
+                ? Icons.check_circle
+                : Icons.check,
           ),
         ),
         const SizedBox(width: 16),
@@ -308,7 +310,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
               });
             },
             isPrimary: respostaSelecionada == 'Falso',
-            icon: respostaSelecionada == 'Falso' ? Icons.check_circle : Icons.close,
+            icon: respostaSelecionada == 'Falso'
+                ? Icons.check_circle
+                : Icons.close,
           ),
         ),
       ],

@@ -303,9 +303,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -383,7 +383,7 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
         child: Text(
           totalErros.toString(),
           style: TextStyle(
@@ -405,7 +405,7 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Colors.orange.withOpacity(0.1),
+        backgroundColor: Colors.orange.withValues(alpha: 0.1),
         child: Text(
           totalErros.toString(),
           style: const TextStyle(
@@ -434,7 +434,7 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.red.withOpacity(0.1),
+          backgroundColor: Colors.red.withValues(alpha: 0.1),
           child: Text(
             totalErros.toString(),
             style: const TextStyle(
@@ -560,9 +560,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,9 +584,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -610,9 +610,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

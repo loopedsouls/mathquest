@@ -3,7 +3,7 @@ import '../../../models/conversa.dart';
 import '../../../services/conversa_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import 'ai_chat_screen.dart';
+import '../chat_screen.dart';
 
 class ConversasSalvasScreen extends StatefulWidget {
   const ConversasSalvasScreen({super.key});
@@ -391,7 +391,10 @@ class _ConversasSalvasScreenState extends State<ConversasSalvasScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AIChatScreen(),
+        builder: (context) => ChatScreen(
+          mode: ChatMode.general,
+          conversaInicial: conversa,
+        ),
       ),
     );
   }

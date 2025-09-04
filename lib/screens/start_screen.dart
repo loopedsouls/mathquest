@@ -9,7 +9,7 @@ import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'relatorios_screen.dart';
-import 'chat/chat_with_sidebar_screen.dart';
+import 'chat_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -224,7 +224,8 @@ class _StartScreenState extends State<StartScreen>
   void _goToAIChat() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const ChatWithSidebarScreen(
+        builder: (context) => const ChatScreen(
+          mode: ChatMode.sidebar,
           isOfflineMode: false,
         ),
       ),

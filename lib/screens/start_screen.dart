@@ -500,18 +500,79 @@ class _StartScreenState extends State<StartScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título do menu
-          Padding(
-            padding: const EdgeInsets.only(left: 20, bottom: 40),
-            child: Text(
-              'MathQuest',
-              style: AppTheme.displaySmall.copyWith(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
+          // Card unificado com título e boas-vindas
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.secondaryColor.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.functions_rounded,
+                      color: AppTheme.primaryColor,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'MathQuest',
+                      style: AppTheme.displaySmall.copyWith(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.waving_hand_rounded,
+                      color: AppTheme.primaryColor,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Bem-vindo!',
+                      style: AppTheme.bodyLarge.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _isOfflineMode
+                      ? 'Modo offline ativo\nExercícios básicos disponíveis'
+                      : 'Sistema de IA conectado\nExperiência completa disponível',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
           ),
+
+          const SizedBox(height: 30),
 
           // Menu principal estilo Visual Novel
           Expanded(
@@ -630,17 +691,9 @@ class _StartScreenState extends State<StartScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 60),
-
               // Logo principal com elementos matemáticos
               _buildMathematicalLogo(),
-
-              const SizedBox(height: 40),
-
-              // Bem-vindo
-              _buildWelcomeSection(),
-
-              const SizedBox(height: 60),
+            ],
             ],
           ),
         ),

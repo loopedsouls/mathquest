@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/modulo_bncc.dart';
 import '../models/progresso_usuario.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
+import '../widgets/latex_markdown_widget.dart';
 import '../services/ia_service.dart';
 import '../unused/quiz_multipla_escolha_screen.dart';
 import '../unused/quiz_verdadeiro_falso_screen.dart';
@@ -117,12 +117,14 @@ na unidade temática "${widget.modulo.unidadeTematica}".
 
 Descrição do módulo: ${widget.modulo.descricao}
 
-**IMPORTANTE**: Use formatação Markdown para deixar sua resposta organizada:
+**IMPORTANTE**: Use formatação Markdown e LaTeX para deixar sua resposta organizada:
 - Use **negrito** para destacar conceitos importantes
 - Use *itálico* para ênfase
 - Use # ou ## para títulos e subtítulos
 - Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
-- Use `código` para fórmulas matemáticas
+- Use `código` para fórmulas matemáticas simples
+- Use LaTeX inline para fórmulas: \$f(x) = ax^2 + bx + c\$
+- Use LaTeX em bloco para equações complexas: \$\$\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}\$\$
 - Use > para dicas importantes
 
 Dê as boas-vindas ao aluno de forma amigável e apresente:
@@ -130,7 +132,7 @@ Dê as boas-vindas ao aluno de forma amigável e apresente:
 2. **Pergunte o que especificamente** ele gostaria de aprender ou revisar
 3. **Mencione que você pode gerar atividades** práticas para ele
 
-Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada para a idade, e sempre formate em Markdown.
+Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada para a idade, e sempre formate em Markdown com LaTeX.
 ''';
 
     setState(() {
@@ -591,70 +593,9 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                         height: 1.5,
                       ),
                     )
-                  : MarkdownBody(
+                  : LatexMarkdownWidget(
                       data: message.text,
-                      styleSheet: MarkdownStyleSheet(
-                        p: TextStyle(
-                          color: AppTheme.darkTextPrimaryColor,
-                          fontSize: isTablet ? 16 : 14,
-                          height: 1.5,
-                        ),
-                        h1: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 24 : 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        h2: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 22 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        h3: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 20 : 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        strong: TextStyle(
-                          color: AppTheme.accentColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        em: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        code: TextStyle(
-                          backgroundColor: AppTheme.darkBackgroundColor,
-                          color: AppTheme.accentColor,
-                          fontFamily: 'monospace',
-                          fontSize: isTablet ? 14 : 12,
-                        ),
-                        codeblockDecoration: BoxDecoration(
-                          color: AppTheme.darkBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppTheme.darkBorderColor,
-                          ),
-                        ),
-                        codeblockPadding: EdgeInsets.all(isTablet ? 12 : 8),
-                        listBullet: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 16 : 14,
-                        ),
-                        blockquote: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: isTablet ? 15 : 13,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        blockquoteDecoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color: AppTheme.primaryColor,
-                              width: 4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      selectable: true,
+                      isTablet: isTablet,
                     ),
             ),
           ),

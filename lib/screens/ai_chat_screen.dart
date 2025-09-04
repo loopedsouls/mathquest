@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import '../theme/app_theme.dart';
 import '../services/ia_service.dart';
+import '../widgets/latex_markdown_widget.dart';
 
 class AIChatScreen extends StatefulWidget {
   const AIChatScreen({super.key});
@@ -119,14 +119,15 @@ class _AIChatScreenState extends State<AIChatScreen>
 Você é um assistente de matemática amigável e educativo. 
 Dê as boas-vindas ao usuário de forma calorosa e apresente-se.
 
-Use formatação Markdown para deixar sua resposta mais organizada:
+Use formatação Markdown e LaTeX para deixar sua resposta mais organizada:
 - Use **negrito** para destacar palavras importantes
 - Use *itálico* para ênfase
 - Use # para títulos principais
 - Use ## para subtítulos
 - Use listas numeradas ou com bullet points
 - Use `código` para fórmulas matemáticas simples
-- Use blocos de código para equações complexas
+- Use LaTeX para fórmulas complexas: \$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}\$ (inline)
+- Use LaTeX em bloco para equações grandes: \$\$\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}\$\$
 
 Explique que você pode ajudar com:
 1. **Dúvidas sobre matemática**
@@ -135,7 +136,7 @@ Explique que você pode ajudar com:
 4. **Sugestões de estudo**
 
 Seja motivador, use emojis quando apropriado, e mantenha uma linguagem adequada.
-Sempre use formatação Markdown nas suas respostas para ficar mais legível.
+Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais legível.
 ''';
 
     setState(() {
@@ -200,13 +201,14 @@ Sempre use formatação Markdown nas suas respostas para ficar mais legível.
       final contextPrompt = '''
 Você é um assistente de matemática educativo e amigável. 
 
-**IMPORTANTE**: Use formatação Markdown para deixar suas respostas organizadas e legíveis:
+**IMPORTANTE**: Use formatação Markdown e LaTeX para deixar suas respostas organizadas e legíveis:
 - Use **negrito** para destacar conceitos importantes
 - Use *itálico* para ênfase
 - Use # ou ## para títulos e subtítulos
 - Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
 - Use `código` para fórmulas matemáticas simples
-- Use blocos de código (```) para equações complexas ou passos detalhados
+- Use LaTeX inline para fórmulas: \$f(x) = ax^2 + bx + c\$
+- Use LaTeX em bloco para equações complexas: \$\$\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}\$\$
 - Use > para citações ou dicas importantes
 
 Conversa anterior:
@@ -217,10 +219,10 @@ Pergunta atual do usuário: "$text"
 
 Responda de forma educativa, clara e apropriada. Se for uma questão matemática:
 1. **Explique o conceito** por trás
-2. **Mostre a resolução** passo a passo usando formatação
+2. **Mostre a resolução** passo a passo usando formatação LaTeX
 3. **Dê dicas** para problemas similares
 
-Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown.
+Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown com LaTeX.
 ''';
 
       final response = await _tutorService.aiService.generate(contextPrompt);
@@ -443,70 +445,9 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                         height: 1.5,
                       ),
                     )
-                  : MarkdownBody(
+                  : LatexMarkdownWidget(
                       data: message.text,
-                      styleSheet: MarkdownStyleSheet(
-                        p: TextStyle(
-                          color: AppTheme.darkTextPrimaryColor,
-                          fontSize: isTablet ? 16 : 14,
-                          height: 1.5,
-                        ),
-                        h1: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 24 : 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        h2: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 22 : 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        h3: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 20 : 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        strong: TextStyle(
-                          color: AppTheme.accentColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        em: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        code: TextStyle(
-                          backgroundColor: AppTheme.darkBackgroundColor,
-                          color: AppTheme.accentColor,
-                          fontFamily: 'monospace',
-                          fontSize: isTablet ? 14 : 12,
-                        ),
-                        codeblockDecoration: BoxDecoration(
-                          color: AppTheme.darkBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppTheme.darkBorderColor,
-                          ),
-                        ),
-                        codeblockPadding: EdgeInsets.all(isTablet ? 12 : 8),
-                        listBullet: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: isTablet ? 16 : 14,
-                        ),
-                        blockquote: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: isTablet ? 15 : 13,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        blockquoteDecoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color: AppTheme.primaryColor,
-                              width: 4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      selectable: true,
+                      isTablet: isTablet,
                     ),
             ),
           ),

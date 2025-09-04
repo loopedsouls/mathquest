@@ -266,45 +266,46 @@ class _PreloadScreenState extends State<PreloadScreen>
 
   Widget _buildHeader(bool isTablet) {
     return Container(
-      padding: EdgeInsets.all(isTablet ? 24 : 16),
-      child: Column(
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: isTablet ? 60 : 50,
-                height: isTablet ? 60 : 50,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  shape: BoxShape.circle,
+          Container(
+            width: isTablet ? 50 : 40,
+            height: isTablet ? 50 : 40,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: isTablet ? 24 : 20,
+            ),
+          ),
+          SizedBox(width: isTablet ? 12 : 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Precarregando Perguntas',
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.darkTextPrimaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: Icon(
-                  Icons.auto_awesome_rounded,
-                  color: Colors.white,
-                  size: isTablet ? 28 : 24,
+                Text(
+                  'Enquanto isso, jogue Math Bubble Pop!',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              SizedBox(width: isTablet ? 16 : 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Precarregando Perguntas',
-                      style: AppTheme.headingMedium.copyWith(
-                        color: AppTheme.darkTextPrimaryColor,
-                      ),
-                    ),
-                    Text(
-                      'Enquanto isso, jogue Math Bubble Pop!',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.darkTextSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -315,49 +316,53 @@ class _PreloadScreenState extends State<PreloadScreen>
     return Container(
       margin: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
       child: ModernCard(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Progresso',
-                  style: AppTheme.bodyLarge.copyWith(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.w600,
+        child: Padding(
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Progresso',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Text(
-                  '$_currentQuestion/$_totalQuestions',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w600,
+                  Text(
+                    '$_currentQuestion/$_totalQuestions',
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: isTablet ? 16 : 12),
-            AnimatedBuilder(
-              animation: _progressController,
-              builder: (context, child) {
-                return LinearProgressIndicator(
-                  value: _progressController.value,
-                  backgroundColor: AppTheme.darkBorderColor,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                );
-              },
-            ),
-            SizedBox(height: isTablet ? 12 : 8),
-            Text(
-              _status,
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.darkTextSecondaryColor,
+                ],
               ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              SizedBox(height: isTablet ? 12 : 8),
+              AnimatedBuilder(
+                animation: _progressController,
+                builder: (context, child) {
+                  return LinearProgressIndicator(
+                    value: _progressController.value,
+                    backgroundColor: AppTheme.darkBorderColor,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  );
+                },
+              ),
+              SizedBox(height: isTablet ? 8 : 6),
+              Text(
+                _status,
+                style: AppTheme.bodySmall.copyWith(
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -431,7 +436,7 @@ class _PreloadScreenState extends State<PreloadScreen>
               ),
             ),
 
-            SizedBox(height: isTablet ? 16 : 12),
+            SizedBox(height: isTablet ? 12 : 8),
 
             // Bubbles Area - Limitar altura máxima
             Container(
@@ -512,14 +517,15 @@ class _PreloadScreenState extends State<PreloadScreen>
 
   Widget _buildFooter(bool isTablet) {
     return Container(
-      padding: EdgeInsets.all(isTablet ? 24 : 16),
+      padding: EdgeInsets.all(isTablet ? 16 : 12),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (_isCompleted) ...[
             Container(
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 24 : 16,
-                vertical: isTablet ? 16 : 12,
+                horizontal: isTablet ? 20 : 16,
+                vertical: isTablet ? 12 : 10,
               ),
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.1),
@@ -532,26 +538,31 @@ class _PreloadScreenState extends State<PreloadScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green),
-                  SizedBox(width: isTablet ? 12 : 8),
-                  Text(
-                    'Precarregamento concluído!',
-                    style: AppTheme.bodyLarge.copyWith(
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(width: isTablet ? 8 : 6),
+                  Expanded(
+                    child: Text(
+                      'Precarregamento concluído!',
+                      style: AppTheme.bodyLarge.copyWith(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: isTablet ? 16 : 12),
+            SizedBox(height: isTablet ? 12 : 8),
           ],
-          
+
           Text(
             'Sua pontuação final: $_score pontos',
             style: AppTheme.bodyMedium.copyWith(
               color: AppTheme.darkTextSecondaryColor,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

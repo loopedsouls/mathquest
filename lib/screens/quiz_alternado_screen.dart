@@ -37,7 +37,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   bool _useGemini = true;
   String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
-  TextEditingController _respostaController = TextEditingController();
+  final TextEditingController _respostaController = TextEditingController();
 
   // Tipos de quiz disponíveis
   final List<String> _tiposQuiz = [

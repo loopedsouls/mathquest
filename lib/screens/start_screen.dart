@@ -9,9 +9,7 @@ import 'quiz_verdadeiro_falso_screen.dart';
 import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
-import 'conquistas_screen.dart';
 import 'relatorios_screen.dart';
-import 'historico_explicacoes_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});

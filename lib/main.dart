@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/start_screen.dart';
+import 'widgets/app_initializer.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -39,7 +39,7 @@ class MathTutorApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Usar tema escuro como padrão
       home: const ResponsiveWrapper(
-        child: StartScreen(),
+        child: AppInitializer(),
       ),
     );
   }

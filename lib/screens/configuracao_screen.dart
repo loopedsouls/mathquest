@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ia_service.dart';
+import '../services/preload_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
+import 'preload_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});
@@ -18,6 +20,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   String status = '';
   String _selectedAI = 'gemini';
   String _modeloOllama = 'llama2';
+  bool _preloadEnabled = false;
 
   List<String> _ollamaModels = [];
   bool _loadingModels = false;
@@ -61,6 +64,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final apiKey = prefs.getString('gemini_api_key');
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+    final preloadEnabled = await PreloadService.isPreloadEnabled();
 
     if (apiKey != null) {
       apiKeyController.text = apiKey;
@@ -71,6 +75,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     setState(() {
       _selectedAI = selectedAI;
       _modeloOllama = modeloOllama;
+      _preloadEnabled = preloadEnabled;
     });
 
     if (_selectedAI == 'ollama') {
@@ -209,6 +214,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                           _buildOllamaConfig(isTablet),
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
+
+                        // Configurações de Precarregamento
+                        _buildPreloadConfig(isTablet),
+                        SizedBox(height: isTablet ? 30 : 20),
 
                         // Botões de ação
                         _buildActionButtons(isTablet),
@@ -580,6 +589,149 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPreloadConfig(bool isTablet) {
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Precarregamento de Perguntas',
+            style: AppTheme.headingMedium.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+            ),
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          
+          // Switch para habilitar precarregamento
+          Container(
+            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor,
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              border: Border.all(
+                color: AppTheme.darkBorderColor,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Precarregar 100 perguntas',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 4 : 2),
+                      Text(
+                        'Gera perguntas em background para melhorar a velocidade',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _preloadEnabled,
+                  onChanged: (value) async {
+                    await PreloadService.setPreloadEnabled(value);
+                    setState(() {
+                      _preloadEnabled = value;
+                    });
+                  },
+                  activeThumbColor: AppTheme.primaryColor,
+                ),
+              ],
+            ),
+          ),
+          
+          // Botão para iniciar precarregamento manual
+          if (_preloadEnabled) ...[
+            SizedBox(height: isTablet ? 16 : 12),
+            SizedBox(
+              width: double.infinity,
+              child: ModernButton(
+                text: 'Iniciar Precarregamento Agora',
+                onPressed: _startManualPreload,
+                isPrimary: false,
+                icon: Icons.auto_awesome_rounded,
+              ),
+            ),
+          ],
+          
+          // Informações sobre o precarregamento
+          SizedBox(height: isTablet ? 16 : 12),
+          Container(
+            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppTheme.primaryColor,
+                  size: isTablet ? 20 : 18,
+                ),
+                SizedBox(width: isTablet ? 12 : 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Como funciona:',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 8 : 4),
+                      Text(
+                        '• Gera 100 perguntas diversas ao iniciar o app\n'
+                        '• Inclui um mini-jogo durante o carregamento\n'
+                        '• Melhora significativamente a velocidade dos quizzes\n'
+                        '• Renova automaticamente a cada 24 horas',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startManualPreload() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PreloadScreen(
+          selectedAI: _selectedAI,
+          apiKey: _selectedAI == 'gemini' ? apiKeyController.text.trim() : null,
+          ollamaModel: _selectedAI == 'ollama' ? _modeloOllama : null,
+          onComplete: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/math_tutor_service.dart';
+import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import 'quiz_complete_a_frase_screen.dart';

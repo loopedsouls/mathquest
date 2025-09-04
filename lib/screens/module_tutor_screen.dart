@@ -117,12 +117,20 @@ na unidade temática "${widget.modulo.unidadeTematica}".
 
 Descrição do módulo: ${widget.modulo.descricao}
 
-Dê as boas-vindas ao aluno de forma amigável e apresente:
-1. Um resumo simples e claro do que ele vai aprender neste módulo
-2. Pergunte o que especificamente ele gostaria de aprender ou revisar
-3. Mencione que você pode gerar atividades práticas para ele
+**IMPORTANTE**: Use formatação Markdown para deixar sua resposta organizada:
+- Use **negrito** para destacar conceitos importantes
+- Use *itálico* para ênfase
+- Use # ou ## para títulos e subtítulos
+- Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
+- Use `código` para fórmulas matemáticas
+- Use > para dicas importantes
 
-Seja motivador, use emojis quando apropriado, e mantenha uma linguagem adequada para a idade.
+Dê as boas-vindas ao aluno de forma amigável e apresente:
+1. **Um resumo simples** e claro do que ele vai aprender neste módulo
+2. **Pergunte o que especificamente** ele gostaria de aprender ou revisar
+3. **Mencione que você pode gerar atividades** práticas para ele
+
+Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada para a idade, e sempre formate em Markdown.
 ''';
 
     setState(() {
@@ -190,16 +198,25 @@ do ${widget.modulo.anoEscolar}, unidade temática "${widget.modulo.unidadeTemati
 
 Descrição do módulo: ${widget.modulo.descricao}
 
+**IMPORTANTE**: Use formatação Markdown para deixar suas respostas organizadas:
+- Use **negrito** para destacar conceitos importantes
+- Use *itálico* para ênfase
+- Use # ou ## para títulos e subtítulos
+- Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
+- Use `código` para fórmulas matemáticas simples
+- Use blocos de código (```) para equações complexas
+- Use > para dicas importantes
+
 Conversa anterior:
 ${_messages.where((m) => !m.isUser).take(3).map((m) => "Tutor: ${m.text}").join("\n")}
-${_messages.where((m) => m.isUser).take(3).map((m) => "Aluno: ${m.text}").join("\n")}
+${_messages.where((m) => m.isUser).take(3).map((m) => "Usuário: ${m.text}").join("\n")}
 
 Pergunta atual do aluno: "$text"
 
 Responda de forma educativa, clara e apropriada para a idade. Se o aluno pedir atividades ou exercícios,
-sugira que ele use o "Gerador de Atividades" que criará exercícios personalizados.
+sugira que ele use o **"Gerador de Atividades"** que criará exercícios personalizados.
 
-Use emojis quando apropriado e seja encorajador.
+Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown.
 ''';
 
       final response = await _tutorService.aiService.generate(contextPrompt);

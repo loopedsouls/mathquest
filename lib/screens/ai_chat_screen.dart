@@ -118,13 +118,24 @@ class _AIChatScreenState extends State<AIChatScreen>
     const welcomePrompt = '''
 Você é um assistente de matemática amigável e educativo. 
 Dê as boas-vindas ao usuário de forma calorosa e apresente-se.
+
+Use formatação Markdown para deixar sua resposta mais organizada:
+- Use **negrito** para destacar palavras importantes
+- Use *itálico* para ênfase
+- Use # para títulos principais
+- Use ## para subtítulos
+- Use listas numeradas ou com bullet points
+- Use `código` para fórmulas matemáticas simples
+- Use blocos de código para equações complexas
+
 Explique que você pode ajudar com:
-1. Dúvidas sobre matemática
-2. Explicações de conceitos
-3. Resolução de problemas passo a passo
-4. Sugestões de estudo
+1. **Dúvidas sobre matemática**
+2. **Explicações de conceitos**
+3. **Resolução de problemas passo a passo**
+4. **Sugestões de estudo**
 
 Seja motivador, use emojis quando apropriado, e mantenha uma linguagem adequada.
+Sempre use formatação Markdown nas suas respostas para ficar mais legível.
 ''';
 
     setState(() {
@@ -189,6 +200,15 @@ Seja motivador, use emojis quando apropriado, e mantenha uma linguagem adequada.
       final contextPrompt = '''
 Você é um assistente de matemática educativo e amigável. 
 
+**IMPORTANTE**: Use formatação Markdown para deixar suas respostas organizadas e legíveis:
+- Use **negrito** para destacar conceitos importantes
+- Use *itálico* para ênfase
+- Use # ou ## para títulos e subtítulos
+- Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
+- Use `código` para fórmulas matemáticas simples
+- Use blocos de código (```) para equações complexas ou passos detalhados
+- Use > para citações ou dicas importantes
+
 Conversa anterior:
 ${_messages.where((m) => !m.isUser).take(3).map((m) => "Assistente: ${m.text}").join("\n")}
 ${_messages.where((m) => m.isUser).take(3).map((m) => "Usuário: ${m.text}").join("\n")}
@@ -196,11 +216,11 @@ ${_messages.where((m) => m.isUser).take(3).map((m) => "Usuário: ${m.text}").joi
 Pergunta atual do usuário: "$text"
 
 Responda de forma educativa, clara e apropriada. Se for uma questão matemática:
-1. Explique o conceito por trás
-2. Mostre a resolução passo a passo
-3. Dê dicas para problemas similares
+1. **Explique o conceito** por trás
+2. **Mostre a resolução** passo a passo usando formatação
+3. **Dê dicas** para problemas similares
 
-Use emojis quando apropriado e seja encorajador.
+Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown.
 ''';
 
       final response = await _tutorService.aiService.generate(contextPrompt);

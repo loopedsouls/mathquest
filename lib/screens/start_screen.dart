@@ -361,7 +361,7 @@ class _StartScreenState extends State<StartScreen>
 
               // Status do sistema
               _buildStatusSection(isTablet),
-              
+
               SizedBox(height: isTablet ? 40 : 30),
 
               // Botões de ação principais
@@ -574,13 +574,15 @@ class _StartScreenState extends State<StartScreen>
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final menuHeight = constraints.maxHeight;
-                final buttonHeight = menuHeight * 0.12; // 12% da altura disponível
+                final buttonHeight =
+                    menuHeight * 0.12; // 12% da altura disponível
                 final spacing = menuHeight * 0.03; // 3% da altura disponível
-                
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    SizedBox(height: spacing * 2), // Espaçamento inicial
                     SizedBox(
                       height: buttonHeight,
                       child: _buildVisualNovelButton(
@@ -588,7 +590,6 @@ class _StartScreenState extends State<StartScreen>
                         onPressed: _goToModulos,
                       ),
                     ),
-
                     SizedBox(height: spacing),
                     SizedBox(
                       height: buttonHeight,
@@ -597,7 +598,6 @@ class _StartScreenState extends State<StartScreen>
                         onPressed: _startQuizAlternado,
                       ),
                     ),
-
                     SizedBox(height: spacing),
                     SizedBox(
                       height: buttonHeight,
@@ -606,7 +606,6 @@ class _StartScreenState extends State<StartScreen>
                         onPressed: _goToConfig,
                       ),
                     ),
-
                     SizedBox(height: spacing),
                     SizedBox(
                       height: buttonHeight,
@@ -615,7 +614,6 @@ class _StartScreenState extends State<StartScreen>
                         onPressed: _goToRelatorios,
                       ),
                     ),
-
                     SizedBox(height: spacing),
                     SizedBox(
                       height: buttonHeight,
@@ -671,13 +669,17 @@ class _StartScreenState extends State<StartScreen>
         child: InkWell(
           onTap: onPressed,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Text(
-              title,
-              style: AppTheme.headingSmall.copyWith(
-                color: AppTheme.darkTextPrimaryColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 18,
+            height: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                style: AppTheme.headingSmall.copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
@@ -749,7 +751,7 @@ class _StartScreenState extends State<StartScreen>
             ),
           ),
           SizedBox(height: isTablet ? 20 : 16),
-          
+
           // Título e boas-vindas integrados
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -762,7 +764,9 @@ class _StartScreenState extends State<StartScreen>
               const SizedBox(width: 8),
               Text(
                 'MathQuest',
-                style: (isTablet ? AppTheme.headingLarge : AppTheme.headingMedium).copyWith(
+                style:
+                    (isTablet ? AppTheme.headingLarge : AppTheme.headingMedium)
+                        .copyWith(
                   color: AppTheme.darkTextPrimaryColor,
                   fontWeight: FontWeight.bold,
                 ),
@@ -774,7 +778,8 @@ class _StartScreenState extends State<StartScreen>
             _isOfflineMode
                 ? 'Modo offline ativo • Exercícios básicos disponíveis'
                 : 'Sistema de IA conectado • Experiência completa disponível',
-            style: (isTablet ? AppTheme.bodyMedium : AppTheme.bodySmall).copyWith(
+            style:
+                (isTablet ? AppTheme.bodyMedium : AppTheme.bodySmall).copyWith(
               color: AppTheme.darkTextSecondaryColor,
               height: 1.4,
             ),
@@ -792,7 +797,7 @@ class _StartScreenState extends State<StartScreen>
         final logoSize = (screenWidth * 0.25).clamp(200.0, 350.0);
         final centralLogoSize = logoSize * 0.4;
         final iconSize = centralLogoSize * 0.5;
-        
+
         return Container(
           width: logoSize,
           height: logoSize,
@@ -853,7 +858,7 @@ class _StartScreenState extends State<StartScreen>
     final center = logoSize / 2;
     final elementSize = (30 * scaleFactor).clamp(20.0, 40.0);
     final fontSize = (16 * scaleFactor).clamp(12.0, 20.0);
-    
+
     final mathElements = [
       {
         'text': 'π',
@@ -945,13 +950,13 @@ class _StartScreenState extends State<StartScreen>
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
-        
+
         // Calculando posições proporcionais
         final leftMargin = screenWidth * 0.1;
         final rightMargin = screenWidth * 0.1;
         final topOffset = screenHeight * 0.1;
         final spacing = screenHeight * 0.08;
-        
+
         return Container(
           width: double.infinity,
           height: double.infinity,
@@ -979,7 +984,8 @@ class _StartScreenState extends State<StartScreen>
               Positioned(
                 right: rightMargin,
                 top: topOffset + spacing * 0.5,
-                child: _buildMathFormula('a² + b² = c²', AppTheme.secondaryColor),
+                child:
+                    _buildMathFormula('a² + b² = c²', AppTheme.secondaryColor),
               ),
               Positioned(
                 left: leftMargin * 1.5,
@@ -1009,7 +1015,8 @@ class _StartScreenState extends State<StartScreen>
               Positioned(
                 right: rightMargin * 1.2,
                 top: topOffset + spacing * 5.5,
-                child: _buildMathFormula('φ = (1+√5)/2', AppTheme.secondaryColor),
+                child:
+                    _buildMathFormula('φ = (1+√5)/2', AppTheme.secondaryColor),
               ),
               Positioned(
                 left: leftMargin * 0.8,

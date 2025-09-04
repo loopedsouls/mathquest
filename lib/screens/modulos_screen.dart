@@ -404,6 +404,7 @@ class _ModulosScreenState extends State<ModulosScreen>
       hasGlow: isDesbloqueado,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Header do card
           Row(
@@ -489,7 +490,7 @@ class _ModulosScreenState extends State<ModulosScreen>
             overflow: TextOverflow.ellipsis,
           ),
           
-          const Spacer(),
+          SizedBox(height: isTablet ? 16 : 12),
           
           // Progresso e botão
           if (isDesbloqueado) ...[

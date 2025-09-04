@@ -240,6 +240,7 @@ class _PreloadScreenState extends State<PreloadScreen>
                 minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Header
                   _buildHeader(isTablet),
@@ -252,9 +253,6 @@ class _PreloadScreenState extends State<PreloadScreen>
 
                   // Footer
                   _buildFooter(isTablet),
-
-                  // Spacer to push content up if needed
-                  const Spacer(),
                 ],
               ),
             ),
@@ -439,7 +437,7 @@ class _PreloadScreenState extends State<PreloadScreen>
             SizedBox(height: isTablet ? 12 : 8),
 
             // Bubbles Area - Limitar altura máxima
-            Container(
+            SizedBox(
               height: isTablet ? 300 : 250,
               child: Stack(
                 children: [

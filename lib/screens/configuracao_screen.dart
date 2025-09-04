@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ia_service.dart';
 import '../services/preload_service.dart';
+import '../services/cache_ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import 'preload_screen.dart';
@@ -186,6 +187,70 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         setState(() => status = '');
       }
     });
+  }
+
+  Future<void> _limparCache() async {
+    // Confirmar ação com o usuário
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(
+          'Limpar Cache',
+          style: AppTheme.bodyLarge.copyWith(
+            color: AppTheme.darkTextPrimaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Tem certeza que deseja limpar todas as perguntas precarregadas? '
+          'Esta ação não pode ser desfeita.',
+          style: AppTheme.bodyMedium.copyWith(
+            color: AppTheme.darkTextSecondaryColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Limpar',
+              style: TextStyle(color: AppTheme.warningColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => carregando = true);
+      try {
+        await CacheIAService.limparTodoCache();
+        await _recarregarCreditos(); // Atualiza os créditos na interface
+        setState(() {
+          status = '🗑️ Cache limpo com sucesso!';
+        });
+      } catch (e) {
+        setState(() {
+          status = '❌ Erro ao limpar cache: $e';
+        });
+      } finally {
+        setState(() => carregando = false);
+      }
+
+      // Limpar status após alguns segundos
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => status = '');
+        }
+      });
+    }
   }
 
   @override
@@ -826,6 +891,42 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 onPressed: _startManualPreload,
                 isPrimary: false,
                 icon: Icons.auto_awesome_rounded,
+              ),
+            ),
+          ],
+
+          // Botão para limpar cache (só aparece se há créditos)
+          if (_currentCredits > 0) ...[
+            SizedBox(height: isTablet ? 12 : 8),
+            SizedBox(
+              width: double.infinity,
+              height: isTablet ? 56 : 48,
+              child: ElevatedButton.icon(
+                onPressed: carregando ? null : _limparCache,
+                icon: Icon(
+                  Icons.delete_sweep_rounded,
+                  color: AppTheme.warningColor,
+                  size: isTablet ? 20 : 18,
+                ),
+                label: Text(
+                  'Limpar Perguntas Precarregadas',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.warningColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.warningColor.withValues(alpha: 0.1),
+                  foregroundColor: AppTheme.warningColor,
+                  elevation: 0,
+                  side: BorderSide(
+                    color: AppTheme.warningColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                  ),
+                ),
               ),
             ),
           ],

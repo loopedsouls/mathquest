@@ -6,6 +6,7 @@ import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
 import 'quiz_verdadeiro_falso_screen.dart';
+import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'conquistas_screen.dart';
@@ -136,13 +137,10 @@ class _StartScreenState extends State<StartScreen>
   void _startQuizCompleteFrase() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const QuizCompleteAFraseScreen(
-         
-        ),
+        builder: (context) => const QuizCompleteAFraseScreen(),
       ),
     );
   }
-
 
   void _goToConfig() {
     Navigator.of(context)
@@ -183,6 +181,18 @@ class _StartScreenState extends State<StartScreen>
         builder: (context) => QuizVerdadeiroFalsoScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'Matemática Geral',
+          dificuldade: 'médio',
+        ),
+      ),
+    );
+  }
+
+  void _startQuizAlternado() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => QuizAlternadoScreen(
+          isOfflineMode: _isOfflineMode,
+          topico: 'números e operações',
           dificuldade: 'médio',
         ),
       ),
@@ -506,6 +516,14 @@ class _StartScreenState extends State<StartScreen>
           isPrimary: true,
           isFullWidth: true,
         ),
+        SizedBox(height: isTablet ? 16 : 12),
+        ModernButton(
+          text: '🎲 Quiz Alternado (Todos os Tipos)',
+          icon: Icons.shuffle_rounded,
+          onPressed: _startQuizAlternado,
+          isPrimary: true,
+          isFullWidth: true,
+        ),
         SizedBox(height: isTablet ? 20 : 16),
         Row(
           children: [
@@ -704,7 +722,7 @@ class _StartScreenState extends State<StartScreen>
               ),
             ),
           ),
-          
+
           // Menu principal estilo Visual Novel
           Expanded(
             child: SingleChildScrollView(
@@ -716,55 +734,55 @@ class _StartScreenState extends State<StartScreen>
                     title: 'Iniciar Tutoria',
                     onPressed: _goToModulos,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                   _buildVisualNovelButton(
+                  _buildVisualNovelButton(
                     title: 'Quiz Complete a Frase',
                     onPressed: _startQuizCompleteFrase,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   _buildVisualNovelButton(
                     title: 'Quiz Múltipla Escolha',
                     onPressed: _startQuiz,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   _buildVisualNovelButton(
                     title: 'Quiz Verdadeiro/Falso',
                     onPressed: _startQuizVerdadeiroFalso,
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   _buildVisualNovelButton(
                     title: 'Configurações',
                     onPressed: _goToConfig,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   _buildVisualNovelButton(
                     title: 'Histórico de Explicações',
                     onPressed: _goToHistoricoExplicacoes,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   _buildVisualNovelButton(
                     title: 'Ajuda',
                     onPressed: _goToAjuda,
                   ),
-                  
+
                   // Espaço extra para garantir que o último botão não fique colado no final
                   const SizedBox(height: 40),
                 ],
               ),
             ),
           ),
-          
+
           // Status indicator na parte inferior
           Padding(
             padding: const EdgeInsets.only(left: 20, top: 20),
@@ -772,14 +790,18 @@ class _StartScreenState extends State<StartScreen>
               children: [
                 Icon(
                   _isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
-                  color: _isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
+                  color: _isOfflineMode
+                      ? AppTheme.warningColor
+                      : AppTheme.successColor,
                   size: 16,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   _isOfflineMode ? 'Offline' : 'Online',
                   style: AppTheme.bodySmall.copyWith(
-                    color: _isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
+                    color: _isOfflineMode
+                        ? AppTheme.warningColor
+                        : AppTheme.successColor,
                   ),
                 ),
               ],

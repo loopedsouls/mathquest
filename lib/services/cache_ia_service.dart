@@ -5,9 +5,9 @@ import 'database_service.dart';
 import 'preload_service.dart';
 
 class CacheIAService {
-// Máximo de perguntas por combinação
+  static const int _maxCachePorParametro = 50; // Máximo de perguntas por combinação
   static const int _diasExpiracao = 30; // Cache expira em 30 dias
-// 70% das vezes usa cache, 30% gera nova
+  static const double _taxaUsoCache = 0.7; // 70% das vezes usa cache, 30% gera nova
 
   // Estatísticas de cache
   static int _cacheHits = 0;

@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'cache_ia_service.dart';
 import 'ia_service.dart';
 
 class QuizHelperService {
-  static final MathTutorService _tutorService = MathTutorService(
-    aiService: GeminiService(),
-  );
 
   /// Gera pergunta inteligente usando cache quando possível
   static Future<Map<String, dynamic>?> gerarPerguntaInteligente({
@@ -36,14 +34,9 @@ class QuizHelperService {
         dificuldade: dificuldade,
       );
 
-      // Salva no cache para uso futuro
+      // Se conseguiu gerar via IA, adiciona indicador de fonte
       if (pergunta != null) {
-        await CacheIAService.obterPergunta(
-          unidade: unidade,
-          ano: ano,
-          tipoQuiz: tipoQuiz,
-          dificuldade: dificuldade,
-        );
+        pergunta['fonte_ia'] = 'gemini'; // ou 'ollama' baseado na configuração
       }
 
       return pergunta;
@@ -63,6 +56,21 @@ class QuizHelperService {
     required String dificuldade,
   }) async {
     try {
+      // Cria serviço AI baseado nas preferências do usuário
+      final prefs = await SharedPreferences.getInstance();
+      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+      final apiKey = prefs.getString('gemini_api_key');
+      final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+
+      AIService aiService;
+      if (selectedAI == 'gemini') {
+        aiService = GeminiService(apiKey: apiKey);
+      } else {
+        aiService = OllamaService(defaultModel: modeloOllama);
+      }
+
+      final tutorService = MathTutorService(aiService: aiService);
+
       String prompt = _criarPrompt(
         unidade: unidade,
         ano: ano,
@@ -70,7 +78,7 @@ class QuizHelperService {
         dificuldade: dificuldade,
       );
 
-      final response = await _tutorService.aiService.generate(prompt);
+      final response = await tutorService.aiService.generate(prompt);
       return _processarRespostaIA(response, tipoQuiz);
     } catch (e) {
       if (kDebugMode) {

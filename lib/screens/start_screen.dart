@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import 'tutor_ia_bncc_matematica.dart';
+import 'bncc_old.dart';
 import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';

@@ -145,6 +145,43 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     super.dispose();
   }
 
+  // Métodos de mapeamento para integração com sistema de progressão
+  String _mapearTopicoParaUnidade(String topico) {
+    // Mapeamento simples - pode ser refinado
+    if (topico.toLowerCase().contains('número') || topico.toLowerCase().contains('calculo')) {
+      return 'Números';
+    } else if (topico.toLowerCase().contains('algebr') || topico.toLowerCase().contains('equação')) {
+      return 'Álgebra';
+    } else if (topico.toLowerCase().contains('geometri') || topico.toLowerCase().contains('forma')) {
+      return 'Geometria';
+    } else if (topico.toLowerCase().contains('medida') || topico.toLowerCase().contains('área') || topico.toLowerCase().contains('volume')) {
+      return 'Grandezas e Medidas';
+    } else if (topico.toLowerCase().contains('estatistic') || topico.toLowerCase().contains('probabilidade') || topico.toLowerCase().contains('gráfico')) {
+      return 'Probabilidade e Estatística';
+    }
+    return 'Números'; // Default
+  }
+
+  String _mapearDificuldadeParaAno(String dificuldade) {
+    // Mapeamento de dificuldade para ano escolar
+    switch (dificuldade.toLowerCase()) {
+      case 'iniciante':
+      case 'fácil':
+        return '6º ano';
+      case 'intermediário':
+      case 'médio':
+        return '7º ano';
+      case 'avançado':
+      case 'difícil':
+        return '8º ano';
+      case 'especialista':
+      case 'expert':
+        return '9º ano';
+      default:
+        return '7º ano'; // Default
+    }
+  }
+
   Future<void> _initializeQuiz() async {
     await _carregarPreferencias();
     await _initializeService();
@@ -370,6 +407,19 @@ Dificuldade: $dificuldade
 
     final tempoResposta = DateTime.now().difference(inicioPergunta).inSeconds;
     final isCorreta = respostaSelecionada == perguntaAtual!['resposta_correta'];
+
+    // Registrar no sistema de progressão se tiver tópico e dificuldade
+    if (widget.topico != null && widget.dificuldade != null) {
+      // Mapear tópico para unidade BNCC (simplificado)
+      String unidade = _mapearTopicoParaUnidade(widget.topico!);
+      String ano = _mapearDificuldadeParaAno(widget.dificuldade!);
+      
+      if (isCorreta) {
+        await ProgressoService.registrarRespostaCorreta(unidade, ano);
+      } else {
+        await ProgressoService.registrarRespostaIncorreta(unidade, ano);
+      }
+    }
 
     // Registrar resposta
     respostas.add({

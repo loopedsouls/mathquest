@@ -1,8 +1,82 @@
 # TODO-2.md - Implementações Pendentes
 
-## 📋 Status Atual vs. Funcionalidades do TODO.md
+## ❌ **FUNCIONALIDADES FALTANTES (PRIORIDADE ALTA)**
 
-### ✅ **JÁ IMPLEMENTADO**
+### 1. **Modo Professor** �‍🏫
+**Status:** ❌ NÃO IMPLEMENTADO  
+**Prioridade:** ALTA
+**Descrição:** Sistema completo para professores gerarem material didático
+
+#### 1.1 Geração de PDF
+- ❌ Exercícios para impressão
+- ❌ Gabaritos separados
+- ❌ Material de estudo offline
+- ❌ Relatórios de turma
+
+#### 1.2 Interface do Professor
+- ❌ Tela dedicada para professores
+- ❌ Configuração de exercícios por turma
+- ❌ Geração de provas personalizadas
+- ❌ Análise de desempenho da turma
+
+#### 1.3 Gestão de Turma
+- ❌ Cadastro de alunos
+- ❌ Acompanhamento individual
+- ❌ Relatórios comparativos
+- ❌ Sistema de correção automática
+
+---
+
+## ❌ **FUNCIONALIDADES FALTANTES (PRIORIDADE MÉDIA)**
+
+### 2. **Sistema de Backup e Sincronização** ☁️
+**Status:** ❌ NÃO IMPLEMENTADO  
+**Prioridade:** MÉDIA
+**Descrição:** Sistema para backup e sincronização de dados
+
+#### 2.1 Backup Local
+- ❌ Exportação de dados para arquivo
+- ❌ Importação de dados de backup
+- ❌ Backup automático periódico
+
+#### 2.2 Sincronização na Nuvem
+- ❌ Conta de usuário
+- ❌ Sincronização entre dispositivos
+- ❌ Backup na nuvem (Google Drive, iCloud, etc.)
+
+#### 2.3 Recuperação de Dados
+- ❌ Restauração de backup
+- ❌ Merge de dados conflitantes
+- ❌ Histórico de versões
+
+---
+
+## ⚠️ **FUNCIONALIDADES PARCIALMENTE IMPLEMENTADAS**
+
+### 3. **Animações Mais Sofisticadas** ✨
+**Status:** ⚠️ PARCIALMENTE IMPLEMENTADO  
+**Prioridade:** BAIXA
+**Descrição:** Melhorar experiência visual com animações avançadas
+
+#### 3.1 Animações Implementadas ✅
+- ✅ Animação de pulso no widget de streak
+- ✅ Animações básicas nos quizzes (escala, progresso)
+- ✅ Animações no mini-game do precarregamento
+- ✅ Transições suaves entre telas
+
+#### 3.2 Animações Faltantes ❌
+- ❌ Animações de entrada/saída de elementos
+- ❌ Micro-interações (hover, focus, etc.)
+- ❌ Animações de loading mais elaboradas
+- ❌ Transições de página com Hero animations
+- ❌ Animações de feedback (sucesso/erro) mais sofisticadas
+
+---
+
+## ✅ **FUNCIONALIDADES JÁ IMPLEMENTADAS (COMPLETAS)**
+
+### 4. **Sistema de Progressão por Módulos BNCC** 🎯
+**Status:** ✅ IMPLEMENTADO COMPLETAMENTE
 
 #### Sistema de Quiz Básico
 - ✅ 3 tipos de quiz funcionais (Múltipla Escolha, Verdadeiro/Falso, Complete a Frase)

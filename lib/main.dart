@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/modern_tutoria_screen.dart';
+import 'screens/start_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {

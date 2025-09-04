@@ -3,10 +3,10 @@ import '../services/gemini_service.dart';
 import '../services/ollama_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import 'modern_tutoria_interativa_screen.dart';
-import 'modern_configuracao_screen.dart';
-import 'modern_quiz_screen.dart';
-import 'modern_quiz_verdadeiro_falso_screen.dart';
+import 'quiz_complete_a_frase_screen.dart';
+import 'configuracao_screen.dart';
+import 'quiz_multipla_escolha_screen.dart';
+import 'quiz_verdadeiro_falso_screen.dart';
 
 class TutoriaScreen extends StatefulWidget {
   const TutoriaScreen({super.key});
@@ -411,8 +411,8 @@ class _TutoriaScreenState extends State<TutoriaScreen>
       children: [
         ModernButton(
           text: _isOfflineMode
-              ? 'Iniciar Tutoria Offline'
-              : 'Iniciar Tutoria Inteligente',
+              ? 'Quiz Complete a Frase'
+              : 'Quiz Complete a Frase',
           icon:
               _isOfflineMode ? Icons.book_rounded : Icons.rocket_launch_rounded,
           onPressed: _startTutoria,

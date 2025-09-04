@@ -378,6 +378,11 @@ Dificuldade: $dificuldade
   }
 
   Future<void> _mostrarFeedback(bool isCorreta) async {
+    // Mostrar explicação em dialog quando a resposta estiver incorreta
+    if (!isCorreta && perguntaAtual != null && perguntaAtual!['explicacao'] != null) {
+      await _mostrarExplicacaoDialog(perguntaAtual!['explicacao']);
+    }
+
     // Mostrar feedback visual temporário
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -405,6 +410,56 @@ Dificuldade: $dificuldade
 
     // Aguardar um momento para mostrar o feedback
     await Future.delayed(const Duration(milliseconds: 1000));
+  }
+
+  Future<void> _mostrarExplicacaoDialog(String explicacao) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.darkSurfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                color: AppTheme.warningColor,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Explicação',
+                style: AppTheme.headingMedium.copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            explicacao,
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Entendi',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _finalizarQuiz() {

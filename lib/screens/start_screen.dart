@@ -354,13 +354,8 @@ class _StartScreenState extends State<StartScreen>
             children: [
               const SizedBox(height: 20),
 
-              // Logo matemática (igual ao desktop)
-              _buildMathematicalLogo(),
-
-              SizedBox(height: isTablet ? 40 : 30),
-
-              // Seção de boas-vindas (igual ao desktop)
-              _buildWelcomeSection(),
+              // Logo matemática unificada com boas-vindas
+              _buildUnifiedLogoWelcome(isTablet),
 
               SizedBox(height: isTablet ? 40 : 30),
 
@@ -685,19 +680,93 @@ class _StartScreenState extends State<StartScreen>
           child: _buildMathematicalDecorations(),
         ),
         // Conteúdo principal
-        Container(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo principal com elementos matemáticos
-              _buildMathematicalLogo(),
-            ],
-            ],
-          ),
+        Center(
+          child: _buildMathematicalLogo(),
         ),
       ],
+    );
+  }
+
+  Widget _buildUnifiedLogoWelcome(bool isTablet) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.1),
+            AppTheme.secondaryColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Logo compacta
+          Container(
+            width: isTablet ? 100 : 80,
+            height: isTablet ? 100 : 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  spreadRadius: 3,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.functions_rounded,
+              size: isTablet ? 45 : 35,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: isTablet ? 20 : 16),
+          
+          // Título e boas-vindas integrados
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.waving_hand_rounded,
+                size: isTablet ? 28 : 24,
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'MathQuest',
+                style: (isTablet ? AppTheme.headingLarge : AppTheme.headingMedium).copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 12 : 8),
+          Text(
+            _isOfflineMode
+                ? 'Modo offline ativo • Exercícios básicos disponíveis'
+                : 'Sistema de IA conectado • Experiência completa disponível',
+            style: (isTablet ? AppTheme.bodyMedium : AppTheme.bodySmall).copyWith(
+              color: AppTheme.darkTextSecondaryColor,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -840,57 +909,6 @@ class _StartScreenState extends State<StartScreen>
         ),
       );
     }).toList();
-  }
-
-  Widget _buildWelcomeSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.1),
-            AppTheme.secondaryColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.waving_hand_rounded,
-            size: 32,
-            color: AppTheme.primaryColor,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Bem-vindo ao MathQuest!',
-            style: AppTheme.headingLarge.copyWith(
-              color: AppTheme.darkTextPrimaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _isOfflineMode
-                ? 'Modo offline ativo\nExercícios básicos disponíveis'
-                : 'Sistema de IA conectado\nExperiência completa disponível',
-            style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildMathematicalDecorations() {

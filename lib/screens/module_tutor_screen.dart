@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../models/modulo_bncc.dart';
 import '../models/progresso_usuario.dart';
 import '../models/conversa.dart';
@@ -487,6 +491,160 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
     );
   }
 
+  Future<void> _copyConversationToClipboard() async {
+    if (_messages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhuma conversa para copiar'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final buffer = StringBuffer();
+    buffer.writeln('# Conversa - ${widget.modulo.titulo}\n');
+    buffer.writeln('**Módulo:** ${widget.modulo.unidadeTematica} - ${widget.modulo.anoEscolar}\n');
+    buffer.writeln('**Data:** ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}\n');
+    buffer.writeln('---\n');
+
+    for (final message in _messages) {
+      final role = message.isUser ? '👤 **Você**' : '🤖 **Tutor**';
+      buffer.writeln('$role:');
+      buffer.writeln(message.text);
+      buffer.writeln('');
+    }
+
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Conversa copiada para a área de transferência!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  Future<void> _generatePDF() async {
+    if (_messages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhuma conversa para gerar PDF'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final pdf = pw.Document();
+      
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) {
+            return [
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  'MathQuest - Conversa do Tutor',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'Módulo: ${widget.modulo.titulo}',
+                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.Text(
+                'Unidade Temática: ${widget.modulo.unidadeTematica}',
+                style: const pw.TextStyle(fontSize: 14),
+              ),
+              pw.Text(
+                'Ano Escolar: ${widget.modulo.anoEscolar}',
+                style: const pw.TextStyle(fontSize: 14),
+              ),
+              pw.Text(
+                'Data: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                style: const pw.TextStyle(fontSize: 14),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+              ...(_messages.map((message) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      padding: const pw.EdgeInsets.all(12),
+                      margin: const pw.EdgeInsets.only(bottom: 16),
+                      decoration: pw.BoxDecoration(
+                        color: message.isUser ? PdfColors.blue100 : PdfColors.grey100,
+                        borderRadius: pw.BorderRadius.circular(8),
+                      ),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            message.isUser ? '👤 Você:' : '🤖 Tutor de Matemática:',
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          pw.SizedBox(height: 8),
+                          pw.Text(
+                            _cleanTextForPDF(message.text),
+                            style: const pw.TextStyle(fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }).toList()),
+            ];
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+        name: 'MathQuest_Conversa_${widget.modulo.titulo.replaceAll(' ', '_')}.pdf',
+      );
+
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao gerar PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _cleanTextForPDF(String text) {
+    // Remove formatação Markdown mais complexa que pode não funcionar no PDF
+    String cleaned = text
+        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1') // Remove bold
+        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // Remove italic
+        .replaceAll(RegExp(r'`(.*?)`'), r'$1') // Remove code
+        .replaceAll(RegExp(r'#{1,6}\s*'), '') // Remove headers
+        .replaceAll(RegExp(r'\$\$(.*?)\$\$'), r'[$1]') // LaTeX block -> brackets
+        .replaceAll(RegExp(r'\$(.*?)\$'), r'[$1]') // LaTeX inline -> brackets
+        .replaceAll(RegExp(r'>\s*'), '• '); // Quote -> bullet
+    
+    return cleaned;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.width >= 768;
@@ -599,11 +757,52 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
               ],
             ),
           ),
-          ModernButton(
-            text: 'Atividades',
-            onPressed: _showActivityGenerator,
-            isPrimary: false,
-            icon: Icons.auto_awesome_rounded,
+          Row(
+            children: [
+              ModernButton(
+                text: 'Atividades',
+                onPressed: _showActivityGenerator,
+                isPrimary: false,
+                icon: Icons.auto_awesome_rounded,
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  color: AppTheme.darkTextPrimaryColor,
+                ),
+                color: AppTheme.darkSurfaceColor,
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'copy',
+                    child: Row(
+                      children: [
+                        Icon(Icons.copy_rounded, color: AppTheme.darkTextPrimaryColor),
+                        const SizedBox(width: 8),
+                        Text('Copiar Conversa', style: AppTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'pdf',
+                    child: Row(
+                      children: [
+                        Icon(Icons.picture_as_pdf_rounded, color: AppTheme.darkTextPrimaryColor),
+                        const SizedBox(width: 8),
+                        Text('Gerar PDF', style: AppTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'copy') {
+                    _copyConversationToClipboard();
+                  } else if (value == 'pdf') {
+                    _generatePDF();
+                  }
+                },
+              ),
+            ],
           ),
         ],
       ),

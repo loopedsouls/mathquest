@@ -146,15 +146,11 @@ class LatexMarkdownWidget extends StatelessWidget {
 
   List<TextPart> _parseLatexAndMarkdown(String text) {
     final parts = <TextPart>[];
-    final buffer = StringBuffer();
 
     // Expressões regulares para detectar LaTeX
     final blockLatexRegex = RegExp(r'\$\$([^$]+)\$\$'); // $$...$$
-    final inlineLatexRegex = RegExp(r'\$([^$]+)\$'); // $...$
 
-    int lastIndex = 0;
-
-    // Primeiro processa blocos LaTeX ($$...$$)
+    int lastIndex = 0; // Primeiro processa blocos LaTeX ($$...$$)
     for (final match in blockLatexRegex.allMatches(text)) {
       // Adiciona texto antes do LaTeX
       if (match.start > lastIndex) {

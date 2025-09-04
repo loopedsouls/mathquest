@@ -200,13 +200,14 @@ do ${widget.modulo.anoEscolar}, unidade temática "${widget.modulo.unidadeTemati
 
 Descrição do módulo: ${widget.modulo.descricao}
 
-**IMPORTANTE**: Use formatação Markdown para deixar suas respostas organizadas:
+**IMPORTANTE**: Use formatação Markdown e LaTeX para deixar suas respostas organizadas:
 - Use **negrito** para destacar conceitos importantes
 - Use *itálico* para ênfase
 - Use # ou ## para títulos e subtítulos
 - Use listas numeradas (1. 2. 3.) ou bullet points (- ou *)
 - Use `código` para fórmulas matemáticas simples
-- Use blocos de código (```) para equações complexas
+- Use LaTeX inline para fórmulas: \$f(x) = ax^2 + bx + c\$
+- Use LaTeX em bloco para equações complexas: \$\$\\int_a^b f(x) dx\$\$
 - Use > para dicas importantes
 
 Conversa anterior:
@@ -218,7 +219,7 @@ Pergunta atual do aluno: "$text"
 Responda de forma educativa, clara e apropriada para a idade. Se o aluno pedir atividades ou exercícios,
 sugira que ele use o **"Gerador de Atividades"** que criará exercícios personalizados.
 
-Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown.
+Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em Markdown com LaTeX.
 ''';
 
       final response = await _tutorService.aiService.generate(contextPrompt);

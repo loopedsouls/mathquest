@@ -274,7 +274,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
-        tipoQuiz: 'múltipla escolha',
+        tipoQuiz: 'multipla_escolha',
         dificuldade: dificuldade,
       );
 

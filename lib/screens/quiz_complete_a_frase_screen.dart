@@ -161,7 +161,7 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
       final perguntaCache = await QuizHelperService.gerarPerguntaInteligente(
         unidade: 'números e operações',
         ano: '1º ano',
-        tipoQuiz: 'complete a frase',
+        tipoQuiz: 'complete_frase',
         dificuldade: dificuldade,
       );
 

@@ -238,7 +238,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
-        tipoQuiz: 'verdadeiro ou falso',
+        tipoQuiz: 'verdadeiro_falso',
         dificuldade: dificuldade,
       );
 

@@ -46,7 +46,6 @@ class _AIChatScreenState extends State<AIChatScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _typingAnimationController.repeat();
   }
 
   @override
@@ -149,6 +148,7 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
     setState(() {
       _isLoading = true;
     });
+    _typingAnimationController.repeat();
 
     try {
       final response = await _tutorService.aiService.generate(welcomePrompt);
@@ -156,6 +156,7 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
         text: response,
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -163,11 +164,13 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
             'Olá! Sou seu assistente de matemática! 🤖📚\n\nEstou aqui para ajudar com suas dúvidas sobre matemática. O que você gostaria de aprender hoje?',
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } finally {
       setState(() {
         _isLoading = false;
       });
+      _typingAnimationController.stop();
     }
   }
 
@@ -246,6 +249,7 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
     setState(() {
       _isLoading = true;
     });
+    _typingAnimationController.repeat();
 
     try {
       final contextPrompt = '''
@@ -280,6 +284,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
         text: response,
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -287,11 +292,13 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
             'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
       ));
     } finally {
       setState(() {
         _isLoading = false;
       });
+      _typingAnimationController.stop();
     }
   }
 
@@ -509,8 +516,49 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                         height: 1.5,
                       ),
                     )
-                  : LatexMarkdownWidget(
-                      data: message.text,
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (message.aiProvider != null) ...[
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: message.aiProvider == 'gemini' 
+                                      ? Colors.blue.withValues(alpha: 0.2) 
+                                      : Colors.orange.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: message.aiProvider == 'gemini' 
+                                        ? Colors.blue.withValues(alpha: 0.5) 
+                                        : Colors.orange.withValues(alpha: 0.5),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  message.aiProvider == 'gemini' ? 'Gemini' : 'Ollama',
+                                  style: AppTheme.bodySmall.copyWith(
+                                    color: message.aiProvider == 'gemini' ? Colors.blue : Colors.orange,
+                                    fontSize: isTablet ? 10 : 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                  fontSize: isTablet ? 10 : 9,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        LatexMarkdownWidget(
+                          data: message.text,
                       isTablet: isTablet,
                     ),
             ),
@@ -571,34 +619,51 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
             child: AnimatedBuilder(
               animation: _typingAnimationController,
               builder: (context, child) {
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: List.generate(3, (index) {
-                    final delay = index * 0.2;
-                    final animation = Tween<double>(begin: 0.4, end: 1.0)
-                        .animate(CurvedAnimation(
-                      parent: _typingAnimationController,
-                      curve: Interval(
-                        delay,
-                        0.6 + delay,
-                        curve: Curves.easeInOut,
-                      ),
-                    ));
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Opacity(
-                        opacity: animation.value,
-                        child: Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${_useGemini ? 'Gemini' : 'Ollama'} está pensando',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: isTablet ? 12 : 10,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                        const SizedBox(width: 8),
+                        ...List.generate(3, (index) {
+                          final delay = index * 0.2;
+                          final animation = Tween<double>(begin: 0.4, end: 1.0)
+                              .animate(CurvedAnimation(
+                            parent: _typingAnimationController,
+                            curve: Interval(
+                              delay,
+                              0.6 + delay,
+                              curve: Curves.easeInOut,
+                            ),
+                          ));
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Opacity(
+                              opacity: animation.value,
+                              child: Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),

@@ -63,7 +63,6 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _typingAnimationController.repeat();
   }
 
   @override
@@ -325,6 +324,7 @@ Contexto resumido:''';
 
     _textController.clear();
     setState(() => _isLoading = true);
+    _typingAnimationController.repeat();
 
     try {
       String contextPrompt = '''
@@ -383,6 +383,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
       ));
     } finally {
       setState(() => _isLoading = false);
+      _typingAnimationController.stop();
     }
   }
 
@@ -971,34 +972,51 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
             child: AnimatedBuilder(
               animation: _typingAnimationController,
               builder: (context, child) {
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: List.generate(3, (index) {
-                    final delay = index * 0.2;
-                    final animation = Tween<double>(begin: 0.4, end: 1.0)
-                        .animate(CurvedAnimation(
-                      parent: _typingAnimationController,
-                      curve: Interval(
-                        delay,
-                        0.6 + delay,
-                        curve: Curves.easeInOut,
-                      ),
-                    ));
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Opacity(
-                        opacity: animation.value,
-                        child: Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${_useGemini ? 'Gemini' : 'Ollama'} está pensando',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: isTablet ? 12 : 10,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                        const SizedBox(width: 8),
+                        ...List.generate(3, (index) {
+                          final delay = index * 0.2;
+                          final animation = Tween<double>(begin: 0.4, end: 1.0)
+                              .animate(CurvedAnimation(
+                            parent: _typingAnimationController,
+                            curve: Interval(
+                              delay,
+                              0.6 + delay,
+                              curve: Curves.easeInOut,
+                            ),
+                          ));
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Opacity(
+                              opacity: animation.value,
+                              child: Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),

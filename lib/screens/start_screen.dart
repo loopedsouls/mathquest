@@ -311,30 +311,246 @@ class _StartScreenState extends State<StartScreen>
           ],
         ),
       ),
-      child: Row(
+      child: Stack(
         children: [
-          // Menu lateral esquerdo (mesmo do desktop, mas adaptado para mobile/tablet)
-          SizedBox(
-            width: isTablet ? 320 : 280,
-            child: _buildLeftMenu(),
-          ),
-          // Linha divisória sutil
-          Container(
-            width: 1,
-            color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
-          ),
-          // Informações à direita
-          Expanded(
+          // Conteúdo da direita como fundo
+          Positioned.fill(
             child: _buildRightInfo(),
+          ),
+
+          // Camada de fade para não obfuscar o menu
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.darkBackgroundColor.withValues(alpha: 0.85),
+                    AppTheme.darkBackgroundColor.withValues(alpha: 0.75),
+                    AppTheme.darkBackgroundColor.withValues(alpha: 0.6),
+                    AppTheme.darkBackgroundColor.withValues(alpha: 0.4),
+                  ],
+                  stops: const [0.0, 0.3, 0.7, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // Menu ocupando toda a tela no mobile
+          Positioned.fill(
+            child: _buildMobileFullMenu(isTablet),
           ),
         ],
       ),
     );
   }
 
+  // Menu para mobile que ocupa toda a tela
+  Widget _buildMobileFullMenu(bool isTablet) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 40 : 20,
+        vertical: isTablet ? 60 : 40,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Card unificado com título e boas-vindas
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.15),
+                  AppTheme.secondaryColor.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MathQuest',
+                  style: AppTheme.displaySmall.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: isTablet ? 32 : 28,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.waving_hand_rounded,
+                      color: AppTheme.primaryColor,
+                      size: isTablet ? 20 : 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Bem-vindo!',
+                      style: AppTheme.bodyLarge.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _isOfflineMode
+                      ? 'Modo offline ativo\nExercícios básicos disponíveis'
+                      : 'Sistema de IA conectado\nExperiência completa disponível',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          // Menu principal estilo Visual Novel - expandido
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final buttonHeight = isTablet ? 60.0 : 50.0; // Altura fixa para melhor controle
+                final spacing = isTablet ? 16.0 : 12.0;
+
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildMobileVisualNovelButton(
+                        title: 'Iniciar',
+                        onPressed: _goToModulos,
+                        height: buttonHeight,
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(height: spacing),
+                      _buildMobileVisualNovelButton(
+                        title: 'Modo Quiz',
+                        onPressed: _startQuizAlternado,
+                        height: buttonHeight,
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(height: spacing),
+                      _buildMobileVisualNovelButton(
+                        title: 'Configurações',
+                        onPressed: _goToConfig,
+                        height: buttonHeight,
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(height: spacing),
+                      _buildMobileVisualNovelButton(
+                        title: 'Relatórios',
+                        onPressed: _goToRelatorios,
+                        height: buttonHeight,
+                        isTablet: isTablet,
+                      ),
+                      SizedBox(height: spacing),
+                      _buildMobileVisualNovelButton(
+                        title: 'Ajuda',
+                        onPressed: _goToAjuda,
+                        height: buttonHeight,
+                        isTablet: isTablet,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Status indicator na parte inferior
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
+                  color: _isOfflineMode
+                      ? AppTheme.warningColor
+                      : AppTheme.successColor,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _isOfflineMode ? 'Offline' : 'Online',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: _isOfflineMode
+                        ? AppTheme.warningColor
+                        : AppTheme.successColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Botão estilo Visual Novel para mobile (expandido)
+  Widget _buildMobileVisualNovelButton({
+    required String title,
+    required VoidCallback onPressed,
+    required double height,
+    required bool isTablet,
+  }) {
+    return SizedBox(
+      height: height,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.secondaryColor.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                title,
+                style: AppTheme.headingSmall.copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: isTablet ? 20 : 18,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // Menu lateral esquerdo estilo Visual Novel
   Widget _buildLeftMenu() {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

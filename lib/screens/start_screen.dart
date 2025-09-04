@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
+import 'tutor_ia_bncc_matematica.dart';
 import 'quiz_complete_a_frase_screen.dart';
 import 'configuracao_screen.dart';
 import 'quiz_multipla_escolha_screen.dart';
@@ -129,12 +130,21 @@ class _StartScreenState extends State<StartScreen>
     }
   }
 
-  void _startTutoria() {
+  void _startQuizCompleteFrase() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => QuizCompleteAFraseScreen(
           isOfflineMode: _isOfflineMode,
           exerciciosOffline: _exerciciosOffline,
+        ),
+      ),
+    );
+  }
+  void _startTutoria() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const BnccIaTutorMatematicaScreen(
+         
         ),
       ),
     );
@@ -272,19 +282,31 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildDesktopLayout() {
-    return Padding(
-      padding: const EdgeInsets.all(40),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.darkBackgroundColor,
+            AppTheme.darkSurfaceColor,
+          ],
+        ),
+      ),
       child: Row(
         children: [
-          // Menu lateral esquerdo (estilo Ren'Py)
-          Expanded(
-            flex: 2,
+          // Menu lateral esquerdo (estilo Visual Novel)
+          Container(
+            width: 350,
             child: _buildLeftMenu(),
           ),
-          const SizedBox(width: 40),
+          // Linha divisória sutil
+          Container(
+            width: 1,
+            color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+          ),
           // Informações à direita
           Expanded(
-            flex: 3,
             child: _buildRightInfo(),
           ),
         ],
@@ -602,177 +624,119 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
-  // Menu lateral esquerdo estilo Ren'Py
+  // Menu lateral esquerdo estilo Visual Novel
   Widget _buildLeftMenu() {
     return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.darkSurfaceColor,
-            AppTheme.darkCardColor,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: AppTheme.strongShadow,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Menu principal estilo Ren'Py
-          _buildMenuButton(
-            icon: Icons.rocket_launch_rounded,
-            title: _isOfflineMode
-                ? 'Iniciar Tutoria Offline'
-                : 'Iniciar Tutoria IA',
-            subtitle: _isOfflineMode
-                ? 'Exercícios pré-definidos'
-                : 'Com inteligência artificial',
-            onPressed: _startTutoria,
-            isPrimary: true,
+          // Título do menu
+          Padding(
+            padding: const EdgeInsets.only(left: 20, bottom: 40),
+            child: Text(
+              'MathQuest',
+              style: AppTheme.displaySmall.copyWith(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 32,
+              ),
+            ),
           ),
-
-          const SizedBox(height: 16),
-
-          _buildMenuButton(
-            icon: Icons.quiz_rounded,
-            title: _isOfflineMode
-                ? 'Quiz Múltipla Escolha'
-                : 'Quiz Múltipla Escolha',
-            subtitle: 'Múltipla escolha interativa',
-            onPressed: _startQuiz,
-            isPrimary: true,
+          
+          // Menu principal estilo Visual Novel
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildVisualNovelButton(
+                  title: 'Iniciar Tutoria',
+                  onPressed: _startTutoria,
+                ),
+                
+                const SizedBox(height: 20),
+                 _buildVisualNovelButton(
+                  title: 'Quiz Complete a Frase',
+                  onPressed: _startQuizCompleteFrase,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                _buildVisualNovelButton(
+                  title: 'Quiz Múltipla Escolha',
+                  onPressed: _startQuiz,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                _buildVisualNovelButton(
+                  title: 'Quiz Verdadeiro/Falso',
+                  onPressed: _startQuizVerdadeiroFalso,
+                ),
+                
+                const SizedBox(height: 30),
+                
+                _buildVisualNovelButton(
+                  title: 'Configurações',
+                  onPressed: _goToConfig,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                _buildVisualNovelButton(
+                  title: 'Ajuda',
+                  onPressed: _goToAjuda,
+                ),
+              ],
+            ),
           ),
-
-          const SizedBox(height: 16),
-
-          _buildMenuButton(
-            icon: Icons.check_box_rounded,
-            title: 'Quiz Verdadeiro/Falso',
-            subtitle: 'Formato sim ou não',
-            onPressed: _startQuizVerdadeiroFalso,
-            isPrimary: true,
+          
+          // Status indicator na parte inferior
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 20),
+            child: Row(
+              children: [
+                Icon(
+                  _isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
+                  color: _isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _isOfflineMode ? 'Offline' : 'Online',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: _isOfflineMode ? AppTheme.warningColor : AppTheme.successColor,
+                  ),
+                ),
+              ],
+            ),
           ),
-
-          const SizedBox(height: 20),
-
-          _buildMenuButton(
-            icon: Icons.settings_rounded,
-            title: 'Configurações',
-            subtitle: 'Personalizar experiência',
-            onPressed: _goToConfig,
-            isPrimary: false,
-          ),
-
-          const SizedBox(height: 20),
-
-          _buildMenuButton(
-            icon: Icons.help_outline_rounded,
-            title: 'Ajuda & Tutorial',
-            subtitle: 'Como usar o sistema',
-            onPressed: _goToAjuda,
-            isPrimary: false,
-          ),
-
-          const Spacer(),
         ],
       ),
     );
   }
 
-  // Botão de menu estilo Ren'Py
-  Widget _buildMenuButton({
-    required IconData icon,
+  // Botão estilo Visual Novel (simples e direto como DDLC)
+  Widget _buildVisualNovelButton({
     required String title,
-    required String subtitle,
     required VoidCallback onPressed,
-    required bool isPrimary,
   }) {
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
+      width: 280,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: isPrimary
-                  ? LinearGradient(
-                      colors: [
-                        AppTheme.primaryColor.withValues(alpha: 0.2),
-                        AppTheme.primaryDarkColor.withValues(alpha: 0.1),
-                      ],
-                    )
-                  : null,
-              color: isPrimary ? null : AppTheme.darkCardColor.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isPrimary
-                    ? AppTheme.primaryColor.withValues(alpha: 0.4)
-                    : AppTheme.darkBorderColor.withValues(alpha: 0.3),
-                width: 1,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            child: Text(
+              title,
+              style: AppTheme.headingSmall.copyWith(
+                color: AppTheme.darkTextPrimaryColor,
+                fontWeight: FontWeight.w500,
+                fontSize: 18,
               ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isPrimary
-                        ? AppTheme.primaryColor.withValues(alpha: 0.2)
-                        : AppTheme.darkTextHintColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: isPrimary
-                        ? AppTheme.primaryColor
-                        : AppTheme.darkTextSecondaryColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTheme.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isPrimary
-                              ? AppTheme.primaryColor
-                              : AppTheme.darkTextPrimaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: isPrimary
-                      ? AppTheme.primaryColor.withValues(alpha: 0.7)
-                      : AppTheme.darkTextHintColor,
-                  size: 16,
-                ),
-              ],
             ),
           ),
         ),
@@ -782,157 +746,155 @@ class _StartScreenState extends State<StartScreen>
 
   // Painel de informações à direita
   Widget _buildRightInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header de boas-vindas
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: AppTheme.modernGradient2,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: AppTheme.mediumShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bem-vindo ao MathQuest!',
-                style: AppTheme.displaySmall.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header de boas-vindas
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: AppTheme.modernGradient2,
                 ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: AppTheme.mediumShadow,
               ),
-              const SizedBox(height: 16),
-              Text(
-                _isOfflineMode
-                    ? 'Modo offline ativo. Exercícios básicos disponíveis para prática.'
-                    : 'Sistema de IA conectado. Experiência completa de aprendizado disponível.',
-                style: AppTheme.bodyLarge.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 32),
-
-        // Recursos principais
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppTheme.darkCardColor,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-              boxShadow: AppTheme.softShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recursos Disponíveis',
-                  style: AppTheme.headingMedium.copyWith(
-                    color: AppTheme.darkTextPrimaryColor,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildFeatureCardDesktop(
-                        Icons.trending_up_rounded,
-                        'Exercícios Adaptativos',
-                        'Dificuldade ajustada automaticamente',
-                        AppTheme.primaryColor,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildFeatureCardDesktop(
-                        Icons.psychology_rounded,
-                        'Explicações com IA',
-                        'Passo-a-passo detalhado',
-                        AppTheme.secondaryColor,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildFeatureCardDesktop(
-                        Icons.analytics_rounded,
-                        'Progresso Detalhado',
-                        'Acompanhe seu desempenho',
-                        AppTheme.infoColor,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildFeatureCardDesktop(
-                        Icons.quiz_rounded,
-                        'Múltiplos Formatos',
-                        'Diversos tipos de exercícios',
-                        AppTheme.accentColor,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Estatísticas rápidas
-                if (!_isOfflineMode) ...[
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bem-vindo ao MathQuest!',
+                    style: AppTheme.displaySmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome_rounded,
-                          color: AppTheme.primaryColor,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'IA Generativa Ativa',
-                                style: AppTheme.bodyLarge.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                              Text(
-                                'Exercícios únicos gerados em tempo real',
-                                style: AppTheme.bodySmall.copyWith(
-                                  color: AppTheme.darkTextSecondaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _isOfflineMode
+                        ? 'Modo offline ativo. Exercícios básicos disponíveis para prática.'
+                        : 'Sistema de IA conectado. Experiência completa de aprendizado disponível.',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      height: 1.5,
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
+
+            const SizedBox(height: 32),
+
+            // Recursos principais
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppTheme.darkCardColor,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+                boxShadow: AppTheme.softShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recursos Disponíveis',
+                    style: AppTheme.headingMedium.copyWith(
+                      color: AppTheme.darkTextPrimaryColor,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  _buildFeatureCardDesktop(
+                    Icons.trending_up_rounded,
+                    'Exercícios Adaptativos',
+                    'Dificuldade ajustada automaticamente',
+                    AppTheme.primaryColor,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureCardDesktop(
+                    Icons.psychology_rounded,
+                    'Explicações com IA',
+                    'Passo-a-passo detalhado',
+                    AppTheme.secondaryColor,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureCardDesktop(
+                    Icons.analytics_rounded,
+                    'Progresso Detalhado',
+                    'Acompanhe seu desempenho',
+                    AppTheme.infoColor,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureCardDesktop(
+                    Icons.quiz_rounded,
+                    'Múltiplos Formatos',
+                    'Diversos tipos de exercícios',
+                    AppTheme.accentColor,
+                  ),
+
+                  // Estatísticas rápidas
+                  if (!_isOfflineMode) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            color: AppTheme.primaryColor,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'IA Generativa Ativa',
+                                  style: AppTheme.bodyLarge.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                Text(
+                                  'Exercícios únicos gerados em tempo real',
+                                  style: AppTheme.bodySmall.copyWith(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

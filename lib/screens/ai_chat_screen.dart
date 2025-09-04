@@ -523,23 +523,28 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: message.aiProvider == 'gemini' 
-                                      ? Colors.blue.withValues(alpha: 0.2) 
+                                  color: message.aiProvider == 'gemini'
+                                      ? Colors.blue.withValues(alpha: 0.2)
                                       : Colors.orange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: message.aiProvider == 'gemini' 
-                                        ? Colors.blue.withValues(alpha: 0.5) 
+                                    color: message.aiProvider == 'gemini'
+                                        ? Colors.blue.withValues(alpha: 0.5)
                                         : Colors.orange.withValues(alpha: 0.5),
                                     width: 1,
                                   ),
                                 ),
                                 child: Text(
-                                  message.aiProvider == 'gemini' ? 'Gemini' : 'Ollama',
+                                  message.aiProvider == 'gemini'
+                                      ? 'Gemini'
+                                      : 'Ollama',
                                   style: AppTheme.bodySmall.copyWith(
-                                    color: message.aiProvider == 'gemini' ? Colors.blue : Colors.orange,
+                                    color: message.aiProvider == 'gemini'
+                                        ? Colors.blue
+                                        : Colors.orange,
                                     fontSize: isTablet ? 10 : 9,
                                     fontWeight: FontWeight.bold,
                                   ),

@@ -59,7 +59,8 @@ class ChatMessage {
   final String text;
   final bool isUser;
   final DateTime timestamp;
-  final String? aiProvider; // 'gemini', 'ollama', ou null para mensagens do usuário
+  final String?
+      aiProvider; // 'gemini', 'ollama', ou null para mensagens do usuário
 
   ChatMessage({
     required this.text,

@@ -5,6 +5,7 @@ import '../services/ia_service.dart';
 import '../services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
 import '../services/explicacao_service.dart';
+import '../services/quiz_helper_service.dart';
 import '../models/conquista.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -39,6 +40,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   bool quizFinalizado = false;
   bool _useGemini = true;
   String _modeloOllama = 'llama2';
+  bool _perguntaDoCache = false;
 
   // Resultados
   List<Map<String, dynamic>> respostas = [];
@@ -266,6 +268,8 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     final opcoes = List<String>.from(pergunta['opcoes']);
     opcoes.shuffle(Random());
 
+    _perguntaDoCache = false; // Pergunta offline não é do cache
+
     setState(() {
       perguntaAtual = {
         ...pergunta,
@@ -277,39 +281,29 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
 
   Future<void> _gerarPerguntaComIA() async {
     try {
-      final topico = widget.topico ?? 'matemática geral';
+      final topico = widget.topico ?? 'números e operações';
       final dificuldade = widget.dificuldade ?? 'médio';
+      final ano = '1º ano'; // Você pode adaptar isso baseado no contexto
 
-      debugPrint('Iniciando geração de pergunta com IA...');
-      debugPrint('Tópico: $topico');
-      debugPrint('Dificuldade: $dificuldade');
+      debugPrint('Iniciando geração de pergunta inteligente...');
+      debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
-      final prompt = '''
-Crie uma pergunta de múltipla escolha sobre $topico com nível de dificuldade $dificuldade.
+      // Usa o QuizHelperService que verifica cache primeiro
+      final pergunta = await QuizHelperService.gerarPerguntaInteligente(
+        unidade: topico,
+        ano: ano,
+        tipoQuiz: 'múltipla escolha',
+        dificuldade: dificuldade,
+      );
 
-Formato esperado:
-PERGUNTA: [pergunta clara e objetiva]
-A) [opção A]
-B) [opção B] 
-C) [opção C]
-D) [opção D]
-RESPOSTA_CORRETA: [letra da resposta correta]
-EXPLICACAO: [explicação breve e didática]
-
-Características:
-- Pergunta clara e direta
-- 4 alternativas plausíveis
-- Apenas uma resposta correta
-- Explicação educativa
-
-Tópico: $topico
-Dificuldade: $dificuldade
-''';
-
-      debugPrint('Prompt criado, enviando para IA...');
-      final response = await tutorService.aiService.generate(prompt);
-      debugPrint('Resposta da IA recebida: $response');
-      _processarRespostaIA(response);
+      if (pergunta != null) {
+        debugPrint('Pergunta obtida (cache ou IA): ${pergunta['pergunta']}');
+        _processarPerguntaCache(pergunta);
+      } else {
+        // Fallback para pergunta offline
+        debugPrint('Falha ao obter pergunta, usando fallback offline...');
+        _carregarPerguntaOffline();
+      }
     } catch (e) {
       // Fallback para pergunta offline em caso de erro
       debugPrint('Erro ao gerar pergunta: $e');
@@ -318,83 +312,26 @@ Dificuldade: $dificuldade
     }
   }
 
-  void _processarRespostaIA(String response) {
+  void _processarPerguntaCache(Map<String, dynamic> pergunta) {
     try {
-      debugPrint('Processando resposta da IA...');
-      final linhas = response
-          .split('\n')
-          .where((linha) => linha.trim().isNotEmpty)
-          .toList();
-
-      debugPrint('Linhas processadas: ${linhas.length}');
-      for (int i = 0; i < linhas.length; i++) {
-        debugPrint('Linha $i: ${linhas[i]}');
-      }
-
-      String pergunta = '';
-      List<String> opcoes = [];
-      String respostaCorreta = '';
-      String explicacao = '';
-
-      for (String linha in linhas) {
-        linha = linha.trim();
-
-        if (linha.startsWith('PERGUNTA:')) {
-          pergunta = linha.substring(9).trim();
-          debugPrint('Pergunta encontrada: $pergunta');
-        } else if (linha.startsWith('A)')) {
-          opcoes.add(linha.substring(2).trim());
-          debugPrint('Opção A encontrada: ${opcoes.last}');
-        } else if (linha.startsWith('B)')) {
-          opcoes.add(linha.substring(2).trim());
-          debugPrint('Opção B encontrada: ${opcoes.last}');
-        } else if (linha.startsWith('C)')) {
-          opcoes.add(linha.substring(2).trim());
-          debugPrint('Opção C encontrada: ${opcoes.last}');
-        } else if (linha.startsWith('D)')) {
-          opcoes.add(linha.substring(2).trim());
-          debugPrint('Opção D encontrada: ${opcoes.last}');
-        } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
-          final letra = linha.substring(17).trim().toUpperCase();
-          debugPrint('Letra da resposta correta: $letra');
-          final index = letra.codeUnitAt(0) - 65; // A=0, B=1, C=2, D=3
-          if (index >= 0 && index < opcoes.length) {
-            respostaCorreta = opcoes[index];
-            debugPrint('Resposta correta definida: $respostaCorreta');
-          }
-        } else if (linha.startsWith('EXPLICACAO:')) {
-          explicacao = linha.substring(11).trim();
-          debugPrint('Explicação encontrada: $explicacao');
-        }
-      }
-
-      // Embaralhar opções
-      final opcoesMapeadas = List<String>.from(opcoes);
-      opcoesMapeadas.shuffle(Random());
-
-      debugPrint('Opções embaralhadas: $opcoesMapeadas');
-      debugPrint('Resposta correta final: $respostaCorreta');
+      // Verifica se a pergunta veio do cache ou foi gerada na hora
+      final fonteIA = pergunta['fonte_ia'];
+      _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
 
       setState(() {
         perguntaAtual = {
-          'pergunta': pergunta.isEmpty ? 'Pergunta não encontrada' : pergunta,
-          'opcoes': opcoesMapeadas.isEmpty
-              ? ['Erro', 'ao', 'carregar', 'opções']
-              : opcoesMapeadas,
-          'resposta_correta':
-              respostaCorreta.isEmpty ? opcoesMapeadas.first : respostaCorreta,
-          'explicacao':
-              explicacao.isEmpty ? 'Explicação não disponível' : explicacao,
+          'pergunta': pergunta['pergunta'] ?? 'Pergunta não encontrada',
+          'opcoes': pergunta['opcoes'] ?? ['A) Erro', 'B) Erro', 'C) Erro', 'D) Erro'],
+          'resposta_correta': pergunta['resposta_correta'] ?? 'A',
+          'explicacao': pergunta['explicacao'] ?? 'Explicação não disponível',
           'numero': perguntaIndex + 1,
-          'topico': widget.topico ?? 'Matemática',
-          'dificuldade': widget.dificuldade ?? 'médio',
+          'fonte': fonteIA ?? 'Cache', // Identifica se veio do cache
         };
+        carregando = false;
       });
-
-      debugPrint(
-          'Pergunta processada com sucesso: ${perguntaAtual!['pergunta']}');
+      debugPrint('Pergunta processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
     } catch (e) {
-      debugPrint('Erro ao processar resposta da IA: $e');
+      debugPrint('Erro ao processar pergunta do cache: $e');
       _carregarPerguntaOffline();
     }
   }
@@ -817,24 +754,56 @@ Dificuldade: $dificuldade
         ),
         if (!widget.isOfflineMode) ...[
           const SizedBox(height: 4),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 12 : 8,
-              vertical: isTablet ? 6 : 4,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.infoColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-            ),
-            child: Text(
-              _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
-              style: TextStyle(
-                color: AppTheme.infoColor,
-                fontSize: isTablet ? 12 : 10,
-                fontWeight: FontWeight.w600,
+          if (_perguntaDoCache) ...[
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 8,
+                vertical: isTablet ? 6 : 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.warningColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cached,
+                    size: isTablet ? 14 : 12,
+                    color: AppTheme.warningColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Cache',
+                    style: TextStyle(
+                      color: AppTheme.warningColor,
+                      fontSize: isTablet ? 12 : 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ] else ...[
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 8,
+                vertical: isTablet ? 6 : 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.infoColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              ),
+              child: Text(
+                _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
+                style: TextStyle(
+                  color: AppTheme.infoColor,
+                  fontSize: isTablet ? 12 : 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ],
       ],
     );

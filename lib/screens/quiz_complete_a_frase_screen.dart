@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/explicacao_service.dart';
+import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -175,7 +176,22 @@ class _QuizCompleteAFraseScreenState
     });
 
     try {
-      pergunta = await tutorService.gerarPergunta(_niveis[_nivelDificuldade]);
+      // Primeiro tenta usar o cache inteligente
+      final dificuldade = _niveis[_nivelDificuldade];
+      final perguntaCache = await QuizHelperService.gerarPerguntaInteligente(
+        unidade: 'números e operações',
+        ano: '1º ano',
+        tipoQuiz: 'complete a frase',
+        dificuldade: dificuldade,
+      );
+
+      if (perguntaCache != null) {
+        pergunta = perguntaCache['pergunta'] ?? '';
+        debugPrint('Pergunta complete-a-frase obtida do cache/IA: $pergunta');
+      } else {
+        // Fallback para o método original
+        pergunta = await tutorService.gerarPergunta(dificuldade);
+      }
 
       // Após gerar a pergunta, solicitar que a IA armazene a resposta na memória
       if (pergunta.isNotEmpty && !pergunta.contains('Erro')) {

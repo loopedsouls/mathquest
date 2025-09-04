@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/explicacao_service.dart';
+import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -38,6 +39,7 @@ class _QuizVerdadeiroFalsoScreenState
   bool quizFinalizado = false;
   bool _useGemini = true;
   String _modeloOllama = 'llama2';
+  bool _perguntaDoCache = false;
 
   // Resultados
   List<Map<String, dynamic>> respostas = [];
@@ -235,6 +237,8 @@ class _QuizVerdadeiroFalsoScreenState
 
     final pergunta = perguntasDisponiveis.first;
 
+    _perguntaDoCache = false; // Pergunta offline não é do cache
+
     setState(() {
       perguntaAtual = {
         ...pergunta,
@@ -245,32 +249,65 @@ class _QuizVerdadeiroFalsoScreenState
 
   Future<void> _gerarPerguntaComIA() async {
     try {
-      final topico = widget.topico ?? 'matemática geral';
+      final topico = widget.topico ?? 'números e operações';
       final dificuldade = widget.dificuldade ?? 'médio';
+      final ano = '1º ano'; // Você pode adaptar isso baseado no contexto
 
-      final prompt = '''
-Crie uma pergunta de verdadeiro ou falso sobre $topico com nível de dificuldade $dificuldade.
+      debugPrint('Iniciando geração de pergunta V/F inteligente...');
+      debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
-Formato esperado:
-PERGUNTA: [afirmação clara que pode ser verdadeira ou falsa]
-RESPOSTA_CORRETA: [VERDADEIRO ou FALSO]
-EXPLICACAO: [explicação breve e didática do porquê a afirmação é verdadeira ou falsa]
+      // Usa o QuizHelperService que verifica cache primeiro
+      final pergunta = await QuizHelperService.gerarPerguntaInteligente(
+        unidade: topico,
+        ano: ano,
+        tipoQuiz: 'verdadeiro ou falso',
+        dificuldade: dificuldade,
+      );
 
-Características:
-- Afirmação clara e objetiva
-- Apenas verdadeiro ou falso como resposta
-- Explicação educativa
-- Evite afirmações ambíguas
-
-Tópico: $topico
-Dificuldade: $dificuldade
-''';
-
-      final response = await tutorService.aiService.generate(prompt);
-      _processarRespostaIA(response);
+      if (pergunta != null) {
+        debugPrint('Pergunta V/F obtida (cache ou IA): ${pergunta['pergunta']}');
+        _processarPerguntaCache(pergunta);
+      } else {
+        // Fallback para pergunta offline
+        debugPrint('Falha ao obter pergunta V/F, usando fallback offline...');
+        _carregarPerguntaOffline();
+      }
     } catch (e) {
       // Fallback para pergunta offline em caso de erro
-      debugPrint('Erro ao gerar pergunta: $e');
+      debugPrint('Erro ao gerar pergunta V/F: $e');
+      debugPrint('Carregando pergunta offline como fallback...');
+      _carregarPerguntaOffline();
+    }
+  }
+
+  void _processarPerguntaCache(Map<String, dynamic> pergunta) {
+    try {
+      // Verifica se a pergunta veio do cache ou foi gerada na hora
+      final fonteIA = pergunta['fonte_ia'];
+      _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
+
+      // Para V/F, a resposta correta pode estar como "VERDADEIRO"/"FALSO" ou boolean
+      bool respostaCorreta = true;
+      final resposta = pergunta['resposta_correta'];
+      if (resposta is String) {
+        respostaCorreta = resposta.toUpperCase().contains('VERDADEIRO') || resposta.toUpperCase().contains('TRUE');
+      } else if (resposta is bool) {
+        respostaCorreta = resposta;
+      }
+
+      setState(() {
+        perguntaAtual = {
+          'pergunta': pergunta['pergunta'] ?? 'Pergunta não encontrada',
+          'resposta_correta': respostaCorreta,
+          'explicacao': pergunta['explicacao'] ?? 'Explicação não disponível',
+          'numero': perguntaIndex + 1,
+          'fonte': fonteIA ?? 'Cache', // Identifica se veio do cache
+        };
+        carregando = false;
+      });
+      debugPrint('Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
+    } catch (e) {
+      debugPrint('Erro ao processar pergunta V/F do cache: $e');
       _carregarPerguntaOffline();
     }
   }
@@ -658,24 +695,56 @@ Dificuldade: $dificuldade
         ),
         if (!widget.isOfflineMode) ...[
           const SizedBox(height: 4),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 12 : 8,
-              vertical: isTablet ? 6 : 4,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.infoColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-            ),
-            child: Text(
-              _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
-              style: TextStyle(
-                color: AppTheme.infoColor,
-                fontSize: isTablet ? 12 : 10,
-                fontWeight: FontWeight.w600,
+          if (_perguntaDoCache) ...[
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 8,
+                vertical: isTablet ? 6 : 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.warningColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cached,
+                    size: isTablet ? 14 : 12,
+                    color: AppTheme.warningColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Cache',
+                    style: TextStyle(
+                      color: AppTheme.warningColor,
+                      fontSize: isTablet ? 12 : 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ] else ...[
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 8,
+                vertical: isTablet ? 6 : 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.infoColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              ),
+              child: Text(
+                _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
+                style: TextStyle(
+                  color: AppTheme.infoColor,
+                  fontSize: isTablet ? 12 : 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ],
       ],
     );

@@ -41,6 +41,11 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   final bool _useGemini = true;
   final String _modeloOllama = 'llama3.2:1b';
 
+  // Sistema de conversas
+  Conversa? _conversaAtual;
+  String _tituloConversa = 'Nova Conversa';
+  bool _conversaSalva = false;
+
   @override
   void initState() {
     super.initState();
@@ -167,6 +172,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
       _messages.add(message);
     });
     _scrollToBottom();
+    _salvarConversaAutomaticamente();
   }
 
   void _scrollToBottom() {
@@ -179,6 +185,50 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
         );
       }
     });
+  }
+
+  Future<void> _salvarConversaAutomaticamente() async {
+    if (_messages.isEmpty || !_tutorInitialized) return;
+
+    try {
+      // Se não tem conversa atual, cria uma nova
+      if (_conversaAtual == null) {
+        _conversaAtual = Conversa(
+          id: ConversaService.gerarIdConversa(),
+          titulo: _tituloConversa,
+          dataCreacao: DateTime.now(),
+          ultimaAtualizacao: DateTime.now(),
+          mensagens: [],
+          contexto: widget.modulo.titulo,
+        );
+      }
+
+      // Atualiza a conversa com as mensagens atuais
+      _conversaAtual = _conversaAtual!.copyWith(
+        mensagens: _messages,
+        ultimaAtualizacao: DateTime.now(),
+      );
+
+      // Gera título automático se ainda não foi gerado
+      if (_tituloConversa == 'Nova Conversa' && _messages.length >= 2) {
+        _tituloConversa = await ConversaService.gerarTituloAutomatico(
+          _messages,
+          widget.modulo.titulo,
+          _tutorService,
+        );
+        
+        _conversaAtual = _conversaAtual!.copyWith(titulo: _tituloConversa);
+        
+        setState(() {
+          _conversaSalva = true;
+        });
+      }
+
+      // Salva a conversa
+      await ConversaService.salvarConversa(_conversaAtual!);
+    } catch (e) {
+      // Ignora erros de salvamento para não interromper o chat
+    }
   }
 
   Future<void> _sendMessage(String text) async {
@@ -780,14 +830,4 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
   }
 }
 
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
 
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
-}

@@ -3,11 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import 'gamificacao_service.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/progresso_usuario.dart';
-import '../models/modulo_bncc.dart';
-import 'gamificacao_service.dart';
 import 'database_service.dart';
 
 class ProgressoServiceV2 {

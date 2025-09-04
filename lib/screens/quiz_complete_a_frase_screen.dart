@@ -37,6 +37,7 @@ class _QuizCompleteAFraseScreenState
   final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
   bool _useGemini = true;
   String _modeloOllama = 'llama2';
+  bool _perguntaDoCache = false;
   Map<String, dynamic>? _exercicioAtual;
   int _exercicioIndex = 0;
   int _exerciciosRespondidos = 0;
@@ -187,10 +188,14 @@ class _QuizCompleteAFraseScreenState
 
       if (perguntaCache != null) {
         pergunta = perguntaCache['pergunta'] ?? '';
-        debugPrint('Pergunta complete-a-frase obtida do cache/IA: $pergunta');
+        // Verifica se veio do cache
+        final fonteIA = perguntaCache['fonte_ia'];
+        _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
+        debugPrint('Pergunta complete-a-frase obtida do ${_perguntaDoCache ? "cache" : fonteIA}: $pergunta');
       } else {
         // Fallback para o método original
         pergunta = await tutorService.gerarPergunta(dificuldade);
+        _perguntaDoCache = false;
       }
 
       // Após gerar a pergunta, solicitar que a IA armazene a resposta na memória
@@ -963,10 +968,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
       );
     }
 
-    // Modo online - mostrar IA e modelo
-    final aiName = _useGemini ? 'Gemini' : 'Ollama';
-    final modelInfo = _useGemini ? 'Pro' : _modeloOllama;
-
+    // Modo online - mostrar IA e modelo ou indicador de cache
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -978,39 +980,75 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
           isActive: true,
         ),
         const SizedBox(height: 4),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isTablet ? 12 : 8,
-            vertical: isTablet ? 6 : 4,
-          ),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-            border: Border.all(
-              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-              width: 1,
+        if (_perguntaDoCache) ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              border: Border.all(
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.cached,
+                  color: AppTheme.warningColor,
+                  size: isTablet ? 16 : 14,
+                ),
+                SizedBox(width: isTablet ? 6 : 4),
+                Text(
+                  'Cache',
+                  style: TextStyle(
+                    color: AppTheme.warningColor,
+                    fontSize: isTablet ? 12 : 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                _useGemini ? Icons.auto_awesome_rounded : Icons.memory_rounded,
-                color: AppTheme.primaryColor,
-                size: isTablet ? 16 : 14,
+        ] else ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
               ),
-              SizedBox(width: isTablet ? 6 : 4),
-              Text(
-                '$aiName ($modelInfo)',
-                style: TextStyle(
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _useGemini ? Icons.auto_awesome_rounded : Icons.memory_rounded,
                   color: AppTheme.primaryColor,
-                  fontSize: isTablet ? 12 : 10,
-                  fontWeight: FontWeight.w600,
+                  size: isTablet ? 16 : 14,
                 ),
-              ),
-            ],
+                SizedBox(width: isTablet ? 6 : 4),
+                Text(
+                  '${_useGemini ? 'Gemini' : 'Ollama'} (${_useGemini ? 'Pro' : _modeloOllama})',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: isTablet ? 12 : 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

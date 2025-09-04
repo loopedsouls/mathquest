@@ -251,7 +251,7 @@ class _QuizVerdadeiroFalsoScreenState
     try {
       final topico = widget.topico ?? 'números e operações';
       final dificuldade = widget.dificuldade ?? 'médio';
-      final ano = '1º ano'; // Você pode adaptar isso baseado no contexto
+      const ano = '1º ano'; // Você pode adaptar isso baseado no contexto
 
       debugPrint('Iniciando geração de pergunta V/F inteligente...');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
@@ -308,48 +308,6 @@ class _QuizVerdadeiroFalsoScreenState
       debugPrint('Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
     } catch (e) {
       debugPrint('Erro ao processar pergunta V/F do cache: $e');
-      _carregarPerguntaOffline();
-    }
-  }
-
-  void _processarRespostaIA(String response) {
-    try {
-      final linhas = response
-          .split('\n')
-          .where((linha) => linha.trim().isNotEmpty)
-          .toList();
-
-      String pergunta = '';
-      bool respostaCorreta = true;
-      String explicacao = '';
-
-      for (String linha in linhas) {
-        linha = linha.trim();
-
-        if (linha.startsWith('PERGUNTA:')) {
-          pergunta = linha.substring(9).trim();
-        } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
-          final resposta = linha.substring(17).trim().toUpperCase();
-          respostaCorreta =
-              resposta.contains('VERDADEIRO') || resposta.contains('TRUE');
-        } else if (linha.startsWith('EXPLICACAO:')) {
-          explicacao = linha.substring(11).trim();
-        }
-      }
-
-      setState(() {
-        perguntaAtual = {
-          'pergunta': pergunta.isEmpty ? 'Pergunta não encontrada' : pergunta,
-          'resposta_correta': respostaCorreta,
-          'explicacao':
-              explicacao.isEmpty ? 'Explicação não disponível' : explicacao,
-          'numero': perguntaIndex + 1,
-          'topico': widget.topico ?? 'Matemática',
-          'dificuldade': widget.dificuldade ?? 'médio',
-        };
-      });
-    } catch (e) {
-      debugPrint('Erro ao processar resposta da IA: $e');
       _carregarPerguntaOffline();
     }
   }

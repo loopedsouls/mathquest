@@ -283,7 +283,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     try {
       final topico = widget.topico ?? 'números e operações';
       final dificuldade = widget.dificuldade ?? 'médio';
-      final ano = '1º ano'; // Você pode adaptar isso baseado no contexto
+      const ano = '1º ano'; // Você pode adaptar isso baseado no contexto
 
       debugPrint('Iniciando geração de pergunta inteligente...');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');

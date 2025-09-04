@@ -262,8 +262,8 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
           Row(
             children: [
               Icon(Icons.analytics, color: AppTheme.primaryColor),
-              SizedBox(width: 8),
-              Text(
+              const SizedBox(width: 8),
+              const Text(
                 'Estatísticas Gerais',
                 style: TextStyle(
                   fontSize: 18,
@@ -478,20 +478,20 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
           Row(
             children: [
               Icon(Icons.history, color: AppTheme.primaryColor),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 _searchTerm.isNotEmpty 
                     ? 'Resultados da Busca' 
                     : 'Histórico de Explicações',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               if (_unidadeFiltro != null || _topicoFiltro != null || _searchTerm.isNotEmpty)
                 IconButton(
-                  icon: Icon(Icons.clear),
+                  icon: const Icon(Icons.clear),
                   onPressed: () => setState(() {
                     _unidadeFiltro = null;
                     _topicoFiltro = null;
@@ -502,9 +502,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                 ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           if (explicacoes.isEmpty)
-            Text('Nenhuma explicação encontrada.')
+            const Text('Nenhuma explicação encontrada.')
           else
             ...explicacoes.map((explicacao) => _buildExplicacaoItem(explicacao)),
         ],
@@ -548,9 +548,9 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Pergunta:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(pergunta),
                 const SizedBox(height: 12),
@@ -620,7 +620,7 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                       Row(
                         children: [
                           Icon(Icons.lightbulb, color: AppTheme.primaryColor, size: 20),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             'Explicação:',
                             style: TextStyle(
@@ -630,7 +630,7 @@ class _HistoricoExplicacoesScreenState extends State<HistoricoExplicacoesScreen>
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(explicacaoTexto),
                     ],
                   ),

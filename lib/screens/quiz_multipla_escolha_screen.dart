@@ -24,7 +24,8 @@ class QuizMultiplaEscolhaScreen extends StatefulWidget {
   });
 
   @override
-  State<QuizMultiplaEscolhaScreen> createState() => _QuizMultiplaEscolhaScreenState();
+  State<QuizMultiplaEscolhaScreen> createState() =>
+      _QuizMultiplaEscolhaScreenState();
 }
 
 class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
@@ -153,15 +154,22 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   // Métodos de mapeamento para integração com sistema de progressão
   String _mapearTopicoParaUnidade(String topico) {
     // Mapeamento simples - pode ser refinado
-    if (topico.toLowerCase().contains('número') || topico.toLowerCase().contains('calculo')) {
+    if (topico.toLowerCase().contains('número') ||
+        topico.toLowerCase().contains('calculo')) {
       return 'Números';
-    } else if (topico.toLowerCase().contains('algebr') || topico.toLowerCase().contains('equação')) {
+    } else if (topico.toLowerCase().contains('algebr') ||
+        topico.toLowerCase().contains('equação')) {
       return 'Álgebra';
-    } else if (topico.toLowerCase().contains('geometri') || topico.toLowerCase().contains('forma')) {
+    } else if (topico.toLowerCase().contains('geometri') ||
+        topico.toLowerCase().contains('forma')) {
       return 'Geometria';
-    } else if (topico.toLowerCase().contains('medida') || topico.toLowerCase().contains('área') || topico.toLowerCase().contains('volume')) {
+    } else if (topico.toLowerCase().contains('medida') ||
+        topico.toLowerCase().contains('área') ||
+        topico.toLowerCase().contains('volume')) {
       return 'Grandezas e Medidas';
-    } else if (topico.toLowerCase().contains('estatistic') || topico.toLowerCase().contains('probabilidade') || topico.toLowerCase().contains('gráfico')) {
+    } else if (topico.toLowerCase().contains('estatistic') ||
+        topico.toLowerCase().contains('probabilidade') ||
+        topico.toLowerCase().contains('gráfico')) {
       return 'Probabilidade e Estatística';
     }
     return 'Números'; // Default
@@ -321,7 +329,8 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       setState(() {
         perguntaAtual = {
           'pergunta': pergunta['pergunta'] ?? 'Pergunta não encontrada',
-          'opcoes': pergunta['opcoes'] ?? ['A) Erro', 'B) Erro', 'C) Erro', 'D) Erro'],
+          'opcoes': pergunta['opcoes'] ??
+              ['A) Erro', 'B) Erro', 'C) Erro', 'D) Erro'],
           'resposta_correta': pergunta['resposta_correta'] ?? 'A',
           'explicacao': pergunta['explicacao'] ?? 'Explicação não disponível',
           'numero': perguntaIndex + 1,
@@ -329,7 +338,8 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
         };
         carregando = false;
       });
-      debugPrint('Pergunta processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
+      debugPrint(
+          'Pergunta processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
     } catch (e) {
       debugPrint('Erro ao processar pergunta do cache: $e');
       _carregarPerguntaOffline();
@@ -353,17 +363,18 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       // Mapear tópico para unidade BNCC (simplificado)
       String unidade = _mapearTopicoParaUnidade(widget.topico!);
       String ano = _mapearDificuldadeParaAno(widget.dificuldade!);
-      
+
       if (isCorreta) {
         await ProgressoService.registrarRespostaCorreta(unidade, ano);
-        
+
         // Registrar no sistema de gamificação
-        final novasConquistas = await GamificacaoService.registrarRespostaCorreta(
+        final novasConquistas =
+            await GamificacaoService.registrarRespostaCorreta(
           unidade: unidade,
           ano: ano,
           tempoResposta: tempoResposta,
         );
-        
+
         // Mostrar conquistas desbloqueadas
         if (novasConquistas.isNotEmpty) {
           _mostrarNovasConquistas(novasConquistas);
@@ -371,7 +382,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       } else {
         await ProgressoService.registrarRespostaIncorreta(unidade, ano);
         await GamificacaoService.registrarRespostaIncorreta();
-        
+
         // Salvar explicação no histórico quando a resposta está errada
         await ExplicacaoService.salvarExplicacao(
           unidade: unidade,
@@ -379,7 +390,8 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
           pergunta: perguntaAtual!['pergunta'],
           respostaUsuario: respostaSelecionada!,
           respostaCorreta: perguntaAtual!['resposta_correta'],
-          explicacao: perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
+          explicacao:
+              perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
           topicoEspecifico: perguntaAtual!['topico'],
         );
       }
@@ -425,7 +437,9 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
 
   Future<void> _mostrarFeedback(bool isCorreta) async {
     // Mostrar explicação em dialog quando a resposta estiver incorreta
-    if (!isCorreta && perguntaAtual != null && perguntaAtual!['explicacao'] != null) {
+    if (!isCorreta &&
+        perguntaAtual != null &&
+        perguntaAtual!['explicacao'] != null) {
       await _mostrarExplicacaoDialog(perguntaAtual!['explicacao']);
     }
 
@@ -698,7 +712,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
 
   String _buildSubtitle() {
     String nivel = 'Nível: ${widget.dificuldade?.toUpperCase() ?? 'MÉDIO'}';
-    
+
     if (widget.isOfflineMode) {
       return nivel;
     }

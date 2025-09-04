@@ -25,8 +25,7 @@ class QuizVerdadeiroFalsoScreen extends StatefulWidget {
       _QuizVerdadeiroFalsoScreenState();
 }
 
-class _QuizVerdadeiroFalsoScreenState
-    extends State<QuizVerdadeiroFalsoScreen>
+class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
     with TickerProviderStateMixin {
   late MathTutorService tutorService;
 
@@ -265,7 +264,8 @@ class _QuizVerdadeiroFalsoScreenState
       );
 
       if (pergunta != null) {
-        debugPrint('Pergunta V/F obtida (cache ou IA): ${pergunta['pergunta']}');
+        debugPrint(
+            'Pergunta V/F obtida (cache ou IA): ${pergunta['pergunta']}');
         _processarPerguntaCache(pergunta);
       } else {
         // Fallback para pergunta offline
@@ -290,7 +290,8 @@ class _QuizVerdadeiroFalsoScreenState
       bool respostaCorreta = true;
       final resposta = pergunta['resposta_correta'];
       if (resposta is String) {
-        respostaCorreta = resposta.toUpperCase().contains('VERDADEIRO') || resposta.toUpperCase().contains('TRUE');
+        respostaCorreta = resposta.toUpperCase().contains('VERDADEIRO') ||
+            resposta.toUpperCase().contains('TRUE');
       } else if (resposta is bool) {
         respostaCorreta = resposta;
       }
@@ -305,7 +306,8 @@ class _QuizVerdadeiroFalsoScreenState
         };
         carregando = false;
       });
-      debugPrint('Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
+      debugPrint(
+          'Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
     } catch (e) {
       debugPrint('Erro ao processar pergunta V/F do cache: $e');
       _carregarPerguntaOffline();
@@ -341,14 +343,15 @@ class _QuizVerdadeiroFalsoScreenState
       pontuacao += _calcularPontos(tempoResposta);
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
-      
+
       // Salvar explicação no histórico quando a resposta está errada
       await ExplicacaoService.salvarExplicacao(
         unidade: perguntaAtual!['topico'] ?? 'Geral',
         ano: 'Não especificado',
         pergunta: perguntaAtual!['pergunta'],
         respostaUsuario: respostaSelecionada! ? 'Verdadeiro' : 'Falso',
-        respostaCorreta: perguntaAtual!['resposta_correta'] ? 'Verdadeiro' : 'Falso',
+        respostaCorreta:
+            perguntaAtual!['resposta_correta'] ? 'Verdadeiro' : 'Falso',
         explicacao: perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
         topicoEspecifico: perguntaAtual!['topico'] ?? 'Quiz Verdadeiro/Falso',
       );
@@ -374,7 +377,9 @@ class _QuizVerdadeiroFalsoScreenState
 
   Future<void> _mostrarFeedback(bool isCorreta) async {
     // Mostrar explicação em dialog quando a resposta estiver incorreta
-    if (!isCorreta && perguntaAtual != null && perguntaAtual!['explicacao'] != null) {
+    if (!isCorreta &&
+        perguntaAtual != null &&
+        perguntaAtual!['explicacao'] != null) {
       await _mostrarExplicacaoDialog(perguntaAtual!['explicacao']);
     }
 
@@ -597,7 +602,7 @@ class _QuizVerdadeiroFalsoScreenState
 
   String _buildSubtitle() {
     String nivel = 'Nível: ${widget.dificuldade?.toUpperCase() ?? 'MÉDIO'}';
-    
+
     if (widget.isOfflineMode) {
       return nivel;
     }

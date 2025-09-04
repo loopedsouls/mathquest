@@ -22,8 +22,8 @@ class QuizCompleteAFraseScreen extends StatefulWidget {
       _QuizCompleteAFraseScreenState();
 }
 
-class _QuizCompleteAFraseScreenState
-    extends State<QuizCompleteAFraseScreen> with TickerProviderStateMixin {
+class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
+    with TickerProviderStateMixin {
   late MathTutorService tutorService;
   final TextEditingController _respostaController = TextEditingController();
 
@@ -191,7 +191,8 @@ class _QuizCompleteAFraseScreenState
         // Verifica se veio do cache
         final fonteIA = perguntaCache['fonte_ia'];
         _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
-        debugPrint('Pergunta complete-a-frase obtida do ${_perguntaDoCache ? "cache" : fonteIA}: $pergunta');
+        debugPrint(
+            'Pergunta complete-a-frase obtida do ${_perguntaDoCache ? "cache" : fonteIA}: $pergunta');
       } else {
         // Fallback para o método original
         pergunta = await tutorService.gerarPergunta(dificuldade);
@@ -344,8 +345,11 @@ Seja preciso na análise matemática e didático na explicação.
         ano: 'Não especificado',
         pergunta: pergunta,
         respostaUsuario: resposta,
-        respostaCorreta: _exercicioAtual?['resposta_correta'] ?? 'Não disponível',
-        explicacao: explicacaoResposta.isNotEmpty ? explicacaoResposta : 'Explicação não disponível',
+        respostaCorreta:
+            _exercicioAtual?['resposta_correta'] ?? 'Não disponível',
+        explicacao: explicacaoResposta.isNotEmpty
+            ? explicacaoResposta
+            : 'Explicação não disponível',
         topicoEspecifico: _exercicioAtual?['topico'] ?? 'Complete a Frase',
       );
     }
@@ -1032,7 +1036,9 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _useGemini ? Icons.auto_awesome_rounded : Icons.memory_rounded,
+                  _useGemini
+                      ? Icons.auto_awesome_rounded
+                      : Icons.memory_rounded,
                   color: AppTheme.primaryColor,
                   size: isTablet ? 16 : 14,
                 ),

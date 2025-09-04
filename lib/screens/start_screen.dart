@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
@@ -336,115 +337,52 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildMobileTabletLayout(bool isTablet) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 40 : 20,
-        vertical: isTablet ? 40 : 20,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header principal
-          _buildHeroSection(isTablet, false),
-          SizedBox(height: isTablet ? 40 : 30),
+    return Stack(
+      children: [
+        // Fundo com decorações matemáticas (igual ao desktop)
+        Positioned.fill(
+          child: _buildMathematicalDecorations(),
+        ),
+        // Conteúdo principal
+        SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 40 : 20,
+            vertical: isTablet ? 40 : 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
 
-          // Status do sistema
-          _buildStatusSection(isTablet),
-          SizedBox(height: isTablet ? 40 : 30),
+              // Logo matemática (igual ao desktop)
+              _buildMathematicalLogo(),
 
-          // Botões de ação principais
-          _buildActionButtons(isTablet),
-          SizedBox(height: isTablet ? 40 : 30),
+              SizedBox(height: isTablet ? 40 : 30),
 
-          // Seção de recursos
-          _buildFeaturesSection(isTablet),
+              // Seção de boas-vindas (igual ao desktop)
+              _buildWelcomeSection(),
 
-          // Error display
-          if (_error != null) ...[
-            SizedBox(height: isTablet ? 30 : 20),
-            _buildErrorSection(isTablet),
-          ],
-        ],
-      ),
-    );
-  }
+              SizedBox(height: isTablet ? 40 : 30),
 
-  Widget _buildHeroSection(bool isTablet, bool isDesktop) {
-    return ModernCard(
-      hasGlow: true,
-      child: Column(
-        children: [
-          Container(
-            width: isDesktop ? 120 : (isTablet ? 100 : 80),
-            height: isDesktop ? 120 : (isTablet ? 100 : 80),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: _isOfflineMode
-                    ? [
-                        AppTheme.warningColor,
-                        AppTheme.warningColor.withValues(alpha: 0.7)
-                      ]
-                    : [AppTheme.primaryColor, AppTheme.primaryLightColor],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (_isOfflineMode
-                          ? AppTheme.warningColor
-                          : AppTheme.primaryColor)
-                      .withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 4,
-                ),
+              // Status do sistema
+              _buildStatusSection(isTablet),
+              
+              SizedBox(height: isTablet ? 40 : 30),
+
+              // Botões de ação principais
+              _buildActionButtons(isTablet),
+
+              // Error display
+              if (_error != null) ...[
+                SizedBox(height: isTablet ? 30 : 20),
+                _buildErrorSection(isTablet),
               ],
-            ),
-            child: Icon(
-              _isOfflineMode
-                  ? Icons.wifi_off_rounded
-                  : Icons.psychology_rounded,
-              size: isDesktop ? 60 : (isTablet ? 50 : 40),
-              color: Colors.white,
-            ),
+
+              const SizedBox(height: 60),
+            ],
           ),
-          SizedBox(height: isTablet ? 24 : 20),
-          Text(
-            'MathQuest',
-            style: (isDesktop ? AppTheme.displayMedium : AppTheme.headingLarge)
-                .copyWith(
-              color: AppTheme.darkTextPrimaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: isTablet ? 12 : 8),
-          Text(
-            _isOfflineMode
-                ? 'Modo Offline Ativado'
-                : 'Tutoria Inteligente de Matemática',
-            style: (isTablet ? AppTheme.headingSmall : AppTheme.bodyLarge)
-                .copyWith(
-              color: _isOfflineMode
-                  ? AppTheme.warningColor
-                  : AppTheme.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          Text(
-            _isOfflineMode
-                ? 'Aprenda matemática mesmo sem conexão! Temos exercícios pré-carregados para você.'
-                : 'Desafie-se e melhore suas habilidades matemáticas com IA generativa adaptativa.',
-            style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -532,126 +470,6 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
-  Widget _buildFeaturesSection(bool isTablet) {
-    final features = [
-      _FeatureItem(
-        icon: Icons.trending_up_rounded,
-        title: 'Exercícios Adaptativos',
-        description: 'Dificuldade ajustada ao seu progresso',
-        color: AppTheme.primaryColor,
-      ),
-      _FeatureItem(
-        icon: Icons.psychology_rounded,
-        title: 'Explicações com IA',
-        description: 'Explicações detalhadas passo-a-passo',
-        color: AppTheme.secondaryColor,
-      ),
-      _FeatureItem(
-        icon: Icons.analytics_rounded,
-        title: 'Progresso Detalhado',
-        description: 'Acompanhe seu desempenho em tempo real',
-        color: AppTheme.infoColor,
-      ),
-      _FeatureItem(
-        icon: Icons.offline_bolt_rounded,
-        title: 'Modo Offline',
-        description: 'Aprenda sem conexão com a internet',
-        color: AppTheme.warningColor,
-      ),
-      _FeatureItem(
-        icon: Icons.quiz_rounded,
-        title: 'Múltiplos Formatos',
-        description: 'Múltipla escolha, V/F e completar frase',
-        color: AppTheme.accentColor,
-      ),
-      _FeatureItem(
-        icon: Icons.gamepad_rounded,
-        title: 'Experiência Gamificada',
-        description: 'Interface intuitiva e envolvente',
-        color: AppTheme.highlightColor,
-      ),
-    ];
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Recursos do MathQuest',
-            style: AppTheme.headingMedium.copyWith(
-              color: AppTheme.darkTextPrimaryColor,
-            ),
-          ),
-          SizedBox(height: isTablet ? 24 : 20),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: isTablet ? 3 : 2,
-              childAspectRatio: isTablet ? 1.2 : 1.1,
-              crossAxisSpacing: isTablet ? 20 : 16,
-              mainAxisSpacing: isTablet ? 20 : 16,
-            ),
-            itemCount: features.length,
-            itemBuilder: (context, index) =>
-                _buildFeatureCard(features[index], isTablet),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard(_FeatureItem feature, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
-      decoration: BoxDecoration(
-        color: feature.color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-        border: Border.all(
-          color: feature.color.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: isTablet ? 48 : 40,
-            height: isTablet ? 48 : 40,
-            decoration: BoxDecoration(
-              color: feature.color,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              feature.icon,
-              color: Colors.white,
-              size: isTablet ? 24 : 20,
-            ),
-          ),
-          SizedBox(height: isTablet ? 12 : 8),
-          Text(
-            feature.title,
-            style: AppTheme.bodyLarge.copyWith(
-              color: AppTheme.darkTextPrimaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: isTablet ? 8 : 4),
-          Text(
-            feature.description,
-            style: AppTheme.bodySmall.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildErrorSection(bool isTablet) {
     return ModernCard(
       child: Row(
@@ -703,7 +521,7 @@ class _StartScreenState extends State<StartScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildVisualNovelButton(
-                    title: 'Iniciar Tutoria',
+                    title: 'Iniciar',
                     onPressed: _goToModulos,
                   ),
 
@@ -799,221 +617,353 @@ class _StartScreenState extends State<StartScreen>
 
   // Painel de informações à direita
   Widget _buildRightInfo() {
+    return Stack(
+      children: [
+        // Fundo com decorações matemáticas
+        Positioned.fill(
+          child: _buildMathematicalDecorations(),
+        ),
+        // Conteúdo principal
+        Container(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 60),
+
+              // Logo principal com elementos matemáticos
+              _buildMathematicalLogo(),
+
+              const SizedBox(height: 40),
+
+              // Bem-vindo
+              _buildWelcomeSection(),
+
+              const SizedBox(height: 60),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMathematicalLogo() {
     return Container(
-      padding: const EdgeInsets.all(40),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header de boas-vindas
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: AppTheme.modernGradient2,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: AppTheme.mediumShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bem-vindo ao MathQuest!',
-                    style: AppTheme.displaySmall.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _isOfflineMode
-                        ? 'Modo offline ativo. Exercícios básicos disponíveis para prática.'
-                        : 'Sistema de IA conectado. Experiência completa de aprendizado disponível.',
-                    style: AppTheme.bodyLarge.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Recursos principais
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppTheme.darkCardColor,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-                boxShadow: AppTheme.softShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Recursos Disponíveis',
-                    style: AppTheme.headingMedium.copyWith(
-                      color: AppTheme.darkTextPrimaryColor,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _buildFeatureCardDesktop(
-                    Icons.trending_up_rounded,
-                    'Exercícios Adaptativos',
-                    'Dificuldade ajustada automaticamente',
-                    AppTheme.primaryColor,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildFeatureCardDesktop(
-                    Icons.psychology_rounded,
-                    'Explicações com IA',
-                    'Passo-a-passo detalhado',
-                    AppTheme.secondaryColor,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildFeatureCardDesktop(
-                    Icons.analytics_rounded,
-                    'Progresso Detalhado',
-                    'Acompanhe seu desempenho',
-                    AppTheme.infoColor,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildFeatureCardDesktop(
-                    Icons.quiz_rounded,
-                    'Múltiplos Formatos',
-                    'Diversos tipos de exercícios',
-                    AppTheme.accentColor,
-                  ),
-
-                  // Estatísticas rápidas
-                  if (!_isOfflineMode) ...[
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome_rounded,
-                            color: AppTheme.primaryColor,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'IA Generativa Ativa',
-                                  style: AppTheme.bodyLarge.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                                Text(
-                                  'Exercícios únicos gerados em tempo real',
-                                  style: AppTheme.bodySmall.copyWith(
-                                    color: AppTheme.darkTextSecondaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.1),
+            AppTheme.secondaryColor.withValues(alpha: 0.05),
+            Colors.transparent,
           ],
         ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+          width: 2,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Logo central
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.functions_rounded,
+              size: 60,
+              color: Colors.white,
+            ),
+          ),
+
+          // Elementos matemáticos orbitando
+          ..._buildOrbitingMathElements(),
+        ],
       ),
     );
   }
 
-  // Card de recurso para desktop
-  Widget _buildFeatureCardDesktop(
-      IconData icon, String title, String description, Color color) {
+  List<Widget> _buildOrbitingMathElements() {
+    final mathElements = [
+      {
+        'text': 'π',
+        'angle': 0.0,
+        'radius': 100.0,
+        'color': AppTheme.accentColor
+      },
+      {
+        'text': '∑',
+        'angle': 0.785,
+        'radius': 120.0,
+        'color': AppTheme.successColor
+      },
+      {
+        'text': '√',
+        'angle': 1.57,
+        'radius': 110.0,
+        'color': AppTheme.warningColor
+      },
+      {
+        'text': '∞',
+        'angle': 2.356,
+        'radius': 105.0,
+        'color': AppTheme.infoColor
+      },
+      {
+        'text': '∫',
+        'angle': 3.14,
+        'radius': 115.0,
+        'color': AppTheme.secondaryColor
+      },
+      {
+        'text': 'α',
+        'angle': 3.926,
+        'radius': 95.0,
+        'color': AppTheme.primaryColor
+      },
+      {
+        'text': 'Δ',
+        'angle': 4.712,
+        'radius': 125.0,
+        'color': AppTheme.errorColor
+      },
+      {
+        'text': '≈',
+        'angle': 5.497,
+        'radius': 100.0,
+        'color': AppTheme.accentColor
+      },
+    ];
+
+    return mathElements.map((element) {
+      final x = (element['radius']! as double) *
+          math.cos(element['angle']! as double);
+      final y = (element['radius']! as double) *
+          math.sin(element['angle']! as double);
+
+      return Positioned(
+        left: 150 + x - 15,
+        top: 150 + y - 15,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: (element['color']! as Color).withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: element['color']! as Color,
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              element['text']! as String,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: element['color']! as Color,
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildWelcomeSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.1),
+            AppTheme.secondaryColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withValues(alpha: 0.3),
+          color: AppTheme.primaryColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
           Icon(
-            icon,
-            color: color,
-            size: 24,
+            Icons.waving_hand_rounded,
+            size: 32,
+            color: AppTheme.primaryColor,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title.replaceAll('\n', ' '),
-                  style: AppTheme.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.darkTextSecondaryColor,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          const SizedBox(height: 12),
+          Text(
+            'Bem-vindo ao MathQuest!',
+            style: AppTheme.headingLarge.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isOfflineMode
+                ? 'Modo offline ativo\nExercícios básicos disponíveis'
+                : 'Sistema de IA conectado\nExperiência completa disponível',
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextSecondaryColor,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMathematicalDecorations() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.03),
+            AppTheme.secondaryColor.withValues(alpha: 0.02),
+            AppTheme.accentColor.withValues(alpha: 0.03),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.3, 0.7, 1.0],
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Fórmulas matemáticas decorativas espalhadas
+          Positioned(
+            left: 60,
+            top: 80,
+            child: _buildMathFormula('E = mc²', AppTheme.primaryColor),
+          ),
+          Positioned(
+            right: 80,
+            top: 120,
+            child: _buildMathFormula('a² + b² = c²', AppTheme.secondaryColor),
+          ),
+          Positioned(
+            left: 100,
+            top: 200,
+            child: _buildMathFormula('∫f(x)dx', AppTheme.infoColor),
+          ),
+          Positioned(
+            right: 60,
+            top: 260,
+            child: _buildMathFormula('lim→∞', AppTheme.accentColor),
+          ),
+          Positioned(
+            left: 80,
+            top: 320,
+            child: _buildMathFormula('Σx²', AppTheme.warningColor),
+          ),
+          Positioned(
+            right: 120,
+            top: 380,
+            child: _buildMathFormula('√(a+b)', AppTheme.successColor),
+          ),
+          Positioned(
+            left: 140,
+            top: 450,
+            child: _buildMathFormula('∂f/∂x', AppTheme.primaryColor),
+          ),
+          Positioned(
+            right: 100,
+            top: 500,
+            child: _buildMathFormula('φ = (1+√5)/2', AppTheme.secondaryColor),
+          ),
+          Positioned(
+            left: 70,
+            top: 560,
+            child: _buildMathFormula('∞', AppTheme.infoColor),
+          ),
+          Positioned(
+            right: 140,
+            top: 600,
+            child: _buildMathFormula('π ≈ 3.14', AppTheme.accentColor),
+          ),
+
+          // Ícones matemáticos grandes e sutis
+          Positioned(
+            right: 200,
+            top: 150,
+            child: Icon(
+              Icons.calculate_rounded,
+              size: 60,
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            ),
+          ),
+          Positioned(
+            left: 150,
+            top: 350,
+            child: Icon(
+              Icons.functions_rounded,
+              size: 50,
+              color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+            ),
+          ),
+          Positioned(
+            right: 150,
+            top: 450,
+            child: Icon(
+              Icons.show_chart_rounded,
+              size: 45,
+              color: AppTheme.accentColor.withValues(alpha: 0.1),
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildMathFormula(String formula, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        formula,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: color,
+          fontFamily: 'monospace',
+        ),
+      ),
+    );
+  }
 }
-
-class _FeatureItem {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color color;
-
-  _FeatureItem({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.color,
-  });
-}
-
-// Card de recurso para desktop

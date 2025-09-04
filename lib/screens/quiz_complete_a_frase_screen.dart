@@ -413,7 +413,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
       });
 
       if (mounted) {
-        _mostrarModalAjudaIA(context, tipo, isTablet);
+        _mostrarModalAjudaIA(mounted as BuildContext, tipo, isTablet);
       }
     } catch (e) {
       if (mounted) {
@@ -424,7 +424,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
         });
       }
       if (mounted) {
-        _mostrarModalAjudaIA(context, tipo, isTablet);
+        _mostrarModalAjudaIA(mounted as BuildContext, tipo, isTablet);
       }
     }
   }

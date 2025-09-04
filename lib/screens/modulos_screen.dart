@@ -71,7 +71,7 @@ class _ModulosScreenState extends State<ModulosScreen>
       setState(() {
         _carregando = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
         SnackBar(content: Text('Erro ao carregar progresso: $e')),
       );
     }

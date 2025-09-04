@@ -26,8 +26,16 @@ class PreloadService {
     {'unidade': 'geometria', 'ano': '2º ano', 'dificuldade': 'fácil'},
     {'unidade': 'grandezas e medidas', 'ano': '1º ano', 'dificuldade': 'fácil'},
     {'unidade': 'grandezas e medidas', 'ano': '2º ano', 'dificuldade': 'fácil'},
-    {'unidade': 'probabilidade e estatística', 'ano': '2º ano', 'dificuldade': 'fácil'},
-    {'unidade': 'probabilidade e estatística', 'ano': '3º ano', 'dificuldade': 'fácil'},
+    {
+      'unidade': 'probabilidade e estatística',
+      'ano': '2º ano',
+      'dificuldade': 'fácil'
+    },
+    {
+      'unidade': 'probabilidade e estatística',
+      'ano': '3º ano',
+      'dificuldade': 'fácil'
+    },
   ];
 
   static const List<String> _quizTypes = [
@@ -68,18 +76,18 @@ class PreloadService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-      
+
       if (selectedAI == 'gemini') {
         final apiKey = prefs.getString('gemini_api_key');
         if (apiKey == null || apiKey.isEmpty) return false;
-        
+
         final gemini = GeminiService(apiKey: apiKey);
         return await gemini.isServiceAvailable();
       } else if (selectedAI == 'ollama') {
         final ollama = OllamaService();
         return await ollama.isOllamaRunning();
       }
-      
+
       return false;
     } catch (e) {
       return false;
@@ -90,12 +98,12 @@ class PreloadService {
   static Future<int> getCredits() async {
     final prefs = await SharedPreferences.getInstance();
     final credits = prefs.getInt(_creditsKey) ?? 0;
-    
+
     // Log de debug temporário
     if (kDebugMode) {
       print('💰 Créditos lidos: $credits');
     }
-    
+
     return credits;
   }
 
@@ -105,7 +113,7 @@ class PreloadService {
     await prefs.setInt(_creditsKey, credits);
     // Força a sincronização para garantir que os dados sejam salvos imediatamente
     await prefs.commit();
-    
+
     // Log de debug temporário
     if (kDebugMode) {
       print('💰 Créditos salvos: $credits');
@@ -117,20 +125,20 @@ class PreloadService {
     final currentCredits = await getCredits();
     if (currentCredits > 0) {
       await setCredits(currentCredits - 1);
-      
+
       // Log de debug temporário
       if (kDebugMode) {
         print('💰 Crédito usado: $currentCredits -> ${currentCredits - 1}');
       }
-      
+
       return true;
     }
-    
+
     // Log de debug temporário
     if (kDebugMode) {
       print('💰 Sem créditos para usar: $currentCredits');
     }
-    
+
     return false;
   }
 
@@ -160,9 +168,9 @@ class PreloadService {
     String? ollamaModel,
   }) async {
     if (_isPreloading) return;
-    
+
     _isPreloading = true;
-    
+
     try {
       // PRIMEIRO: Inicializa o banco de dados para garantir que está pronto
       try {
@@ -172,13 +180,13 @@ class PreloadService {
         onProgress(0, 1, 'Erro na inicialização do banco: $dbError');
         // Continua mesmo com erro de banco, pois pode não ser crítico para o preload
       }
-      
+
       // Obtém a quantidade configurada de perguntas
       final totalQuestions = await getPreloadQuantity();
-      
+
       // Inicializa o serviço de IA
       late AIService iaService;
-      
+
       if (selectedAI == 'gemini') {
         if (apiKey == null || apiKey.isEmpty) {
           throw Exception('API Key do Gemini não configurada');
@@ -206,11 +214,13 @@ class PreloadService {
           // Seleciona aleatoriamente um tópico e tipo de quiz
           final topic = _topics[random.nextInt(_topics.length)];
           final quizType = _quizTypes[random.nextInt(_quizTypes.length)];
-          
-          onProgress(i + 1, totalQuestions, 
-            'Gerando pergunta ${i + 1}/$totalQuestions\n'
-            '${topic['unidade']} - ${topic['ano']}\n'
-            'Tipo: $quizType');
+
+          onProgress(
+              i + 1,
+              totalQuestions,
+              'Gerando pergunta ${i + 1}/$totalQuestions\n'
+              '${topic['unidade']} - ${topic['ano']}\n'
+              'Tipo: $quizType');
 
           // Gera a pergunta
           await _generateAndCacheQuestion(
@@ -222,10 +232,9 @@ class PreloadService {
           );
 
           generated++;
-          
+
           // Pequena pausa para não sobrecarregar
           await Future.delayed(const Duration(milliseconds: 100));
-          
         } catch (e) {
           failures++;
           if (kDebugMode) {
@@ -236,20 +245,22 @@ class PreloadService {
 
       // Atualiza timestamp do último precarregamento e define créditos
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_lastPreloadKey, DateTime.now().millisecondsSinceEpoch);
-      
+      await prefs.setInt(
+          _lastPreloadKey, DateTime.now().millisecondsSinceEpoch);
+
       // Define créditos baseado no número de perguntas geradas com sucesso
       await setCredits(generated);
-      
+
       // Força a sincronização dos dados para garantir que foram salvos
       await prefs.commit();
 
-      onProgress(totalQuestions, totalQuestions, 
-        'Precarregamento concluído!\n'
-        'Geradas: $generated perguntas\n'
-        'Créditos disponíveis: $generated\n'
-        'Falhas: $failures');
-
+      onProgress(
+          totalQuestions,
+          totalQuestions,
+          'Precarregamento concluído!\n'
+          'Geradas: $generated perguntas\n'
+          'Créditos disponíveis: $generated\n'
+          'Falhas: $failures');
     } catch (e) {
       final totalQuestions = await getPreloadQuantity();
       onProgress(0, totalQuestions, 'Erro: $e');
@@ -276,9 +287,9 @@ class PreloadService {
       }
       // Continua mesmo com erro de banco
     }
-    
+
     String prompt = '';
-    
+
     switch (tipoQuiz) {
       case 'múltipla escolha':
         prompt = '''
@@ -293,7 +304,7 @@ Formato de resposta (JSON):
 }
 ''';
         break;
-        
+
       case 'verdadeiro ou falso':
         prompt = '''
 Crie uma questão verdadeiro ou falso de matemática para o $ano sobre "$unidade" com dificuldade $dificuldade.
@@ -306,7 +317,7 @@ Formato de resposta (JSON):
 }
 ''';
         break;
-        
+
       case 'complete a frase':
         prompt = '''
 Crie uma questão de completar a frase de matemática para o $ano sobre "$unidade" com dificuldade $dificuldade.
@@ -323,12 +334,13 @@ Formato de resposta (JSON):
 
     // Gera a pergunta
     final response = await iaService.generate(prompt);
-    
+
     try {
       // Tenta fazer parse do JSON para extrair dados
-      final jsonResponse = response.replaceAll('```json', '').replaceAll('```', '').trim();
+      final jsonResponse =
+          response.replaceAll('```json', '').replaceAll('```', '').trim();
       final decoded = json.decode(jsonResponse);
-      
+
       // Tenta salvar no cache com dados estruturados
       try {
         await DatabaseService.salvarPerguntaCache(

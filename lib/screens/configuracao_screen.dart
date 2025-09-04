@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ia_service.dart';
 import '../services/preload_service.dart';
@@ -85,6 +86,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final preloadEnabled = await PreloadService.isPreloadEnabled();
     final credits = await PreloadService.getCredits();
     final quantity = await PreloadService.getPreloadQuantity();
+
+    if (kDebugMode) {
+      print('🔧 Configurações carregadas - Créditos: $credits, Preload: $preloadEnabled');
+    }
 
     if (apiKey != null) {
       apiKeyController.text = apiKey;
@@ -845,6 +850,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             Navigator.of(context).pop();
             // Recarrega os créditos após o precarregamento
             final credits = await PreloadService.getCredits();
+            
+            if (kDebugMode) {
+              print('🔧 Callback precarregamento - Créditos recarregados: $credits');
+            }
+            
             setState(() {
               _currentCredits = credits;
             });

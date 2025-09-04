@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/conversa.dart';
-import '../services/conversa_service.dart';
-import '../theme/app_theme.dart';
-import '../widgets/modern_components.dart';
+import '../../../models/conversa.dart';
+import '../../../services/conversa_service.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/modern_components.dart';
 import 'ai_chat_screen.dart';
 
 class ConversasSalvasScreen extends StatefulWidget {

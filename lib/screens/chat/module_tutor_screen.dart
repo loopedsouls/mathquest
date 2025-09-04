@@ -4,19 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../models/modulo_bncc.dart';
-import '../models/progresso_usuario.dart';
-import '../models/conversa.dart';
-import '../theme/app_theme.dart';
-import '../widgets/modern_components.dart';
-import '../widgets/latex_markdown_widget.dart';
-import '../widgets/queue_status_indicator.dart';
-import '../services/ia_service.dart';
-import '../services/conversa_service.dart';
-import '../services/ai_queue_service.dart';
-import '../unused/quiz_multipla_escolha_screen.dart';
-import '../unused/quiz_verdadeiro_falso_screen.dart';
-import '../unused/quiz_complete_a_frase_screen.dart';
+import '../../../models/modulo_bncc.dart';
+import '../../../models/progresso_usuario.dart';
+import '../../../models/conversa.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/modern_components.dart';
+import '../../../widgets/latex_markdown_widget.dart';
+import '../../../widgets/queue_status_indicator.dart';
+import '../../../services/ia_service.dart';
+import '../../../services/conversa_service.dart';
+import '../../../services/ai_queue_service.dart';
+import '../../../unused/quiz_multipla_escolha_screen.dart';
+import '../../../unused/quiz_verdadeiro_falso_screen.dart';
+import '../../../unused/quiz_complete_a_frase_screen.dart';
 
 class ModuleTutorScreen extends StatefulWidget {
   final ModuloBNCC modulo;
@@ -111,10 +111,10 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
-      
+
       // Inicializa o sistema de filas
       _aiQueueService.initialize(_tutorService);
-      
+
       setState(() {
         _tutorInitialized = true;
       });
@@ -312,7 +312,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+        text:
+            'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',

@@ -3,13 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/conversa.dart';
 import 'ia_service.dart';
 
-enum GenerationStatus {
-  pending,
-  processing,
-  completed,
-  error,
-  cancelled
-}
+enum GenerationStatus { pending, processing, completed, error, cancelled }
 
 class GenerationRequest {
   final String id;
@@ -45,7 +39,8 @@ class AIQueueService extends ChangeNotifier {
 
   // Getters
   List<GenerationRequest> get queue => List.unmodifiable(_queue);
-  Map<String, GenerationRequest> get activeRequests => Map.unmodifiable(_activeRequests);
+  Map<String, GenerationRequest> get activeRequests =>
+      Map.unmodifiable(_activeRequests);
   bool get isProcessing => _isProcessing;
 
   /// Inicializa o serviço com o MathTutorService
@@ -75,9 +70,9 @@ class AIQueueService extends ChangeNotifier {
 
     _queue.add(request);
     _activeRequests[conversaId] = request;
-    
+
     notifyListeners();
-    
+
     if (!_isProcessing) {
       _processQueue();
     }
@@ -89,7 +84,8 @@ class AIQueueService extends ChangeNotifier {
   void cancelRequest(String conversaId) {
     // Remove da fila se estiver pendente
     _queue.removeWhere((request) {
-      if (request.conversaId == conversaId && request.status == GenerationStatus.pending) {
+      if (request.conversaId == conversaId &&
+          request.status == GenerationStatus.pending) {
         request.status = GenerationStatus.cancelled;
         request.completer.completeError('Request cancelled');
         return true;
@@ -99,7 +95,8 @@ class AIQueueService extends ChangeNotifier {
 
     // Marca como cancelada se estiver processando
     final activeRequest = _activeRequests[conversaId];
-    if (activeRequest != null && activeRequest.status == GenerationStatus.processing) {
+    if (activeRequest != null &&
+        activeRequest.status == GenerationStatus.processing) {
       activeRequest.status = GenerationStatus.cancelled;
     }
 
@@ -126,7 +123,7 @@ class AIQueueService extends ChangeNotifier {
 
     while (_queue.isNotEmpty) {
       final request = _queue.removeAt(0);
-      
+
       // Verifica se foi cancelada
       if (request.status == GenerationStatus.cancelled) {
         _activeRequests.remove(request.conversaId);
@@ -137,8 +134,9 @@ class AIQueueService extends ChangeNotifier {
       notifyListeners();
 
       try {
-        final response = await _tutorService!.aiService.generate(request.prompt);
-        
+        final response =
+            await _tutorService!.aiService.generate(request.prompt);
+
         // Verifica novamente se foi cancelada durante a geração
         if (request.status == GenerationStatus.cancelled) {
           _activeRequests.remove(request.conversaId);
@@ -149,23 +147,25 @@ class AIQueueService extends ChangeNotifier {
           text: response,
           isUser: false,
           timestamp: DateTime.now(),
-          aiProvider: _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
+          aiProvider:
+              _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
         );
 
         request.status = GenerationStatus.completed;
         request.completer.complete(message);
         _activeRequests.remove(request.conversaId);
-
       } catch (e) {
         if (request.status != GenerationStatus.cancelled) {
           request.status = GenerationStatus.error;
           request.error = e.toString();
-          
+
           final errorMessage = ChatMessage(
-            text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+            text:
+                'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
             isUser: false,
             timestamp: DateTime.now(),
-            aiProvider: _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
+            aiProvider:
+                _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
           );
 
           request.completer.complete(errorMessage);
@@ -188,7 +188,7 @@ class AIQueueService extends ChangeNotifier {
         request.completer.completeError('Queue cleared');
       }
     }
-    
+
     for (final request in _activeRequests.values) {
       if (request.status == GenerationStatus.processing) {
         request.status = GenerationStatus.cancelled;
@@ -207,8 +207,10 @@ class AIQueueService extends ChangeNotifier {
       'queueLength': _queue.length,
       'activeRequests': _activeRequests.length,
       'isProcessing': _isProcessing,
-      'pendingRequests': _queue.where((r) => r.status == GenerationStatus.pending).length,
-      'processingRequests': _queue.where((r) => r.status == GenerationStatus.processing).length,
+      'pendingRequests':
+          _queue.where((r) => r.status == GenerationStatus.pending).length,
+      'processingRequests':
+          _queue.where((r) => r.status == GenerationStatus.processing).length,
     };
   }
 }

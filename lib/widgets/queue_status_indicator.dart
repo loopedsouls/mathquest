@@ -56,7 +56,7 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
 
   void _showQueueDetails() {
     final queueInfo = _queueService.getQueueInfo();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -76,8 +76,10 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusRow('Gerações na fila:', '${queueInfo['queueLength']}'),
-            _buildStatusRow('Conversas ativas:', '${queueInfo['activeRequests']}'),
-            _buildStatusRow('Processando:', _queueService.isProcessing ? 'Sim' : 'Não'),
+            _buildStatusRow(
+                'Conversas ativas:', '${queueInfo['activeRequests']}'),
+            _buildStatusRow(
+                'Processando:', _queueService.isProcessing ? 'Sim' : 'Não'),
             _buildStatusRow('Pendentes:', '${queueInfo['pendingRequests']}'),
             const SizedBox(height: 16),
             Text(
@@ -90,7 +92,8 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
           ],
         ),
         actions: [
-          if (_queueService.queue.isNotEmpty || _queueService.activeRequests.isNotEmpty)
+          if (_queueService.queue.isNotEmpty ||
+              _queueService.activeRequests.isNotEmpty)
             TextButton.icon(
               onPressed: () {
                 _queueService.clearAll();
@@ -138,9 +141,9 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final hasActivity = _queueService.isProcessing || 
-                        _queueService.queue.isNotEmpty ||
-                        _queueService.activeRequests.isNotEmpty;
+    final hasActivity = _queueService.isProcessing ||
+        _queueService.queue.isNotEmpty ||
+        _queueService.activeRequests.isNotEmpty;
 
     if (!hasActivity) {
       return const SizedBox.shrink();
@@ -157,7 +160,8 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
               borderRadius: BorderRadius.circular(20),
               onTap: _showQueueDetails,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -172,13 +176,17 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
                     Icon(
                       Icons.psychology,
                       size: 16,
-                      color: AppTheme.primaryColor.withOpacity(_animation.value),
+                      color:
+                          AppTheme.primaryColor.withOpacity(_animation.value),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _queueService.isProcessing ? 'IA gerando...' : 'Na fila: ${_queueService.queue.length}',
+                      _queueService.isProcessing
+                          ? 'IA gerando...'
+                          : 'Na fila: ${_queueService.queue.length}',
                       style: TextStyle(
-                        color: AppTheme.primaryColor.withOpacity(_animation.value),
+                        color:
+                            AppTheme.primaryColor.withOpacity(_animation.value),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

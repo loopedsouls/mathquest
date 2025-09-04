@@ -9,7 +9,7 @@ import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'relatorios_screen.dart';
-import 'chat_with_sidebar_screen.dart';
+import 'chat/chat_with_sidebar_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});

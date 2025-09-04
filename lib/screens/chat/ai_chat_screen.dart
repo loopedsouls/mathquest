@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/app_theme.dart';
-import '../services/ia_service.dart';
-import '../services/conversa_service.dart';
-import '../services/ai_queue_service.dart';
-import '../models/conversa.dart';
-import '../widgets/latex_markdown_widget.dart';
-import '../widgets/queue_status_indicator.dart';
+import '../../../theme/app_theme.dart';
+import '../../../services/ia_service.dart';
+import '../../../services/conversa_service.dart';
+import '../../../services/ai_queue_service.dart';
+import '../../../models/conversa.dart';
+import '../../../widgets/latex_markdown_widget.dart';
+import '../../../widgets/queue_status_indicator.dart';
 
 class AIChatScreen extends StatefulWidget {
   const AIChatScreen({super.key});
@@ -104,10 +104,10 @@ class _AIChatScreenState extends State<AIChatScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
-      
+
       // Inicializa o sistema de filas
       _aiQueueService.initialize(_tutorService);
-      
+
       setState(() {
         _tutorInitialized = true;
       });
@@ -289,7 +289,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
 
       // Adiciona à fila e aguarda resultado
       final response = await _aiQueueService.addRequest(
-        conversaId: _conversaAtual?.id ?? 'ai_chat_${DateTime.now().millisecondsSinceEpoch}',
+        conversaId: _conversaAtual?.id ??
+            'ai_chat_${DateTime.now().millisecondsSinceEpoch}',
         prompt: contextPrompt,
         userMessage: text,
         useGemini: _useGemini,
@@ -304,7 +305,8 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+        text:
+            'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',

@@ -5,7 +5,7 @@ import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
-import 'chat_with_sidebar_screen.dart';
+import 'chat/chat_with_sidebar_screen.dart';
 
 // Configuração para o programador - definir como false na produção
 // ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão

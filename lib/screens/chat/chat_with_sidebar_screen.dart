@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../models/conversa.dart';
-import '../models/modulo_bncc.dart';
-import '../models/progresso_usuario.dart';
-import '../services/conversa_service.dart';
-import '../services/ia_service.dart';
-import '../services/ai_queue_service.dart';
-import '../theme/app_theme.dart';
-import '../widgets/modern_components.dart';
-import '../widgets/latex_markdown_widget.dart';
-import '../widgets/queue_status_indicator.dart';
+import '../../../models/conversa.dart';
+import '../../../models/modulo_bncc.dart';
+import '../../../models/progresso_usuario.dart';
+import '../../../services/conversa_service.dart';
+import '../../../services/ia_service.dart';
+import '../../../services/ai_queue_service.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/modern_components.dart';
+import '../../../widgets/latex_markdown_widget.dart';
+import '../../../widgets/queue_status_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatWithSidebarScreen extends StatefulWidget {
@@ -109,10 +109,10 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
-      
+
       // Inicializa o sistema de filas
       _aiQueueService.initialize(_tutorService);
-      
+
       setState(() => _tutorInitialized = true);
 
       // Só envia mensagem de boas-vindas se não há conversa selecionada
@@ -378,7 +378,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
 
       // Adiciona à fila e aguarda resultado
       final response = await _aiQueueService.addRequest(
-        conversaId: _conversaAtual?.id ?? 'sidebar_chat_${DateTime.now().millisecondsSinceEpoch}',
+        conversaId: _conversaAtual?.id ??
+            'sidebar_chat_${DateTime.now().millisecondsSinceEpoch}',
         prompt: contextPrompt,
         userMessage: text,
         useGemini: _useGemini,
@@ -393,7 +394,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text: 'Desculpe, tive um problema para responder. Pode tentar novamente? 😅',
+        text:
+            'Desculpe, tive um problema para responder. Pode tentar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',

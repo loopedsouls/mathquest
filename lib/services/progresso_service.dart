@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
+import 'gamificacao_service.dart';
 
 class ProgressoService {
   static const String _progressoKey = 'progresso_usuario';
@@ -131,9 +132,26 @@ class ProgressoService {
     if (criteriosAtendidos) {
       progresso.completarModulo(unidade, ano);
       
-      // Notifica conclusão (pode ser expandido com callbacks)
+      // Verifica conquistas relacionadas ao módulo completo
+      final novasConquistas = await GamificacaoService.verificarConquistasModuloCompleto(
+        unidade,
+        ano,
+        taxaAcerto,
+      );
+      
+      // Verifica conquistas de nível se houve mudança
+      final nivelAnterior = progresso.nivelUsuario;
+      if (progresso.nivelUsuario != nivelAnterior) {
+        final conquistasNivel = await GamificacaoService.verificarConquistasNivel(progresso.nivelUsuario);
+        novasConquistas.addAll(conquistasNivel);
+      }
+      
+      // Notifica conclusão
       if (kDebugMode) {
         print('🎉 Módulo completado: $unidade - $ano');
+        if (novasConquistas.isNotEmpty) {
+          print('🏆 ${novasConquistas.length} nova(s) conquista(s) desbloqueada(s)!');
+        }
       }
     }
   }

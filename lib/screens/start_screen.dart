@@ -8,6 +8,7 @@ import 'quiz_multipla_escolha_screen.dart';
 import 'quiz_verdadeiro_falso_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
+import 'conquistas_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -200,6 +201,14 @@ class _StartScreenState extends State<StartScreen>
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const AjudaScreen(),
+      ),
+    );
+  }
+
+  void _goToConquistas() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ConquistasScreen(),
       ),
     );
   }
@@ -490,12 +499,28 @@ class _StartScreenState extends State<StartScreen>
           isFullWidth: true,
         ),
         SizedBox(height: isTablet ? 20 : 16),
-        ModernButton(
-          text: 'Configurações Avançadas',
-          icon: Icons.settings_rounded,
-          onPressed: _goToConfig,
-          isPrimary: false,
-          isFullWidth: true,
+        Row(
+          children: [
+            Expanded(
+              child: ModernButton(
+                text: 'Conquistas',
+                icon: Icons.emoji_events,
+                onPressed: _goToConquistas,
+                isPrimary: false,
+                isFullWidth: true,
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: ModernButton(
+                text: 'Configurações',
+                icon: Icons.settings_rounded,
+                onPressed: _goToConfig,
+                isPrimary: false,
+                isFullWidth: true,
+              ),
+            ),
+          ],
         ),
       ],
     );

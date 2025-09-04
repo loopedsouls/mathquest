@@ -3,6 +3,8 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/progresso_service.dart';
+import '../services/gamificacao_service.dart';
+import '../models/conquista.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -416,8 +418,21 @@ Dificuldade: $dificuldade
       
       if (isCorreta) {
         await ProgressoService.registrarRespostaCorreta(unidade, ano);
+        
+        // Registrar no sistema de gamificação
+        final novasConquistas = await GamificacaoService.registrarRespostaCorreta(
+          unidade: unidade,
+          ano: ano,
+          tempoResposta: tempoResposta,
+        );
+        
+        // Mostrar conquistas desbloqueadas
+        if (novasConquistas.isNotEmpty) {
+          _mostrarNovasConquistas(novasConquistas);
+        }
       } else {
         await ProgressoService.registrarRespostaIncorreta(unidade, ano);
+        await GamificacaoService.registrarRespostaIncorreta();
       }
     }
 
@@ -533,6 +548,63 @@ Dificuldade: $dificuldade
     }
 
     await prefs.setString('historico_quiz', jsonEncode(historico));
+  }
+
+  void _mostrarNovasConquistas(List<Conquista> conquistas) {
+    for (final conquista in conquistas) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '🏆 Nova Conquista!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      conquista.titulo,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '+${conquista.pontosBonus}',
+                style: TextStyle(
+                  color: AppTheme.accentColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.primaryColor,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _reiniciarQuiz() {

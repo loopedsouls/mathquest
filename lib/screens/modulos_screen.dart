@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
+import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
@@ -104,6 +105,13 @@ class _ModulosScreenState extends State<ModulosScreen>
                     children: [
                       _buildHeader(isTablet),
                       _buildProgressoGeral(isTablet),
+                      Container(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 24 : 16,
+                          vertical: isTablet ? 8 : 6,
+                        ),
+                        child: const StreakWidget(),
+                      ),
                       _buildUnidadesSeletor(isTablet),
                       Expanded(
                         child: _buildModulosGrid(isTablet, isDesktop),

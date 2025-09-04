@@ -363,11 +363,14 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.of(context).size.width >= 768;
-    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 768;
+    final isDesktop = screenWidth >= 1024;
+    final isMobile = screenWidth < 768;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
+      drawer: isMobile ? _buildMobileDrawer() : null,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -380,46 +383,143 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
           ),
         ),
         child: SafeArea(
-          child: Row(
-            children: [
-              // Sidebar com conversas
-              Container(
-                width: isDesktop ? 320 : (isTablet ? 280 : 250),
-                decoration: BoxDecoration(
-                  color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
-                  border: Border(
-                    right: BorderSide(
-                      color: AppTheme.darkBorderColor,
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: _buildSidebar(isTablet),
-              ),
-
-              // Área do chat
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildChatHeader(isTablet),
-                    Expanded(child: _buildChatArea(isTablet)),
-                    _buildInputArea(isTablet),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: isMobile
+              ? _buildMobileLayout(isTablet)
+              : _buildDesktopLayout(isTablet, isDesktop),
         ),
       ),
     );
   }
 
+  Widget _buildMobileLayout(bool isTablet) {
+    return Column(
+      children: [
+        _buildMobileChatHeader(isTablet),
+        Expanded(child: _buildChatArea(isTablet)),
+        _buildInputArea(isTablet),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(bool isTablet, bool isDesktop) {
+    return Row(
+      children: [
+        // Sidebar com conversas
+        Container(
+          width: isDesktop ? 320 : (isTablet ? 280 : 250),
+          decoration: BoxDecoration(
+            color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
+            border: Border(
+              right: BorderSide(
+                color: AppTheme.darkBorderColor,
+                width: 1,
+              ),
+            ),
+          ),
+          child: _buildSidebar(isTablet),
+        ),
+
+        // Área do chat
+        Expanded(
+          child: Column(
+            children: [
+              _buildChatHeader(isTablet),
+              Expanded(child: _buildChatArea(isTablet)),
+              _buildInputArea(isTablet),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileDrawer() {
+    return Drawer(
+      backgroundColor: AppTheme.darkSurfaceColor,
+      child: SafeArea(
+        child: _buildSidebar(false),
+      ),
+    );
+  }
+
+  Widget _buildMobileChatHeader(bool isTablet) {
+    return Container(
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
+        border: Border(
+          bottom: BorderSide(
+            color: AppTheme.darkBorderColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Conversas',
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: isTablet ? 40 : 32,
+            height: isTablet ? 40 : 32,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.psychology_rounded,
+              color: Colors.white,
+              size: isTablet ? 20 : 16,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _conversaAtual?.titulo ?? 'Nova Conversa',
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: isTablet ? 16 : 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  _contextoAtual,
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                    fontSize: isTablet ? 12 : 10,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: _novaConversa,
+            icon: const Icon(Icons.add_rounded),
+            tooltip: 'Nova conversa',
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSidebar(bool isTablet) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Column(
       children: [
         // Header da sidebar
         Container(
-          padding: EdgeInsets.all(isTablet ? 20 : 16),
+          padding: EdgeInsets.all(isTablet ? 20 : (isMobile ? 12 : 16)),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -430,27 +530,53 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
           ),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Conversas',
-                      style: AppTheme.headingMedium.copyWith(
-                        fontSize: isTablet ? 18 : 16,
+              if (isMobile) ...[
+                // Header mobile com botão de fechar
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Conversas',
+                        style: AppTheme.headingMedium.copyWith(
+                          fontSize: 16,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: _novaConversa,
-                    icon: const Icon(Icons.add_rounded),
-                    tooltip: 'Nova conversa',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                      tooltip: 'Fechar',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ] else ...[
+                // Header desktop/tablet
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Conversas',
+                        style: AppTheme.headingMedium.copyWith(
+                          fontSize: isTablet ? 18 : 16,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _novaConversa,
+                      icon: const Icon(Icons.add_rounded),
+                      tooltip: 'Nova conversa',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
               ModernButton(
                 text: 'Nova Conversa',
-                onPressed: _novaConversa,
+                onPressed: () {
+                  _novaConversa();
+                  if (isMobile) Navigator.pop(context);
+                },
                 isPrimary: true,
                 icon: Icons.chat_rounded,
               ),
@@ -464,50 +590,61 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
               ? const Center(child: CircularProgressIndicator())
               : _conversas.isEmpty
                   ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 48,
-                            color: AppTheme.darkTextSecondaryColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Nenhuma conversa ainda',
-                            style: AppTheme.bodyMedium.copyWith(
+                      child: Padding(
+                        padding: EdgeInsets.all(isMobile ? 16 : 24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              size: isMobile ? 40 : 48,
                               color: AppTheme.darkTextSecondaryColor,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'Nenhuma conversa ainda',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                                fontSize: isMobile ? 14 : 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   : ListView.builder(
-                      padding: EdgeInsets.all(isTablet ? 12 : 8),
+                      padding:
+                          EdgeInsets.all(isMobile ? 8 : (isTablet ? 12 : 8)),
                       itemCount: _conversas.length,
-                      itemBuilder: (context, index) =>
-                          _buildConversaItem(_conversas[index], isTablet),
+                      itemBuilder: (context, index) => _buildConversaItem(
+                          _conversas[index], isTablet, isMobile),
                     ),
         ),
       ],
     );
   }
 
-  Widget _buildConversaItem(Conversa conversa, bool isTablet) {
+  Widget _buildConversaItem(Conversa conversa, bool isTablet,
+      [bool isMobile = false]) {
     final isSelected = _conversaAtual?.id == conversa.id;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isTablet ? 8 : 6),
+      margin: EdgeInsets.only(bottom: isTablet ? 8 : (isMobile ? 4 : 6)),
       child: Material(
         color: isSelected
             ? AppTheme.primaryColor.withValues(alpha: 0.2)
             : AppTheme.darkBackgroundColor,
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        borderRadius: BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
         child: InkWell(
-          onTap: () => _carregarConversa(conversa),
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+          onTap: () {
+            _carregarConversa(conversa);
+            if (isMobile) Navigator.pop(context); // Fecha drawer em mobile
+          },
+          borderRadius:
+              BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
           child: Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(isTablet ? 16 : (isMobile ? 8 : 12)),
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelected
@@ -515,7 +652,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                     : AppTheme.darkBorderColor,
                 width: 1,
               ),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius:
+                  BorderRadius.circular(isTablet ? 12 : (isMobile ? 6 : 8)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,12 +664,12 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                       child: Text(
                         conversa.titulo,
                         style: AppTheme.headingSmall.copyWith(
-                          fontSize: isTablet ? 14 : 12,
+                          fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
                           color: isSelected
                               ? AppTheme.primaryColor
                               : AppTheme.darkTextPrimaryColor,
                         ),
-                        maxLines: 2,
+                        maxLines: isMobile ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -555,29 +693,29 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                       ],
                       icon: Icon(
                         Icons.more_vert_rounded,
-                        size: 16,
+                        size: isMobile ? 14 : 16,
                         color: AppTheme.darkTextSecondaryColor,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 6 : 8,
+                        vertical: isMobile ? 2 : 4,
                       ),
                       decoration: BoxDecoration(
                         color: AppTheme.accentColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
                       ),
                       child: Text(
                         conversa.contexto,
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.accentColor,
-                          fontSize: isTablet ? 10 : 9,
+                          fontSize: isTablet ? 10 : (isMobile ? 8 : 9),
                         ),
                       ),
                     ),
@@ -586,7 +724,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                       _formatarData(conversa.ultimaAtualizacao),
                       style: AppTheme.bodySmall.copyWith(
                         color: AppTheme.darkTextSecondaryColor,
-                        fontSize: isTablet ? 10 : 9,
+                        fontSize: isTablet ? 10 : (isMobile ? 8 : 9),
                       ),
                     ),
                   ],
@@ -692,8 +830,10 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
   }
 
   Widget _buildMessageBubble(ChatMessage message, bool isTablet) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Container(
-      margin: EdgeInsets.only(bottom: isTablet ? 16 : 12),
+      margin: EdgeInsets.only(bottom: isTablet ? 16 : (isMobile ? 8 : 12)),
       child: Row(
         mainAxisAlignment:
             message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -701,8 +841,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
         children: [
           if (!message.isUser) ...[
             Container(
-              width: isTablet ? 28 : 24,
-              height: isTablet ? 28 : 24,
+              width: isTablet ? 28 : (isMobile ? 20 : 24),
+              height: isTablet ? 28 : (isMobile ? 20 : 24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
@@ -712,19 +852,20 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
               child: Icon(
                 Icons.psychology_rounded,
                 color: Colors.white,
-                size: isTablet ? 14 : 12,
+                size: isTablet ? 14 : (isMobile ? 10 : 12),
               ),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: Container(
-              padding: EdgeInsets.all(isTablet ? 16 : 12),
+              padding: EdgeInsets.all(isTablet ? 16 : (isMobile ? 8 : 12)),
               decoration: BoxDecoration(
                 color: message.isUser
                     ? AppTheme.primaryColor
                     : AppTheme.darkSurfaceColor,
-                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                borderRadius:
+                    BorderRadius.circular(isTablet ? 16 : (isMobile ? 8 : 12)),
                 border: !message.isUser
                     ? Border.all(
                         color: AppTheme.darkBorderColor,
@@ -737,7 +878,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                       message.text,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: isTablet ? 14 : 12,
+                        fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
                         height: 1.5,
                       ),
                     )
@@ -750,8 +891,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
           if (message.isUser) ...[
             const SizedBox(width: 8),
             Container(
-              width: isTablet ? 28 : 24,
-              height: isTablet ? 28 : 24,
+              width: isTablet ? 28 : (isMobile ? 20 : 24),
+              height: isTablet ? 28 : (isMobile ? 20 : 24),
               decoration: BoxDecoration(
                 color: AppTheme.accentColor,
                 shape: BoxShape.circle,
@@ -759,7 +900,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
               child: Icon(
                 Icons.person_rounded,
                 color: Colors.white,
-                size: isTablet ? 14 : 12,
+                size: isTablet ? 14 : (isMobile ? 10 : 12),
               ),
             ),
           ],
@@ -841,8 +982,10 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
   }
 
   Widget _buildInputArea(bool isTablet) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      padding: EdgeInsets.all(isTablet ? 20 : (isMobile ? 12 : 16)),
       decoration: BoxDecoration(
         color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
         border: Border(
@@ -858,7 +1001,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
             child: Container(
               decoration: BoxDecoration(
                 color: AppTheme.darkBackgroundColor,
-                borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+                borderRadius:
+                    BorderRadius.circular(isTablet ? 24 : (isMobile ? 16 : 20)),
                 border: Border.all(
                   color: AppTheme.darkBorderColor,
                   width: 1,
@@ -868,18 +1012,18 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
                 controller: _textController,
                 style: TextStyle(
                   color: AppTheme.darkTextPrimaryColor,
-                  fontSize: isTablet ? 14 : 12,
+                  fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Digite sua pergunta...',
                   hintStyle: TextStyle(
                     color: AppTheme.darkTextSecondaryColor,
-                    fontSize: isTablet ? 14 : 12,
+                    fontSize: isTablet ? 14 : (isMobile ? 11 : 12),
                   ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 20 : 16,
-                    vertical: isTablet ? 16 : 12,
+                    horizontal: isTablet ? 20 : (isMobile ? 12 : 16),
+                    vertical: isTablet ? 16 : (isMobile ? 8 : 12),
                   ),
                 ),
                 maxLines: null,
@@ -891,8 +1035,8 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
           ),
           const SizedBox(width: 12),
           Container(
-            width: isTablet ? 44 : 36,
-            height: isTablet ? 44 : 36,
+            width: isTablet ? 44 : (isMobile ? 32 : 36),
+            height: isTablet ? 44 : (isMobile ? 32 : 36),
             decoration: BoxDecoration(
               gradient: _tutorInitialized && !_isLoading
                   ? LinearGradient(
@@ -910,14 +1054,15 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius:
+                    BorderRadius.circular(isTablet ? 22 : (isMobile ? 16 : 18)),
                 onTap: _tutorInitialized && !_isLoading
                     ? () => _sendMessage(_textController.text)
                     : null,
                 child: Icon(
                   Icons.send_rounded,
                   color: Colors.white,
-                  size: isTablet ? 20 : 16,
+                  size: isTablet ? 20 : (isMobile ? 14 : 16),
                 ),
               ),
             ),

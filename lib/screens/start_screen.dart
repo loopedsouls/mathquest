@@ -771,107 +771,121 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildMathematicalLogo() {
-    return Container(
-      width: 300,
-      height: 300,
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.1),
-            AppTheme.secondaryColor.withValues(alpha: 0.05),
-            Colors.transparent,
-          ],
-        ),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          width: 2,
-        ),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Logo central
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final logoSize = (screenWidth * 0.25).clamp(200.0, 350.0);
+        final centralLogoSize = logoSize * 0.4;
+        final iconSize = centralLogoSize * 0.5;
+        
+        return Container(
+          width: logoSize,
+          height: logoSize,
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              colors: [
+                AppTheme.primaryColor.withValues(alpha: 0.1),
+                AppTheme.secondaryColor.withValues(alpha: 0.05),
+                Colors.transparent,
               ],
             ),
-            child: const Icon(
-              Icons.functions_rounded,
-              size: 60,
-              color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppTheme.primaryColor.withValues(alpha: 0.2),
+              width: 2,
             ),
           ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Logo central
+              Container(
+                width: centralLogoSize,
+                height: centralLogoSize,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.functions_rounded,
+                  size: iconSize,
+                  color: Colors.white,
+                ),
+              ),
 
-          // Elementos matemáticos orbitando
-          ..._buildOrbitingMathElements(),
-        ],
-      ),
+              // Elementos matemáticos orbitando
+              ..._buildOrbitingMathElements(logoSize),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  List<Widget> _buildOrbitingMathElements() {
+  List<Widget> _buildOrbitingMathElements(double logoSize) {
+    final scaleFactor = logoSize / 300.0; // 300 era o tamanho original
+    final center = logoSize / 2;
+    final elementSize = (30 * scaleFactor).clamp(20.0, 40.0);
+    final fontSize = (16 * scaleFactor).clamp(12.0, 20.0);
+    
     final mathElements = [
       {
         'text': 'π',
         'angle': 0.0,
-        'radius': 100.0,
+        'radius': 100.0 * scaleFactor,
         'color': AppTheme.accentColor
       },
       {
         'text': '∑',
         'angle': 0.785,
-        'radius': 120.0,
+        'radius': 120.0 * scaleFactor,
         'color': AppTheme.successColor
       },
       {
         'text': '√',
         'angle': 1.57,
-        'radius': 110.0,
+        'radius': 110.0 * scaleFactor,
         'color': AppTheme.warningColor
       },
       {
         'text': '∞',
         'angle': 2.356,
-        'radius': 105.0,
+        'radius': 105.0 * scaleFactor,
         'color': AppTheme.infoColor
       },
       {
         'text': '∫',
         'angle': 3.14,
-        'radius': 115.0,
+        'radius': 115.0 * scaleFactor,
         'color': AppTheme.secondaryColor
       },
       {
         'text': 'α',
         'angle': 3.926,
-        'radius': 95.0,
+        'radius': 95.0 * scaleFactor,
         'color': AppTheme.primaryColor
       },
       {
         'text': 'Δ',
         'angle': 4.712,
-        'radius': 125.0,
+        'radius': 125.0 * scaleFactor,
         'color': AppTheme.errorColor
       },
       {
         'text': '≈',
         'angle': 5.497,
-        'radius': 100.0,
+        'radius': 100.0 * scaleFactor,
         'color': AppTheme.accentColor
       },
     ];
@@ -883,11 +897,11 @@ class _StartScreenState extends State<StartScreen>
           math.sin(element['angle']! as double);
 
       return Positioned(
-        left: 150 + x - 15,
-        top: 150 + y - 15,
+        left: center + x - (elementSize / 2),
+        top: center + y - (elementSize / 2),
         child: Container(
-          width: 30,
-          height: 30,
+          width: elementSize,
+          height: elementSize,
           decoration: BoxDecoration(
             color: (element['color']! as Color).withValues(alpha: 0.2),
             shape: BoxShape.circle,
@@ -900,7 +914,7 @@ class _StartScreenState extends State<StartScreen>
             child: Text(
               element['text']! as String,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: element['color']! as Color,
               ),
@@ -912,106 +926,119 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildMathematicalDecorations() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.03),
-            AppTheme.secondaryColor.withValues(alpha: 0.02),
-            AppTheme.accentColor.withValues(alpha: 0.03),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.3, 0.7, 1.0],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Fórmulas matemáticas decorativas espalhadas
-          Positioned(
-            left: 60,
-            top: 80,
-            child: _buildMathFormula('E = mc²', AppTheme.primaryColor),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        final screenHeight = constraints.maxHeight;
+        
+        // Calculando posições proporcionais
+        final leftMargin = screenWidth * 0.1;
+        final rightMargin = screenWidth * 0.1;
+        final topOffset = screenHeight * 0.1;
+        final spacing = screenHeight * 0.08;
+        
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.primaryColor.withValues(alpha: 0.03),
+                AppTheme.secondaryColor.withValues(alpha: 0.02),
+                AppTheme.accentColor.withValues(alpha: 0.03),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.3, 0.7, 1.0],
+            ),
           ),
-          Positioned(
-            right: 80,
-            top: 120,
-            child: _buildMathFormula('a² + b² = c²', AppTheme.secondaryColor),
-          ),
-          Positioned(
-            left: 100,
-            top: 200,
-            child: _buildMathFormula('∫f(x)dx', AppTheme.infoColor),
-          ),
-          Positioned(
-            right: 60,
-            top: 260,
-            child: _buildMathFormula('lim→∞', AppTheme.accentColor),
-          ),
-          Positioned(
-            left: 80,
-            top: 320,
-            child: _buildMathFormula('Σx²', AppTheme.warningColor),
-          ),
-          Positioned(
-            right: 120,
-            top: 380,
-            child: _buildMathFormula('√(a+b)', AppTheme.successColor),
-          ),
-          Positioned(
-            left: 140,
-            top: 450,
-            child: _buildMathFormula('∂f/∂x', AppTheme.primaryColor),
-          ),
-          Positioned(
-            right: 100,
-            top: 500,
-            child: _buildMathFormula('φ = (1+√5)/2', AppTheme.secondaryColor),
-          ),
-          Positioned(
-            left: 70,
-            top: 560,
-            child: _buildMathFormula('∞', AppTheme.infoColor),
-          ),
-          Positioned(
-            right: 140,
-            top: 600,
-            child: _buildMathFormula('π ≈ 3.14', AppTheme.accentColor),
-          ),
+          child: Stack(
+            children: [
+              // Fórmulas matemáticas decorativas com posições proporcionais
+              Positioned(
+                left: leftMargin,
+                top: topOffset,
+                child: _buildMathFormula('E = mc²', AppTheme.primaryColor),
+              ),
+              Positioned(
+                right: rightMargin,
+                top: topOffset + spacing * 0.5,
+                child: _buildMathFormula('a² + b² = c²', AppTheme.secondaryColor),
+              ),
+              Positioned(
+                left: leftMargin * 1.5,
+                top: topOffset + spacing * 1.5,
+                child: _buildMathFormula('∫f(x)dx', AppTheme.infoColor),
+              ),
+              Positioned(
+                right: rightMargin * 0.8,
+                top: topOffset + spacing * 2.2,
+                child: _buildMathFormula('lim→∞', AppTheme.accentColor),
+              ),
+              Positioned(
+                left: leftMargin * 1.2,
+                top: topOffset + spacing * 3,
+                child: _buildMathFormula('Σx²', AppTheme.warningColor),
+              ),
+              Positioned(
+                right: rightMargin * 1.5,
+                top: topOffset + spacing * 3.8,
+                child: _buildMathFormula('√(a+b)', AppTheme.successColor),
+              ),
+              Positioned(
+                left: leftMargin * 2,
+                top: topOffset + spacing * 4.8,
+                child: _buildMathFormula('∂f/∂x', AppTheme.primaryColor),
+              ),
+              Positioned(
+                right: rightMargin * 1.2,
+                top: topOffset + spacing * 5.5,
+                child: _buildMathFormula('φ = (1+√5)/2', AppTheme.secondaryColor),
+              ),
+              Positioned(
+                left: leftMargin * 0.8,
+                top: topOffset + spacing * 6.5,
+                child: _buildMathFormula('∞', AppTheme.infoColor),
+              ),
+              Positioned(
+                right: rightMargin * 1.8,
+                top: topOffset + spacing * 7,
+                child: _buildMathFormula('π ≈ 3.14', AppTheme.accentColor),
+              ),
 
-          // Ícones matemáticos grandes e sutis
-          Positioned(
-            right: 200,
-            top: 150,
-            child: Icon(
-              Icons.calculate_rounded,
-              size: 60,
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            ),
+              // Ícones matemáticos grandes e sutis com posições proporcionais
+              Positioned(
+                right: screenWidth * 0.25,
+                top: screenHeight * 0.2,
+                child: Icon(
+                  Icons.calculate_rounded,
+                  size: screenWidth * 0.08,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                ),
+              ),
+              Positioned(
+                left: screenWidth * 0.2,
+                top: screenHeight * 0.45,
+                child: Icon(
+                  Icons.functions_rounded,
+                  size: screenWidth * 0.06,
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                ),
+              ),
+              Positioned(
+                right: screenWidth * 0.2,
+                top: screenHeight * 0.6,
+                child: Icon(
+                  Icons.show_chart_rounded,
+                  size: screenWidth * 0.05,
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            left: 150,
-            top: 350,
-            child: Icon(
-              Icons.functions_rounded,
-              size: 50,
-              color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-            ),
-          ),
-          Positioned(
-            right: 150,
-            top: 450,
-            child: Icon(
-              Icons.show_chart_rounded,
-              size: 45,
-              color: AppTheme.accentColor.withValues(alpha: 0.1),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

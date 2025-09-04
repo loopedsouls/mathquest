@@ -414,16 +414,80 @@ Use emojis quando apropriado e seja encorajador.
                       )
                     : null,
               ),
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  color: message.isUser
-                      ? Colors.white
-                      : AppTheme.darkTextPrimaryColor,
-                  fontSize: isTablet ? 16 : 14,
-                  height: 1.5,
-                ),
-              ),
+              child: message.isUser
+                  ? Text(
+                      message.text,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isTablet ? 16 : 14,
+                        height: 1.5,
+                      ),
+                    )
+                  : MarkdownBody(
+                      data: message.text,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontSize: isTablet ? 16 : 14,
+                          height: 1.5,
+                        ),
+                        h1: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: isTablet ? 24 : 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h2: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: isTablet ? 22 : 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h3: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: isTablet ? 20 : 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        strong: TextStyle(
+                          color: AppTheme.accentColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        em: TextStyle(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        code: TextStyle(
+                          backgroundColor: AppTheme.darkBackgroundColor,
+                          color: AppTheme.accentColor,
+                          fontFamily: 'monospace',
+                          fontSize: isTablet ? 14 : 12,
+                        ),
+                        codeblockDecoration: BoxDecoration(
+                          color: AppTheme.darkBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppTheme.darkBorderColor,
+                          ),
+                        ),
+                        codeblockPadding: EdgeInsets.all(isTablet ? 12 : 8),
+                        listBullet: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: isTablet ? 16 : 14,
+                        ),
+                        blockquote: TextStyle(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontSize: isTablet ? 15 : 13,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        blockquoteDecoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: AppTheme.primaryColor,
+                              width: 4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      selectable: true,
+                    ),
             ),
           ),
           if (message.isUser) ...[

@@ -216,7 +216,7 @@ class _PreloadScreenState extends State<PreloadScreen>
   @override
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.width > 600;
-    
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
       body: SafeArea(
@@ -234,22 +234,30 @@ class _PreloadScreenState extends State<PreloadScreen>
               ],
             ),
           ),
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(isTablet),
-              
-              // Progress Section
-              _buildProgressSection(isTablet),
-              
-              // Game Area
-              Expanded(
-                child: _buildGameArea(isTablet),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
               ),
-              
-              // Footer
-              _buildFooter(isTablet),
-            ],
+              child: Column(
+                children: [
+                  // Header
+                  _buildHeader(isTablet),
+
+                  // Progress Section
+                  _buildProgressSection(isTablet),
+
+                  // Game Area
+                  _buildGameArea(isTablet),
+
+                  // Footer
+                  _buildFooter(isTablet),
+
+                  // Spacer to push content up if needed
+                  const Spacer(),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -360,30 +368,35 @@ class _PreloadScreenState extends State<PreloadScreen>
       margin: EdgeInsets.all(isTablet ? 24 : 16),
       child: ModernCard(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Game Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Math Bubble Pop',
-                      style: AppTheme.bodyLarge.copyWith(
-                        color: AppTheme.darkTextPrimaryColor,
-                        fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Math Bubble Pop',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Estoure as bolhas com a resposta correta!',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.darkTextSecondaryColor,
+                      Text(
+                        'Estoure as bolhas com a resposta correta!',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildGameStat('💰', _score.toString()),
                     SizedBox(width: isTablet ? 16 : 12),
@@ -392,14 +405,14 @@ class _PreloadScreenState extends State<PreloadScreen>
                 ),
               ],
             ),
-            
-            SizedBox(height: isTablet ? 20 : 16),
-            
+
+            SizedBox(height: isTablet ? 16 : 12),
+
             // Current Problem
             Container(
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 24 : 16,
-                vertical: isTablet ? 16 : 12,
+                horizontal: isTablet ? 20 : 16,
+                vertical: isTablet ? 12 : 10,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withValues(alpha: 0.1),
@@ -412,16 +425,17 @@ class _PreloadScreenState extends State<PreloadScreen>
                 _currentProblem,
                 style: AppTheme.headingMedium.copyWith(
                   color: AppTheme.primaryColor,
-                  fontSize: isTablet ? 32 : 24,
+                  fontSize: isTablet ? 28 : 20,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            
-            SizedBox(height: isTablet ? 20 : 16),
-            
-            // Bubbles Area
-            Expanded(
+
+            SizedBox(height: isTablet ? 16 : 12),
+
+            // Bubbles Area - Limitar altura máxima
+            Container(
+              height: isTablet ? 300 : 250,
               child: Stack(
                 children: [
                   // Background pattern
@@ -434,7 +448,7 @@ class _PreloadScreenState extends State<PreloadScreen>
                       );
                     },
                   ),
-                  
+
                   // Bubbles
                   ..._bubbles.map((bubble) => _buildBubble(bubble, isTablet)),
                 ],

@@ -60,9 +60,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   // Animações
   late AnimationController _animationController;
   late AnimationController _progressController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _progressAnimation;
+  late AnimationController _cardAnimationController;
+  late Animation<double> _cardScaleAnimation;
 
   // Configurações visuais
   String ano = '1º ano';
@@ -75,6 +74,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _initializeAnimations();
     _loadPreferences();
     _initializeQuiz();
+    _respostaController.addListener(() {
+      setState(() {
+        respostaSelecionada = _respostaController.text.trim();
+      });
+    });
   }
 
   void _initializeAnimations() {
@@ -88,31 +92,21 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
+    _cardAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _cardScaleAnimation = Tween<double>(
+      begin: 0.8,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    _slideAnimation = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeInOut,
+      parent: _cardAnimationController,
+      curve: Curves.elasticOut,
     ));
 
     _animationController.forward();
+    _cardAnimationController.forward();
   }
 
   Future<void> _loadPreferences() async {
@@ -202,6 +196,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     _animationController.reset();
     _animationController.forward();
+    _cardAnimationController.reset();
+    _cardAnimationController.forward();
   }
 
   void _processarPerguntaCache(Map<String, dynamic> pergunta) {
@@ -259,260 +255,72 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     });
   }
 
-  Widget _buildPerguntaWidget() {
-    if (perguntaAtual == null) return Container();
-
-    switch (tipoAtual) {
-      case 'multipla_escolha':
-        return _buildMultiplaEscolha();
-      case 'verdadeiro_falso':
-        return _buildVerdadeiroFalso();
-      case 'complete_frase':
-        return _buildCompleteFrase();
-      default:
-        return Container();
-    }
-  }
-
   Widget _buildMultiplaEscolha() {
     final opcoes = perguntaAtual!['opcoes'] as List<String>? ?? [];
 
     return Column(
-      children: [
-        _buildTipoBadge('Múltipla Escolha', Icons.quiz, AppTheme.primaryColor),
-        const SizedBox(height: 24),
-        _buildPerguntaCard(),
-        const SizedBox(height: 24),
-        ...opcoes.asMap().entries.map((entry) {
-          final index = entry.key;
-          final opcao = entry.value;
-          final letra = String.fromCharCode(65 + index); // A, B, C, D
-          final isSelected = respostaSelecionada == letra;
+      children: opcoes.asMap().entries.map((entry) {
+        final index = entry.key;
+        final opcao = entry.value;
+        final letra = String.fromCharCode(65 + index); // A, B, C, D
+        final isSelected = respostaSelecionada == letra;
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildOpcaoButton(letra, opcao, isSelected),
-          );
-        }).toList(),
-      ],
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ModernButton(
+            text: '$letra) $opcao',
+            onPressed: () {
+              setState(() {
+                respostaSelecionada = letra;
+              });
+            },
+            isPrimary: isSelected,
+            isFullWidth: true,
+            icon: isSelected ? Icons.check_circle : null,
+          ),
+        );
+      }).toList(),
     );
   }
 
   Widget _buildVerdadeiroFalso() {
-    return Column(
+    return Row(
       children: [
-        _buildTipoBadge(
-            'Verdadeiro ou Falso', Icons.check_circle, AppTheme.successColor),
-        const SizedBox(height: 24),
-        _buildPerguntaCard(),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: _buildOpcaoButton(
-                'V',
-                'Verdadeiro',
-                respostaSelecionada == 'Verdadeiro',
-                isVerdadeiroFalso: true,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildOpcaoButton(
-                'F',
-                'Falso',
-                respostaSelecionada == 'Falso',
-                isVerdadeiroFalso: true,
-              ),
-            ),
-          ],
+        Expanded(
+          child: ModernButton(
+            text: 'Verdadeiro',
+            onPressed: () {
+              setState(() {
+                respostaSelecionada = 'Verdadeiro';
+              });
+            },
+            isPrimary: respostaSelecionada == 'Verdadeiro',
+            icon: respostaSelecionada == 'Verdadeiro' ? Icons.check_circle : Icons.check,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ModernButton(
+            text: 'Falso',
+            onPressed: () {
+              setState(() {
+                respostaSelecionada = 'Falso';
+              });
+            },
+            isPrimary: respostaSelecionada == 'Falso',
+            icon: respostaSelecionada == 'Falso' ? Icons.check_circle : Icons.close,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildCompleteFrase() {
-    return Column(
-      children: [
-        _buildTipoBadge('Complete a Frase', Icons.edit, AppTheme.warningColor),
-        const SizedBox(height: 24),
-        _buildPerguntaCard(),
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.darkSurfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.darkBorderColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Digite sua resposta:',
-                style: AppTheme.bodyMedium.copyWith(
-                  color: AppTheme.darkTextSecondaryColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _respostaController,
-                decoration: InputDecoration(
-                  hintText: 'Sua resposta...',
-                  hintStyle: TextStyle(color: AppTheme.darkTextSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppTheme.darkBorderColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppTheme.primaryColor),
-                  ),
-                  filled: true,
-                  fillColor: AppTheme.darkBackgroundColor,
-                ),
-                style: AppTheme.bodyLarge.copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    respostaSelecionada = value.trim();
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTipoBadge(String titulo, IconData icon, Color cor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: cor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: cor, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            titulo,
-            style: AppTheme.bodySmall.copyWith(
-              color: cor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPerguntaCard() {
-    return AnimatedBuilder(
-      animation: _fadeAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value),
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.darkSurfaceColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.darkBorderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          perguntaAtual!['pergunta'] ?? '',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: AppTheme.darkTextPrimaryColor,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                      if (_perguntaDoCache)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.successColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color:
-                                  AppTheme.successColor.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.offline_bolt,
-                                size: 12,
-                                color: AppTheme.successColor,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Cache',
-                                style: AppTheme.bodySmall.copyWith(
-                                  color: AppTheme.successColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildOpcaoButton(String letra, String texto, bool isSelected,
-      {bool isVerdadeiroFalso = false}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: ModernButton(
-        text: isVerdadeiroFalso ? texto : '$letra) $texto',
-        onPressed: () {
-          setState(() {
-            if (isVerdadeiroFalso) {
-              respostaSelecionada = texto;
-            } else {
-              respostaSelecionada = letra;
-            }
-          });
-        },
-        isPrimary: isSelected,
-        isFullWidth: true,
-        icon: isSelected ? Icons.check_circle : null,
-      ),
+    return ModernTextField(
+      hint: 'Digite sua resposta aqui',
+      controller: _respostaController,
+      keyboardType: TextInputType.text,
+      prefixIcon: Icons.edit_rounded,
     );
   }
 
@@ -572,6 +380,13 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     if (!acertou) {
       await _mostrarExplicacao();
     }
+
+    // Reset das animações e próxima pergunta
+    _cardAnimationController.reset();
+    setState(() {
+      respostaSelecionada = null;
+      _respostaController.clear();
+    });
 
     // Próxima pergunta
     await _gerarPergunta();
@@ -648,10 +463,247 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     );
   }
 
+  String _buildSubtitle() {
+    String progresso = 'Pergunta ${perguntaIndex + 1}/$totalPerguntas';
+    String nivel = 'Tipo: ${_getTipoTitulo(tipoAtual)}';
+
+    if (_useGemini) {
+      return '$progresso • $nivel • IA: Gemini';
+    } else {
+      return '$progresso • $nivel • IA: Ollama ($_modeloOllama)';
+    }
+  }
+
+  Widget _buildHeaderTrailing(bool isTablet) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        StatusIndicator(
+          text: 'Online',
+          icon: Icons.wifi_rounded,
+          color: AppTheme.successColor,
+          isActive: true,
+        ),
+        const SizedBox(height: 4),
+        if (_perguntaDoCache) ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              border: Border.all(
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.offline_bolt,
+                  size: isTablet ? 14 : 12,
+                  color: AppTheme.warningColor,
+                ),
+                SizedBox(width: isTablet ? 6 : 4),
+                Text(
+                  'Cache',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.warningColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isTablet ? 12 : 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.smart_toy,
+                  size: isTablet ? 14 : 12,
+                  color: AppTheme.primaryColor,
+                ),
+                SizedBox(width: isTablet ? 6 : 4),
+                Text(
+                  _useGemini ? 'Gemini' : 'Ollama',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isTablet ? 12 : 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStatusProgress(bool isTablet) {
+    final totalExercicios = respostas.length;
+    final corretos = respostas.where((r) => r['acertou'] == true).length;
+    final progresso = totalExercicios > 0 ? corretos / totalExercicios : 0.0;
+
+    return ModernCard(
+      child: Column(
+        children: [
+          ModernProgressIndicator(
+            value: (perguntaIndex + 1) / totalPerguntas,
+            label: 'Progresso do Quiz',
+            color: AppTheme.primaryColor,
+          ),
+          if (totalExercicios > 0) ...[
+            SizedBox(height: isTablet ? 20 : 16),
+            ModernProgressIndicator(
+              value: progresso,
+              label: 'Taxa de Acertos: ${(progresso * 100).round()}%',
+              color: AppTheme.successColor,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingCard(bool isTablet) {
+    return ModernCard(
+      hasGlow: true,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
+              ),
+            ),
+          ),
+          SizedBox(height: isTablet ? 20 : 16),
+          Text(
+            'Gerando próximo exercício...',
+            style: AppTheme.bodyLarge.copyWith(
+              color: AppTheme.darkTextSecondaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExercicioCard(bool isTablet) {
+    return ScaleTransition(
+      scale: _cardScaleAnimation,
+      child: ModernCard(
+        hasGlow: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Tipo do exercício
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 16 : 12,
+                    vertical: isTablet ? 8 : 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getTipoColor(tipoAtual).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                    border: Border.all(
+                      color: _getTipoColor(tipoAtual).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getTipoIcon(tipoAtual),
+                        color: _getTipoColor(tipoAtual),
+                        size: isTablet ? 18 : 16,
+                      ),
+                      SizedBox(width: isTablet ? 8 : 6),
+                      Text(
+                        _getTipoTitulo(tipoAtual),
+                        style: AppTheme.bodySmall.copyWith(
+                          color: _getTipoColor(tipoAtual),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Pergunta
+            Text(
+              perguntaAtual!['pergunta'] ?? '',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.darkTextPrimaryColor,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Interface do tipo
+            _buildTipoInterface(tipoAtual, isTablet),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(bool isTablet) {
+    return ModernButton(
+      text: perguntaIndex < totalPerguntas - 1
+          ? 'Próxima Pergunta'
+          : 'Finalizar Quiz',
+      onPressed: respostaSelecionada != null && respostaSelecionada!.isNotEmpty
+          ? _proximaPergunta
+          : null,
+      isPrimary: true,
+      icon: perguntaIndex < totalPerguntas - 1
+          ? Icons.arrow_forward
+          : Icons.check,
+      isFullWidth: true,
+    );
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
     _progressController.dispose();
+    _cardAnimationController.dispose();
     _respostaController.dispose();
     super.dispose();
   }
@@ -667,103 +719,55 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.darkTextPrimaryColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Quiz Alternado',
-          style: AppTheme.bodyLarge.copyWith(
-            color: AppTheme.darkTextPrimaryColor,
-            fontWeight: FontWeight.w600,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.darkBackgroundColor,
+              AppTheme.darkSurfaceColor,
+            ],
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text(
-                '${perguntaIndex + 1}/$totalPerguntas',
-                style: AppTheme.bodyMedium.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header responsivo
+              ResponsiveHeader(
+                title: 'Quiz Alternado',
+                subtitle: _buildSubtitle(),
+                trailing: _buildHeaderTrailing(isTablet),
               ),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Barra de progresso
-          Container(
-            height: 6,
-            margin: const EdgeInsets.all(16),
-            child: AnimatedBuilder(
-              animation: _progressAnimation,
-              builder: (context, child) {
-                return LinearProgressIndicator(
-                  value: _progressAnimation.value,
-                  backgroundColor: AppTheme.darkBorderColor,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                );
-              },
-            ),
-          ),
 
-          // Conteúdo principal
-          Expanded(
-            child: carregando
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.primaryColor),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Gerando pergunta...',
-                          style: AppTheme.bodyMedium.copyWith(
-                            color: AppTheme.darkTextSecondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : SingleChildScrollView(
-                    padding: EdgeInsets.all(isTablet ? 24 : 16),
-                    child: _buildPerguntaWidget(),
+              // Conteúdo principal
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(isTablet ? 24 : 16),
+                  child: Column(
+                    children: [
+                      // Progresso e status
+                      _buildStatusProgress(isTablet),
+                      SizedBox(height: isTablet ? 24 : 20),
+
+                      // Card do exercício
+                      if (carregando)
+                        _buildLoadingCard(isTablet)
+                      else if (perguntaAtual != null)
+                        _buildExercicioCard(isTablet),
+
+                      SizedBox(height: isTablet ? 24 : 20),
+
+                      // Botões de ação
+                      if (!carregando && perguntaAtual != null)
+                        _buildActionButtons(isTablet),
+                    ],
                   ),
-          ),
-
-          // Botão para próxima pergunta
-          if (!carregando && perguntaAtual != null)
-            Container(
-              padding: EdgeInsets.all(isTablet ? 24 : 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ModernButton(
-                  text: perguntaIndex < totalPerguntas - 1
-                      ? 'Próxima Pergunta'
-                      : 'Finalizar Quiz',
-                  onPressed: respostaSelecionada != null &&
-                          respostaSelecionada!.isNotEmpty
-                      ? _proximaPergunta
-                      : null,
-                  isPrimary: true,
-                  icon: perguntaIndex < totalPerguntas - 1
-                      ? Icons.arrow_forward
-                      : Icons.check,
                 ),
               ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -912,6 +916,58 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildTipoInterface(String tipo, bool isTablet) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return _buildMultiplaEscolha();
+      case 'verdadeiro_falso':
+        return _buildVerdadeiroFalso();
+      case 'complete_frase':
+        return _buildCompleteFrase();
+      default:
+        return Container();
+    }
+  }
+
+  IconData _getTipoIcon(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return Icons.list_rounded;
+      case 'verdadeiro_falso':
+        return Icons.help_rounded;
+      case 'complete_frase':
+        return Icons.edit_rounded;
+      default:
+        return Icons.quiz_rounded;
+    }
+  }
+
+  String _getTipoTitulo(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return 'Múltipla Escolha';
+      case 'verdadeiro_falso':
+        return 'Verdadeiro ou Falso';
+      case 'complete_frase':
+        return 'Complete a Frase';
+      default:
+        return 'Exercício';
+    }
+  }
+
+  Color _getTipoColor(String tipo) {
+    switch (tipo) {
+      case 'multipla_escolha':
+        return AppTheme.primaryColor;
+      case 'verdadeiro_falso':
+        return AppTheme.secondaryColor;
+      case 'complete_frase':
+        return AppTheme.infoColor;
+      default:
+        return AppTheme.primaryColor;
+    }
   }
 
   Widget _buildEstatisticaItem(

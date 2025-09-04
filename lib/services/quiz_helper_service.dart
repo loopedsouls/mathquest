@@ -79,7 +79,13 @@ class QuizHelperService {
       );
 
       final response = await tutorService.aiService.generate(prompt);
-      return _processarRespostaIA(response, tipoQuiz);
+      final pergunta = _processarRespostaIA(response, tipoQuiz);
+      
+      if (pergunta != null && kDebugMode) {
+        print('🤖 Pergunta gerada via IA: ${pergunta['pergunta']?.substring(0, 50)}...');
+      }
+      
+      return pergunta;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Erro ao gerar pergunta via IA: $e');

@@ -191,6 +191,50 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
     });
   }
 
+  Future<void> _salvarConversaAutomaticamente() async {
+    if (_messages.isEmpty || !_tutorInitialized) return;
+
+    try {
+      // Se não tem conversa atual, cria uma nova
+      if (_conversaAtual == null) {
+        _conversaAtual = Conversa(
+          id: ConversaService.gerarIdConversa(),
+          titulo: _tituloConversa,
+          dataCreacao: DateTime.now(),
+          ultimaAtualizacao: DateTime.now(),
+          mensagens: [],
+          contexto: 'geral',
+        );
+      }
+
+      // Atualiza a conversa com as mensagens atuais
+      _conversaAtual = _conversaAtual!.copyWith(
+        mensagens: _messages,
+        ultimaAtualizacao: DateTime.now(),
+      );
+
+      // Gera título automático se ainda não foi gerado
+      if (_tituloConversa == 'Nova Conversa' && _messages.length >= 2) {
+        _tituloConversa = await ConversaService.gerarTituloAutomatico(
+          _messages,
+          'geral',
+          _tutorService,
+        );
+        
+        _conversaAtual = _conversaAtual!.copyWith(titulo: _tituloConversa);
+        
+        setState(() {
+          _conversaSalva = true;
+        });
+      }
+
+      // Salva a conversa
+      await ConversaService.salvarConversa(_conversaAtual!);
+    } catch (e) {
+      // Ignora erros de salvamento para não interromper o chat
+    }
+  }
+
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty || !_tutorInitialized) return;
 
@@ -326,19 +370,33 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chat com IA',
+                  _tituloConversa,
                   style: AppTheme.headingMedium.copyWith(
                     fontSize: isTablet ? 18 : 16,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  _aiName,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: _tutorInitialized
-                        ? AppTheme.successColor
-                        : AppTheme.errorColor,
-                    fontSize: isTablet ? 12 : 11,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      _aiName,
+                      style: AppTheme.bodySmall.copyWith(
+                        color: _tutorInitialized
+                            ? AppTheme.successColor
+                            : AppTheme.errorColor,
+                        fontSize: isTablet ? 12 : 11,
+                      ),
+                    ),
+                    if (_conversaSalva) ...[
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.save_rounded,
+                        size: 12,
+                        color: AppTheme.successColor,
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -637,14 +695,4 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
   }
 }
 
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
 
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
-}

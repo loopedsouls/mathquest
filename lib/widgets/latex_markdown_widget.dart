@@ -17,7 +17,7 @@ class LatexMarkdownWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Divide o texto em partes, separando LaTeX de texto normal
     final parts = _parseLatexAndMarkdown(data);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: parts.map((part) {
@@ -38,7 +38,8 @@ class LatexMarkdownWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.darkBackgroundColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+          border:
+              Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
         ),
         child: Center(
           child: Math.tex(
@@ -75,7 +76,7 @@ class LatexMarkdownWidget extends StatelessWidget {
 
   Widget _buildMarkdownWidget(String markdown) {
     if (markdown.trim().isEmpty) return const SizedBox.shrink();
-    
+
     return MarkdownBody(
       data: markdown,
       styleSheet: MarkdownStyleSheet(
@@ -146,13 +147,13 @@ class LatexMarkdownWidget extends StatelessWidget {
   List<TextPart> _parseLatexAndMarkdown(String text) {
     final parts = <TextPart>[];
     final buffer = StringBuffer();
-    
+
     // Expressões regulares para detectar LaTeX
     final blockLatexRegex = RegExp(r'\$\$([^$]+)\$\$'); // $$...$$
     final inlineLatexRegex = RegExp(r'\$([^$]+)\$'); // $...$
-    
+
     int lastIndex = 0;
-    
+
     // Primeiro processa blocos LaTeX ($$...$$)
     for (final match in blockLatexRegex.allMatches(text)) {
       // Adiciona texto antes do LaTeX
@@ -162,12 +163,12 @@ class LatexMarkdownWidget extends StatelessWidget {
           parts.addAll(_parseInlineLatex(beforeText));
         }
       }
-      
+
       // Adiciona o LaTeX como bloco
       parts.add(TextPart(match.group(1)!, isLatex: true));
       lastIndex = match.end;
     }
-    
+
     // Adiciona o texto restante
     if (lastIndex < text.length) {
       final remainingText = text.substring(lastIndex);
@@ -175,16 +176,16 @@ class LatexMarkdownWidget extends StatelessWidget {
         parts.addAll(_parseInlineLatex(remainingText));
       }
     }
-    
+
     return parts;
   }
-  
+
   List<TextPart> _parseInlineLatex(String text) {
     final parts = <TextPart>[];
     final inlineLatexRegex = RegExp(r'\$([^$]+)\$'); // $...$
-    
+
     int lastIndex = 0;
-    
+
     for (final match in inlineLatexRegex.allMatches(text)) {
       // Adiciona texto antes do LaTeX
       if (match.start > lastIndex) {
@@ -193,12 +194,12 @@ class LatexMarkdownWidget extends StatelessWidget {
           parts.add(TextPart(beforeText, isLatex: false));
         }
       }
-      
+
       // Adiciona o LaTeX inline
       parts.add(TextPart(match.group(1)!, isLatex: true));
       lastIndex = match.end;
     }
-    
+
     // Adiciona o texto restante
     if (lastIndex < text.length) {
       final remainingText = text.substring(lastIndex);
@@ -206,7 +207,7 @@ class LatexMarkdownWidget extends StatelessWidget {
         parts.add(TextPart(remainingText, isLatex: false));
       }
     }
-    
+
     return parts;
   }
 }
@@ -214,6 +215,6 @@ class LatexMarkdownWidget extends StatelessWidget {
 class TextPart {
   final String content;
   final bool isLatex;
-  
+
   TextPart(this.content, {required this.isLatex});
 }

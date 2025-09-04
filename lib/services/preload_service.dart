@@ -89,13 +89,27 @@ class PreloadService {
   /// Obtém o número atual de créditos
   static Future<int> getCredits() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_creditsKey) ?? 0;
+    final credits = prefs.getInt(_creditsKey) ?? 0;
+    
+    // Log de debug temporário
+    if (kDebugMode) {
+      print('💰 Créditos lidos: $credits');
+    }
+    
+    return credits;
   }
 
   /// Define o número de créditos
   static Future<void> setCredits(int credits) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_creditsKey, credits);
+    // Força a sincronização para garantir que os dados sejam salvos imediatamente
+    await prefs.commit();
+    
+    // Log de debug temporário
+    if (kDebugMode) {
+      print('💰 Créditos salvos: $credits');
+    }
   }
 
   /// Usa um crédito (retorna true se foi possível usar)
@@ -103,8 +117,20 @@ class PreloadService {
     final currentCredits = await getCredits();
     if (currentCredits > 0) {
       await setCredits(currentCredits - 1);
+      
+      // Log de debug temporário
+      if (kDebugMode) {
+        print('💰 Crédito usado: $currentCredits -> ${currentCredits - 1}');
+      }
+      
       return true;
     }
+    
+    // Log de debug temporário
+    if (kDebugMode) {
+      print('💰 Sem créditos para usar: $currentCredits');
+    }
+    
     return false;
   }
 
@@ -138,6 +164,9 @@ class PreloadService {
     _isPreloading = true;
     
     try {
+      // PRIMEIRO: Inicializa o banco de dados para garantir que está pronto
+      await DatabaseService.database;
+      
       // Obtém a quantidade configurada de perguntas
       final totalQuestions = await getPreloadQuantity();
       
@@ -205,6 +234,9 @@ class PreloadService {
       
       // Define créditos baseado no número de perguntas geradas com sucesso
       await setCredits(generated);
+      
+      // Força a sincronização dos dados para garantir que foram salvos
+      await prefs.commit();
 
       onProgress(totalQuestions, totalQuestions, 
         'Precarregamento concluído!\n'
@@ -229,6 +261,8 @@ class PreloadService {
     required String tipoQuiz,
     required String dificuldade,
   }) async {
+    // Garante que o banco está inicializado antes de salvar
+    await DatabaseService.database;
     String prompt = '';
     
     switch (tipoQuiz) {

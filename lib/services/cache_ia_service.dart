@@ -24,6 +24,9 @@ class CacheIAService {
     String? fonteIA,
   }) async {
     try {
+      // Garante que o banco está inicializado antes de qualquer operação
+      await DatabaseService.database;
+      
       // Verifica se o modo preload está ativo e há créditos
       final preloadEnabled = await PreloadService.isPreloadEnabled();
       final hasCredits = await PreloadService.hasCredits();
@@ -138,6 +141,9 @@ class CacheIAService {
     required String tipoQuiz,
     required String dificuldade,
   }) async {
+    // Garante que o banco está inicializado
+    await DatabaseService.database;
+    
     // Conta quantas perguntas existem no cache para estes parâmetros
     final countCache = await DatabaseService.contarPerguntasCache(
       unidade: unidade,
@@ -193,6 +199,9 @@ class CacheIAService {
     required String fonteIA,
   }) async {
     try {
+      // Garante que o banco está inicializado
+      await DatabaseService.database;
+      
       await DatabaseService.salvarPerguntaCache(
         unidade: unidade,
         ano: ano,
@@ -243,6 +252,9 @@ class CacheIAService {
     required String ano,
     int quantidadePorTipo = 10,
   }) async {
+    // Garante que o banco está inicializado
+    await DatabaseService.database;
+    
     final tiposQuiz = ['multipla_escolha', 'verdadeiro_falso', 'complete_frase'];
     final dificuldades = ['facil', 'medio', 'dificil', 'expert'];
 
@@ -286,6 +298,9 @@ class CacheIAService {
   /// Limpa todo o cache (útil para testes ou reset)
   static Future<void> limparTodoCache() async {
     try {
+      // Garante que o banco está inicializado
+      await DatabaseService.database;
+      
       await DatabaseService.limparCacheAntigo(diasParaExpirar: 0);
       _resetarEstatisticas();
       if (kDebugMode) {
@@ -301,6 +316,9 @@ class CacheIAService {
   /// Obtém estatísticas do cache
   static Future<Map<String, dynamic>> obterEstatisticasCache() async {
     try {
+      // Garante que o banco está inicializado
+      await DatabaseService.database;
+      
       final totalPerguntas = await DatabaseService.contarPerguntasCache();
       final estatisticasDB = await DatabaseService.obterEstatisticasGerais();
       
@@ -371,6 +389,9 @@ class CacheIAService {
   /// Otimiza o cache removendo perguntas duplicadas ou inválidas
   static Future<void> otimizarCache() async {
     try {
+      // Garante que o banco está inicializado
+      await DatabaseService.database;
+      
       if (kDebugMode) {
         print('🔧 Otimizando cache...');
       }

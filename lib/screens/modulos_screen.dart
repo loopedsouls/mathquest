@@ -5,7 +5,7 @@ import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
-import 'module_tutor_screen.dart';
+import 'chat_with_sidebar_screen.dart';
 
 // Configuração para o programador - definir como false na produção
 // ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão
@@ -1358,11 +1358,11 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   void _iniciarModulo(ModuloBNCC modulo) {
-    // Navega diretamente para o tutor de IA
+    // Navega diretamente para o tutor de IA com sidebar
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ModuleTutorScreen(
+        builder: (context) => ChatWithSidebarScreen(
           modulo: modulo,
           progresso: _progresso!,
           isOfflineMode: widget.isOfflineMode,

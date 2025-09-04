@@ -196,16 +196,14 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
 
     try {
       // Se não tem conversa atual, cria uma nova
-      if (_conversaAtual == null) {
-        _conversaAtual = Conversa(
-          id: ConversaService.gerarIdConversa(),
-          titulo: _tituloConversa,
-          dataCreacao: DateTime.now(),
-          ultimaAtualizacao: DateTime.now(),
-          mensagens: [],
-          contexto: 'geral',
-        );
-      }
+      _conversaAtual ??= Conversa(
+        id: ConversaService.gerarIdConversa(),
+        titulo: _tituloConversa,
+        dataCreacao: DateTime.now(),
+        ultimaAtualizacao: DateTime.now(),
+        mensagens: [],
+        contexto: 'geral',
+      );
 
       // Atualiza a conversa com as mensagens atuais
       _conversaAtual = _conversaAtual!.copyWith(
@@ -220,9 +218,9 @@ Sempre use formatação Markdown e LaTeX nas suas respostas para ficar mais leg�
           'geral',
           _tutorService,
         );
-        
+
         _conversaAtual = _conversaAtual!.copyWith(titulo: _tituloConversa);
-        
+
         setState(() {
           _conversaSalva = true;
         });
@@ -694,5 +692,3 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
     );
   }
 }
-
-

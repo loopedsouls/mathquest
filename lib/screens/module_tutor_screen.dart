@@ -192,16 +192,14 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
 
     try {
       // Se não tem conversa atual, cria uma nova
-      if (_conversaAtual == null) {
-        _conversaAtual = Conversa(
-          id: ConversaService.gerarIdConversa(),
-          titulo: _tituloConversa,
-          dataCreacao: DateTime.now(),
-          ultimaAtualizacao: DateTime.now(),
-          mensagens: [],
-          contexto: widget.modulo.titulo,
-        );
-      }
+      _conversaAtual ??= Conversa(
+        id: ConversaService.gerarIdConversa(),
+        titulo: _tituloConversa,
+        dataCreacao: DateTime.now(),
+        ultimaAtualizacao: DateTime.now(),
+        mensagens: [],
+        contexto: widget.modulo.titulo,
+      );
 
       // Atualiza a conversa com as mensagens atuais
       _conversaAtual = _conversaAtual!.copyWith(
@@ -216,9 +214,9 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
           widget.modulo.titulo,
           _tutorService,
         );
-        
+
         _conversaAtual = _conversaAtual!.copyWith(titulo: _tituloConversa);
-        
+
         setState(() {
           _conversaSalva = true;
         });
@@ -829,5 +827,3 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
     );
   }
 }
-
-

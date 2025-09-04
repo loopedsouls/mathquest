@@ -5,7 +5,7 @@ class Conversa {
   final DateTime ultimaAtualizacao;
   final List<ChatMessage> mensagens;
   final String contexto; // 'geral' ou ID do módulo
-  
+
   Conversa({
     required this.id,
     required this.titulo,

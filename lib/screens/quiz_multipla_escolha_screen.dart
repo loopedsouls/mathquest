@@ -261,7 +261,6 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     setState(() => carregando = false);
   }
 
-
   Future<void> _gerarPerguntaComIA() async {
     try {
       final topico = widget.topico ?? 'números e operações';
@@ -297,10 +296,17 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   void _mostrarErroSemPergunta() {
     setState(() {
       perguntaAtual = {
-        'pergunta': 'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
-        'opcoes': ['Tentar novamente', 'Voltar ao menu', 'Configurar IA', 'Precarregar perguntas'],
+        'pergunta':
+            'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
+        'opcoes': [
+          'Tentar novamente',
+          'Voltar ao menu',
+          'Configurar IA',
+          'Precarregar perguntas'
+        ],
         'resposta_correta': 'A',
-        'explicacao': 'Configure a IA ou execute o precarregamento nas configurações',
+        'explicacao':
+            'Configure a IA ou execute o precarregamento nas configurações',
         'numero': perguntaIndex + 1,
         'fonte': 'Erro',
       };

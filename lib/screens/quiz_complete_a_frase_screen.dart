@@ -39,7 +39,6 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
   String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
   Map<String, dynamic>? _exercicioAtual;
-  int _exercicioIndex = 0;
   int _exerciciosRespondidos = 0;
   bool _mostrarEstatisticas = false;
   String? _respostaSelecionada;
@@ -127,45 +126,25 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
   }
 
   Future<void> _initializeService() async {
-    if (!widget.isOfflineMode) {
-      String? apiKey;
-      final prefs = await SharedPreferences.getInstance();
-      apiKey = prefs.getString('gemini_api_key');
+    String? apiKey;
+    final prefs = await SharedPreferences.getInstance();
+    apiKey = prefs.getString('gemini_api_key');
 
-      AIService aiService;
-      if (_useGemini) {
-        aiService = GeminiService(apiKey: apiKey);
-      } else {
-        aiService = OllamaService(defaultModel: _modeloOllama);
-      }
-
-      tutorService = MathTutorService(aiService: aiService);
+    AIService aiService;
+    if (_useGemini) {
+      aiService = GeminiService(apiKey: apiKey);
+    } else {
+      aiService = OllamaService(defaultModel: _modeloOllama);
     }
+
+    tutorService = MathTutorService(aiService: aiService);
   }
 
   Future<void> _carregarProximoExercicio() async {
-    if (widget.isOfflineMode && widget.exerciciosOffline.isNotEmpty) {
-      final exerciciosNivel = widget.exerciciosOffline
-          .where((ex) => ex['nivel'] == _niveis[_nivelDificuldade])
-          .toList();
-
-      if (exerciciosNivel.isNotEmpty) {
-        setState(() {
-          _exercicioAtual =
-              exerciciosNivel[_exercicioIndex % exerciciosNivel.length];
-          pergunta = _exercicioAtual!['pergunta'] ?? '';
-        });
-        _cardAnimationController.reset();
-        _cardAnimationController.forward();
-      }
-    } else if (!widget.isOfflineMode) {
-      await gerarNovaPergunta();
-    }
+    await gerarNovaPergunta();
   }
 
   Future<void> gerarNovaPergunta() async {
-    if (widget.isOfflineMode) return;
-
     setState(() {
       carregando = true;
       pergunta = '';
@@ -194,9 +173,8 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
         debugPrint(
             'Pergunta complete-a-frase obtida do ${_perguntaDoCache ? "cache" : fonteIA}: $pergunta');
       } else {
-        // Fallback para o método original
-        pergunta = await tutorService.gerarPergunta(dificuldade);
-        _perguntaDoCache = false;
+        // Se não conseguiu gerar pergunta, mostra erro
+        _mostrarErroSemPergunta();
       }
 
       // Após gerar a pergunta, solicitar que a IA armazene a resposta na memória
@@ -204,12 +182,21 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
         await _armazenarRespostaNaMemoriaIA(pergunta);
       }
     } catch (e) {
-      pergunta = 'Erro ao gerar pergunta. Tente novamente.';
+      debugPrint('Erro ao gerar pergunta complete-a-frase: $e');
+      _mostrarErroSemPergunta();
     }
 
     setState(() => carregando = false);
     _cardAnimationController.reset();
     _cardAnimationController.forward();
+  }
+
+  void _mostrarErroSemPergunta() {
+    setState(() {
+      pergunta =
+          'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando';
+      carregando = false;
+    });
   }
 
   Future<void> _armazenarRespostaNaMemoriaIA(String perguntaGerada) async {
@@ -295,21 +282,13 @@ Seja preciso na análise matemática e didático na explicação.
     bool correta = false;
     String explicacaoResposta = '';
 
-    if (widget.isOfflineMode && _exercicioAtual != null) {
-      final respostaCorreta =
-          _exercicioAtual!['resposta_correta'].toString().toLowerCase();
-      correta = resposta.toLowerCase() == respostaCorreta;
-      explicacaoResposta = _exercicioAtual!['explicacao'] ?? '';
-    } else if (!widget.isOfflineMode) {
-      try {
-        // Usar verificação com memória da IA
-        final resultado =
-            await _verificarRespostaComMemoria(pergunta, resposta);
-        correta = resultado['correta'] as bool;
-        explicacaoResposta = resultado['explicacao'] ?? '';
-      } catch (e) {
-        explicacaoResposta = 'Erro ao verificar resposta: $e';
-      }
+    try {
+      // Usar verificação com memória da IA
+      final resultado = await _verificarRespostaComMemoria(pergunta, resposta);
+      correta = resultado['correta'] as bool;
+      explicacaoResposta = resultado['explicacao'] ?? '';
+    } catch (e) {
+      explicacaoResposta = 'Erro ao verificar resposta: $e';
     }
 
     // Ajustar nível baseado na resposta
@@ -390,7 +369,6 @@ Seja preciso na análise matemática e didático na explicação.
   }
 
   void _proximoExercicio() {
-    _exercicioIndex++;
     _carregarProximoExercicio();
     setState(() {
       _respostaController.clear();
@@ -404,11 +382,6 @@ Seja preciso na análise matemática e didático na explicação.
   }
 
   void _mostrarAjuda(BuildContext context, String tipo, bool isTablet) async {
-    if (widget.isOfflineMode) {
-      _mostrarAjudaOffline(context, tipo, isTablet);
-      return;
-    }
-
     setState(() {
       _carregandoAjuda = true;
       _ajudaIA = '';
@@ -636,238 +609,6 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
     );
   }
 
-  void _mostrarAjudaOffline(BuildContext context, String tipo, bool isTablet) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            width: isTablet ? 500 : double.infinity,
-            margin: EdgeInsets.symmetric(horizontal: isTablet ? 0 : 20),
-            decoration: BoxDecoration(
-              color: AppTheme.darkSurfaceColor,
-              borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-              border: Border.all(
-                color: AppTheme.darkBorderColor,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Container(
-                  padding: EdgeInsets.all(isTablet ? 24 : 20),
-                  decoration: BoxDecoration(
-                    color: _getTipoColor(tipo).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(isTablet ? 20 : 16),
-                      topRight: Radius.circular(isTablet ? 20 : 16),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(isTablet ? 12 : 10),
-                        decoration: BoxDecoration(
-                          color: _getTipoColor(tipo).withValues(alpha: 0.2),
-                          borderRadius:
-                              BorderRadius.circular(isTablet ? 12 : 10),
-                        ),
-                        child: Icon(
-                          _getTipoIcon(tipo),
-                          color: _getTipoColor(tipo),
-                          size: isTablet ? 24 : 20,
-                        ),
-                      ),
-                      SizedBox(width: isTablet ? 16 : 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Como responder?',
-                              style: AppTheme.headingSmall.copyWith(
-                                color: AppTheme.darkTextPrimaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _getTipoTitulo(tipo),
-                              style: AppTheme.bodyMedium.copyWith(
-                                color: _getTipoColor(tipo),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: AppTheme.darkTextSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Conteúdo
-                Padding(
-                  padding: EdgeInsets.all(isTablet ? 24 : 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _getAjudaContent(tipo, isTablet),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  List<Widget> _getAjudaContent(String tipo, bool isTablet) {
-    switch (tipo) {
-      case 'multipla_escolha':
-        return [
-          _buildAjudaItem(
-            '1️⃣',
-            'Leia a pergunta com atenção',
-            'Certifique-se de entender completamente o que está sendo perguntado.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '2️⃣',
-            'Analise todas as opções',
-            'Leia todas as alternativas antes de escolher. Algumas podem parecer corretas à primeira vista.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '3️⃣',
-            'Clique na opção correta',
-            'Toque na alternativa que você considera correta. A opção selecionada ficará destacada.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '✅',
-            'Confirme sua resposta',
-            'Clique em "Verificar Resposta" para submeter sua escolha.',
-            isTablet,
-          ),
-        ];
-
-      case 'verdadeiro_falso':
-        return [
-          _buildAjudaItem(
-            '📖',
-            'Leia a afirmação cuidadosamente',
-            'Analise cada palavra da afirmação para determinar se ela é verdadeira ou falsa.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '🤔',
-            'Pense criticamente',
-            'Considere se a afirmação é sempre verdadeira, sempre falsa, ou se há exceções.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '✅❌',
-            'Escolha Verdadeiro ou Falso',
-            'Clique no botão verde (Verdadeiro) se a afirmação for correta, ou no botão vermelho (Falso) se for incorreta.',
-            isTablet,
-          ),
-        ];
-
-      case 'completar_frase':
-      default:
-        return [
-          _buildAjudaItem(
-            '📝',
-            'Leia o contexto completo',
-            'Entenda o que está sendo perguntado e o contexto da questão.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '💭',
-            'Pense na resposta',
-            'Use seu conhecimento para formular uma resposta adequada à pergunta.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '⌨️',
-            'Digite sua resposta',
-            'Escreva sua resposta no campo de texto de forma clara e completa.',
-            isTablet,
-          ),
-          SizedBox(height: isTablet ? 16 : 12),
-          _buildAjudaItem(
-            '🎯',
-            'Seja específico',
-            'Procure ser preciso e direto na sua resposta, evitando informações desnecessárias.',
-            isTablet,
-          ),
-        ];
-    }
-  }
-
-  Widget _buildAjudaItem(
-      String emoji, String titulo, String descricao, bool isTablet) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: isTablet ? 40 : 36,
-          height: isTablet ? 40 : 36,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(isTablet ? 10 : 8),
-          ),
-          child: Center(
-            child: Text(
-              emoji,
-              style: TextStyle(fontSize: isTablet ? 18 : 16),
-            ),
-          ),
-        ),
-        SizedBox(width: isTablet ? 16 : 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                titulo,
-                style: AppTheme.bodyLarge.copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                descricao,
-                style: AppTheme.bodyMedium.copyWith(
-                  color: AppTheme.darkTextSecondaryColor,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -892,9 +633,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
             children: [
               // Header responsivo
               ResponsiveHeader(
-                title: widget.isOfflineMode
-                    ? 'Quiz Complete a Frase Offline'
-                    : 'Quiz Complete a Frase Inteligente',
+                title: 'Quiz Complete a Frase Inteligente',
                 subtitle: _buildSubtitle(),
                 showBackButton: true,
                 trailing: _buildHeaderTrailing(isTablet),
@@ -951,10 +690,6 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
   String _buildSubtitle() {
     String nivel = 'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}';
 
-    if (widget.isOfflineMode) {
-      return nivel;
-    }
-
     if (_useGemini) {
       return '$nivel • IA: Gemini';
     } else {
@@ -963,16 +698,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
   }
 
   Widget _buildHeaderTrailing(bool isTablet) {
-    if (widget.isOfflineMode) {
-      return StatusIndicator(
-        text: 'Offline',
-        icon: Icons.wifi_off_rounded,
-        color: AppTheme.warningColor,
-        isActive: true,
-      );
-    }
-
-    // Modo online - mostrar IA e modelo ou indicador de cache
+    // Mostrar IA e modelo ou indicador de cache
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,

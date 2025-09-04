@@ -295,9 +295,11 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
   void _mostrarErroSemPergunta() {
     setState(() {
       perguntaAtual = {
-        'pergunta': 'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
+        'pergunta':
+            'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
         'resposta_correta': true,
-        'explicacao': 'Configure a IA ou execute o precarregamento nas configurações',
+        'explicacao':
+            'Configure a IA ou execute o precarregamento nas configurações',
         'numero': perguntaIndex + 1,
         'fonte': 'Erro',
       };

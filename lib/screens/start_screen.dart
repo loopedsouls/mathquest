@@ -136,9 +136,8 @@ class _StartScreenState extends State<StartScreen>
   void _startQuizCompleteFrase() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => QuizCompleteAFraseScreen(
-          isOfflineMode: _isOfflineMode,
-          exerciciosOffline: _exerciciosOffline,
+        builder: (context) => const QuizCompleteAFraseScreen(
+         
         ),
       ),
     );

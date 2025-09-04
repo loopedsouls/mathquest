@@ -727,9 +727,8 @@ class _ModulosScreenState extends State<ModulosScreen>
         );
         break;
       case 'complete_frase':
-        quizScreen = QuizCompleteAFraseScreen(
-          isOfflineMode: widget.isOfflineMode,
-          exerciciosOffline: widget.exerciciosOffline,
+        quizScreen = const QuizCompleteAFraseScreen(
+         
         );
         break;
       default:

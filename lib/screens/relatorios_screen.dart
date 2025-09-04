@@ -291,7 +291,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen> with TickerProvider
           children: [
             Row(
               children: [
-                Icon(Icons.emoji_events, color: Colors.orange),
+                const Icon(Icons.emoji_events, color: Colors.orange),
                 const SizedBox(width: 8),
                 Text(
                   'Gamificação',

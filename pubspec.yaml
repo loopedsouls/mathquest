@@ -39,8 +39,12 @@ dependencies:
   shared_preferences: ^2.2.3
   google_generative_ai: ^0.2.2
   
-  # Para gráficos de progresso (adicionado para implementações futuras)
+  # Para gráficos de progresso
   fl_chart: ^0.65.0
+  
+  # Para banco de dados local
+  sqflite: ^2.3.0
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

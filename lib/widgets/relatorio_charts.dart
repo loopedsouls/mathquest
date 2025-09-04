@@ -409,7 +409,7 @@ class StreakVisualizationWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.local_fire_department, color: Colors.orange),
+                const Icon(Icons.local_fire_department, color: Colors.orange),
                 const SizedBox(width: 8),
                 Text(
                   'Sequência de Atividade',

@@ -99,10 +99,10 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Card(
+      return const Card(
         child: SizedBox(
           height: 80,
-          child: const Center(
+          child: Center(
             child: CircularProgressIndicator(),
           ),
         ),

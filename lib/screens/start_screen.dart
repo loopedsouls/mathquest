@@ -121,7 +121,7 @@ class _StartScreenState extends State<StartScreen>
       final prefs = await SharedPreferences.getInstance();
       final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
       final apiKey = prefs.getString('gemini_api_key');
-      final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama3.2:1b';
+      final modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
       bool isConfigured = false;
       bool isAvailable = false;

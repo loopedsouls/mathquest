@@ -26,7 +26,7 @@ class _AIChatScreenState extends State<AIChatScreen>
 
   // Configurações de IA
   bool _useGemini = true;
-  String _modeloOllama = 'llama3.2:1b';
+  String _modeloOllama = 'gemma3:1b';
   String _aiName = 'IA';
 
   // Sistema de conversas
@@ -62,7 +62,7 @@ class _AIChatScreenState extends State<AIChatScreen>
       final prefs = await SharedPreferences.getInstance();
       final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
       final apiKey = prefs.getString('gemini_api_key');
-      final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama3.2:1b';
+      final modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
       // Define o nome da IA baseado na configuração selecionada pelo usuário
       if (selectedAI == 'gemini') {

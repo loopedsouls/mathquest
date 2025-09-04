@@ -11,7 +11,7 @@ As conversas nos módulos não estavam respeitando a configuração de IA seleci
   ```dart
   // Carrega configurações do usuário
   _useGemini = prefs.getBool('use_gemini') ?? true;
-  _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+  _modeloOllama = prefs.getString('ollama_model') ?? 'gemma3:1b';
   ```
 - ✅ Melhorado tratamento de erro com feedback visual
 
@@ -21,7 +21,7 @@ As conversas nos módulos não estavam respeitando a configuração de IA seleci
   ```dart
   // Carrega configurações do usuário
   _useGemini = prefs.getBool('use_gemini') ?? true;
-  _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+  _modeloOllama = prefs.getString('ollama_model') ?? 'gemma3:1b';
   ```
 - ✅ Mantido tratamento de erro existente
 
@@ -35,7 +35,7 @@ As conversas nos módulos não estavam respeitando a configuração de IA seleci
 ### Configurações Respeitadas:
 1. **`use_gemini`** (bool): Define se usa Gemini (true) ou Ollama (false)
 2. **`gemini_api_key`** (string): Chave API do Gemini
-3. **`ollama_model`** (string): Modelo do Ollama (padrão: llama3.2:1b)
+3. **`ollama_model`** (string): Modelo do Ollama (padrão: gemma3:1b)
 
 ### Fluxo de Inicialização:
 ```dart
@@ -61,7 +61,7 @@ As conversas nos módulos não estavam respeitando a configuração de IA seleci
 
 ### Configurações Suportadas:
 - ✅ **Gemini**: Requer `gemini_api_key` configurado
-- ✅ **Ollama**: Utiliza `ollama_model` (padrão: llama3.2:1b)
+- ✅ **Ollama**: Utiliza `ollama_model` (padrão: gemma3:1b)
 - ✅ **Fallback**: Default para Gemini se configuração não existir
 
 ## 🧪 Validação

@@ -37,7 +37,7 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
   bool _useGemini = true; // Será carregado das configurações
-  String _modeloOllama = 'llama3.2:1b'; // Será carregado das configurações
+  String _modeloOllama = 'gemma3:1b'; // Será carregado das configurações
 
   // Conversas
   List<Conversa> _conversas = [];
@@ -78,8 +78,9 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
       final prefs = await SharedPreferences.getInstance();
 
       // Carrega configurações do usuário
-      _useGemini = prefs.getBool('use_gemini') ?? true;
-      _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+      _useGemini = selectedAI == 'gemini';
+      _modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
       final apiKey = prefs.getString('gemini_api_key');
 

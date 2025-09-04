@@ -39,7 +39,7 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
   bool _useGemini = true; // Será carregado das configurações
-  String _modeloOllama = 'llama3.2:1b'; // Será carregado das configurações
+  String _modeloOllama = 'gemma3:4b'; // Será carregado das configurações
 
   // Sistema de conversas
   Conversa? _conversaAtual;
@@ -58,7 +58,6 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _typingAnimationController.repeat();
   }
 
   @override
@@ -74,8 +73,9 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
       final prefs = await SharedPreferences.getInstance();
 
       // Carrega configurações do usuário
-      _useGemini = prefs.getBool('use_gemini') ?? true;
-      _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+      _useGemini = selectedAI == 'gemini';
+      _modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
       final apiKey = prefs.getString('gemini_api_key');
 
@@ -150,6 +150,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
     setState(() {
       _isLoading = true;
     });
+    _typingAnimationController.repeat();
 
     try {
       final response = await _tutorService.aiService.generate(welcomePrompt);
@@ -169,6 +170,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
       setState(() {
         _isLoading = false;
       });
+      _typingAnimationController.stop();
     }
   }
 
@@ -247,6 +249,7 @@ Seja motivador, use emojis quando apropriado, mantenha uma linguagem adequada pa
     setState(() {
       _isLoading = true;
     });
+    _typingAnimationController.repeat();
 
     try {
       final contextPrompt = '''
@@ -294,6 +297,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
       setState(() {
         _isLoading = false;
       });
+      _typingAnimationController.stop();
     }
   }
 
@@ -555,11 +559,35 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Tutor de Matemática',
-                  style: AppTheme.headingMedium.copyWith(
-                    fontSize: isTablet ? 18 : 16,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Tutor de Matemática',
+                      style: AppTheme.headingMedium.copyWith(
+                        fontSize: isTablet ? 18 : 16,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _useGemini ? Colors.blue.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _useGemini ? Colors.blue.withValues(alpha: 0.5) : Colors.orange.withValues(alpha: 0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        _useGemini ? 'Gemini' : 'Ollama',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: _useGemini ? Colors.blue : Colors.orange,
+                          fontSize: isTablet ? 10 : 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   '${widget.modulo.unidadeTematica} - ${widget.modulo.anoEscolar}',
@@ -711,34 +739,51 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
             child: AnimatedBuilder(
               animation: _typingAnimationController,
               builder: (context, child) {
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: List.generate(3, (index) {
-                    final delay = index * 0.2;
-                    final animation = Tween<double>(begin: 0.4, end: 1.0)
-                        .animate(CurvedAnimation(
-                      parent: _typingAnimationController,
-                      curve: Interval(
-                        delay,
-                        0.6 + delay,
-                        curve: Curves.easeInOut,
-                      ),
-                    ));
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Opacity(
-                        opacity: animation.value,
-                        child: Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _useGemini ? 'Gemini está pensando' : 'Ollama está pensando',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: isTablet ? 12 : 10,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                        const SizedBox(width: 8),
+                        ...List.generate(3, (index) {
+                          final delay = index * 0.2;
+                          final animation = Tween<double>(begin: 0.4, end: 1.0)
+                              .animate(CurvedAnimation(
+                            parent: _typingAnimationController,
+                            curve: Interval(
+                              delay,
+                              0.6 + delay,
+                              curve: Curves.easeInOut,
+                            ),
+                          ));
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Opacity(
+                              opacity: animation.value,
+                              child: Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),

@@ -165,7 +165,13 @@ class PreloadService {
     
     try {
       // PRIMEIRO: Inicializa o banco de dados para garantir que está pronto
-      await DatabaseService.database;
+      try {
+        await DatabaseService.database;
+        onProgress(0, 1, 'Banco de dados inicializado com sucesso');
+      } catch (dbError) {
+        onProgress(0, 1, 'Erro na inicialização do banco: $dbError');
+        // Continua mesmo com erro de banco, pois pode não ser crítico para o preload
+      }
       
       // Obtém a quantidade configurada de perguntas
       final totalQuestions = await getPreloadQuantity();
@@ -262,7 +268,15 @@ class PreloadService {
     required String dificuldade,
   }) async {
     // Garante que o banco está inicializado antes de salvar
-    await DatabaseService.database;
+    try {
+      await DatabaseService.database;
+    } catch (dbError) {
+      if (kDebugMode) {
+        print('Aviso: Erro de banco ignorado durante preload: $dbError');
+      }
+      // Continua mesmo com erro de banco
+    }
+    
     String prompt = '';
     
     switch (tipoQuiz) {
@@ -315,29 +329,43 @@ Formato de resposta (JSON):
       final jsonResponse = response.replaceAll('```json', '').replaceAll('```', '').trim();
       final decoded = json.decode(jsonResponse);
       
-      // Salva no cache com dados estruturados
-      await DatabaseService.salvarPerguntaCache(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-        pergunta: decoded['pergunta'] ?? response,
-        opcoes: decoded['opcoes']?.cast<String>(),
-        respostaCorreta: decoded['resposta_correta'] ?? 'A',
-        explicacao: decoded['explicacao'],
-        fonteIA: iaService.runtimeType.toString(),
-      );
+      // Tenta salvar no cache com dados estruturados
+      try {
+        await DatabaseService.salvarPerguntaCache(
+          unidade: unidade,
+          ano: ano,
+          tipoQuiz: tipoQuiz,
+          dificuldade: dificuldade,
+          pergunta: decoded['pergunta'] ?? response,
+          opcoes: decoded['opcoes']?.cast<String>(),
+          respostaCorreta: decoded['resposta_correta'] ?? 'A',
+          explicacao: decoded['explicacao'],
+          fonteIA: iaService.runtimeType.toString(),
+        );
+      } catch (dbError) {
+        if (kDebugMode) {
+          print('Erro ao salvar no banco (dados estruturados): $dbError');
+        }
+        // Ignora erro de banco durante preload
+      }
     } catch (e) {
-      // Se falhar o parse, salva a resposta bruta
-      await DatabaseService.salvarPerguntaCache(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-        pergunta: response,
-        respostaCorreta: 'A', // padrão
-        fonteIA: iaService.runtimeType.toString(),
-      );
+      // Se falhar o parse, tenta salvar a resposta bruta
+      try {
+        await DatabaseService.salvarPerguntaCache(
+          unidade: unidade,
+          ano: ano,
+          tipoQuiz: tipoQuiz,
+          dificuldade: dificuldade,
+          pergunta: response,
+          respostaCorreta: 'A', // padrão
+          fonteIA: iaService.runtimeType.toString(),
+        );
+      } catch (dbError) {
+        if (kDebugMode) {
+          print('Erro ao salvar no banco (resposta bruta): $dbError');
+        }
+        // Ignora erro de banco durante preload
+      }
     }
   }
 

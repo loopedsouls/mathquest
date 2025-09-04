@@ -36,8 +36,8 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
-  final bool _useGemini = true;
-  final String _modeloOllama = 'llama3.2:1b';
+  bool _useGemini = true; // Será carregado das configurações
+  String _modeloOllama = 'llama3.2:1b'; // Será carregado das configurações
 
   // Conversas
   List<Conversa> _conversas = [];
@@ -76,10 +76,23 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
   Future<void> _initializeTutor() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // Carrega configurações do usuário
+      _useGemini = prefs.getBool('use_gemini') ?? true;
+      _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+
       final apiKey = prefs.getString('gemini_api_key');
 
       if (_useGemini && (apiKey == null || apiKey.isEmpty)) {
         setState(() => _tutorInitialized = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('API Key do Gemini não configurada'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
@@ -99,6 +112,14 @@ class _ChatWithSidebarScreenState extends State<ChatWithSidebarScreen>
       }
     } catch (e) {
       setState(() => _tutorInitialized = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao inicializar tutor: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

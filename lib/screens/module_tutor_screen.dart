@@ -38,8 +38,8 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
-  final bool _useGemini = true;
-  final String _modeloOllama = 'llama3.2:1b';
+  bool _useGemini = true; // Será carregado das configurações
+  String _modeloOllama = 'llama3.2:1b'; // Será carregado das configurações
 
   // Sistema de conversas
   Conversa? _conversaAtual;
@@ -72,6 +72,11 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
   Future<void> _initializeTutor() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // Carrega configurações do usuário
+      _useGemini = prefs.getBool('use_gemini') ?? true;
+      _modeloOllama = prefs.getString('ollama_model') ?? 'llama3.2:1b';
+
       final apiKey = prefs.getString('gemini_api_key');
 
       if (_useGemini && (apiKey == null || apiKey.isEmpty)) {

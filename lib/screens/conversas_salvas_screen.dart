@@ -388,7 +388,6 @@ class _ConversasSalvasScreenState extends State<ConversasSalvasScreen> {
   }
 
   void _abrirConversa(Conversa conversa) {
-    // TODO: Implementar carregamento da conversa no chat
     Navigator.push(
       context,
       MaterialPageRoute(

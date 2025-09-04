@@ -488,8 +488,7 @@ Dificuldade: $dificuldade
               // Header
               ResponsiveHeader(
                 title: 'Quiz Verdadeiro/Falso',
-                subtitle:
-                    widget.isOfflineMode ? 'Modo Offline' : 'IA Inteligente',
+                subtitle: _buildSubtitle(),
                 showBackButton: true,
                 trailing: _buildHeaderInfo(isTablet),
               ),
@@ -537,6 +536,18 @@ Dificuldade: $dificuldade
     );
   }
 
+  String _buildSubtitle() {
+    if (widget.isOfflineMode) {
+      return 'Modo Offline';
+    }
+
+    if (_useGemini) {
+      return 'IA: Gemini';
+    } else {
+      return 'IA: Ollama ($_modeloOllama)';
+    }
+  }
+
   Widget _buildHeaderInfo(bool isTablet) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -579,6 +590,27 @@ Dificuldade: $dificuldade
             ),
           ),
         ),
+        if (!widget.isOfflineMode) ...[
+          const SizedBox(height: 4),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.infoColor.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+            ),
+            child: Text(
+              _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
+              style: TextStyle(
+                color: AppTheme.infoColor,
+                fontSize: isTablet ? 12 : 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

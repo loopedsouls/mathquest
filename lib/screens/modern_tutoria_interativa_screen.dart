@@ -859,7 +859,7 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
                 title: widget.isOfflineMode
                     ? 'Tutoria Offline'
                     : 'Tutoria Inteligente',
-                subtitle: 'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}',
+                subtitle: _buildSubtitle(),
                 showBackButton: true,
                 trailing: _buildHeaderTrailing(isTablet),
               ),
@@ -910,6 +910,20 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
         ),
       ),
     );
+  }
+
+  String _buildSubtitle() {
+    String nivel = 'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}';
+
+    if (widget.isOfflineMode) {
+      return nivel;
+    }
+
+    if (_useGemini) {
+      return '$nivel • IA: Gemini';
+    } else {
+      return '$nivel • IA: Ollama ($_modeloOllama)';
+    }
   }
 
   Widget _buildHeaderTrailing(bool isTablet) {

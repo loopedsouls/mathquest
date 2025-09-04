@@ -110,6 +110,10 @@ class _ModuleTutorScreenState extends State<ModuleTutorScreen>
       }
 
       _tutorService = MathTutorService(aiService: aiService);
+      
+      // Inicializa o sistema de filas
+      _aiQueueService.initialize(_tutorService);
+      
       setState(() {
         _tutorInitialized = true;
       });

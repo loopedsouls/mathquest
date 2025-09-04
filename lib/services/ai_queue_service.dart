@@ -41,13 +41,14 @@ class AIQueueService extends ChangeNotifier {
   final List<GenerationRequest> _queue = [];
   final Map<String, GenerationRequest> _activeRequests = {};
   bool _isProcessing = false;
-  late MathTutorService _tutorService;
+  MathTutorService? _tutorService;
 
   // Getters
   List<GenerationRequest> get queue => List.unmodifiable(_queue);
   Map<String, GenerationRequest> get activeRequests => Map.unmodifiable(_activeRequests);
   bool get isProcessing => _isProcessing;
 
+  /// Inicializa o serviço com o MathTutorService
   void initialize(MathTutorService tutorService) {
     _tutorService = tutorService;
   }
@@ -118,7 +119,7 @@ class AIQueueService extends ChangeNotifier {
 
   /// Processa a fila de requisições
   Future<void> _processQueue() async {
-    if (_isProcessing || _queue.isEmpty) return;
+    if (_isProcessing || _queue.isEmpty || _tutorService == null) return;
 
     _isProcessing = true;
     notifyListeners();
@@ -136,7 +137,7 @@ class AIQueueService extends ChangeNotifier {
       notifyListeners();
 
       try {
-        final response = await _tutorService.aiService.generate(request.prompt);
+        final response = await _tutorService!.aiService.generate(request.prompt);
         
         // Verifica novamente se foi cancelada durante a geração
         if (request.status == GenerationStatus.cancelled) {
@@ -148,7 +149,7 @@ class AIQueueService extends ChangeNotifier {
           text: response,
           isUser: false,
           timestamp: DateTime.now(),
-          aiProvider: _tutorService.aiService is GeminiService ? 'gemini' : 'ollama',
+          aiProvider: _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
         );
 
         request.status = GenerationStatus.completed;
@@ -164,7 +165,7 @@ class AIQueueService extends ChangeNotifier {
             text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
             isUser: false,
             timestamp: DateTime.now(),
-            aiProvider: _tutorService.aiService is GeminiService ? 'gemini' : 'ollama',
+            aiProvider: _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
           );
 
           request.completer.complete(errorMessage);

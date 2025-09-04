@@ -8,13 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class QuizCompleteAFraseScreen extends StatefulWidget {
-  final bool isOfflineMode;
-  final List<Map<String, dynamic>> exerciciosOffline;
+  final String? topico;
+  final String? dificuldade;
 
   const QuizCompleteAFraseScreen({
     super.key,
-    required this.isOfflineMode,
-    required this.exerciciosOffline,
+    this.topico,
+    this.dificuldade,
   });
 
   @override

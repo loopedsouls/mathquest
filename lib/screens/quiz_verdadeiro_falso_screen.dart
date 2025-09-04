@@ -6,7 +6,6 @@ import '../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:math';
 
 class QuizVerdadeiroFalsoScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -213,11 +212,8 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
 
     inicioPergunta = DateTime.now();
 
-    if (widget.isOfflineMode) {
-      _carregarPerguntaOffline();
-    } else {
-      await _gerarPerguntaComIA();
-    }
+    // Sempre usa o sistema de cache/IA, sem modo offline
+    await _gerarPerguntaComIA();
 
     _cardAnimationController.reset();
     _cardAnimationController.forward();
@@ -227,23 +223,6 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
     _progressAnimationController.animateTo(progress);
 
     setState(() => carregando = false);
-  }
-
-  void _carregarPerguntaOffline() {
-    // Embaralhar e selecionar pergunta aleatória
-    final perguntasDisponiveis = List.from(perguntasOffline);
-    perguntasDisponiveis.shuffle(Random());
-
-    final pergunta = perguntasDisponiveis.first;
-
-    _perguntaDoCache = false; // Pergunta offline não é do cache
-
-    setState(() {
-      perguntaAtual = {
-        ...pergunta,
-        'numero': perguntaIndex + 1,
-      };
-    });
   }
 
   Future<void> _gerarPerguntaComIA() async {
@@ -268,15 +247,14 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
             'Pergunta V/F obtida (cache ou IA): ${pergunta['pergunta']}');
         _processarPerguntaCache(pergunta);
       } else {
-        // Fallback para pergunta offline
-        debugPrint('Falha ao obter pergunta V/F, usando fallback offline...');
-        _carregarPerguntaOffline();
+        // Mostra erro se não conseguir obter pergunta
+        debugPrint('Erro: Não foi possível obter pergunta V/F');
+        _mostrarErroSemPergunta();
       }
     } catch (e) {
-      // Fallback para pergunta offline em caso de erro
+      // Mostra erro em caso de falha
       debugPrint('Erro ao gerar pergunta V/F: $e');
-      debugPrint('Carregando pergunta offline como fallback...');
-      _carregarPerguntaOffline();
+      _mostrarErroSemPergunta();
     }
   }
 
@@ -310,8 +288,21 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
           'Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
     } catch (e) {
       debugPrint('Erro ao processar pergunta V/F do cache: $e');
-      _carregarPerguntaOffline();
+      _mostrarErroSemPergunta();
     }
+  }
+
+  void _mostrarErroSemPergunta() {
+    setState(() {
+      perguntaAtual = {
+        'pergunta': 'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
+        'resposta_correta': true,
+        'explicacao': 'Configure a IA ou execute o precarregamento nas configurações',
+        'numero': perguntaIndex + 1,
+        'fonte': 'Erro',
+      };
+      carregando = false;
+    });
   }
 
   void _selecionarResposta(bool resposta) {

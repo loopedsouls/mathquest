@@ -114,6 +114,18 @@ class PreloadService {
     return credits > 0;
   }
 
+  /// Obtém a quantidade configurada de perguntas para precarregar
+  static Future<int> getPreloadQuantity() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_preloadQuantityKey) ?? _defaultQuantity;
+  }
+
+  /// Define a quantidade de perguntas para precarregar
+  static Future<void> setPreloadQuantity(int quantity) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_preloadQuantityKey, quantity);
+  }
+
   /// Inicia o precarregamento de perguntas
   static Future<void> startPreload({
     required Function(int current, int total, String status) onProgress,
@@ -126,6 +138,9 @@ class PreloadService {
     _isPreloading = true;
     
     try {
+      // Obtém a quantidade configurada de perguntas
+      final totalQuestions = await getPreloadQuantity();
+      
       // Inicializa o serviço de IA
       late AIService iaService;
       
@@ -144,21 +159,21 @@ class PreloadService {
         throw Exception('Serviço de IA não suportado: $selectedAI');
       }
 
-      onProgress(0, _totalQuestions, 'Iniciando precarregamento...');
+      onProgress(0, totalQuestions, 'Iniciando precarregamento...');
 
       final random = Random();
       int generated = 0;
       int failures = 0;
       const maxFailures = 10;
 
-      for (int i = 0; i < _totalQuestions && failures < maxFailures; i++) {
+      for (int i = 0; i < totalQuestions && failures < maxFailures; i++) {
         try {
           // Seleciona aleatoriamente um tópico e tipo de quiz
           final topic = _topics[random.nextInt(_topics.length)];
           final quizType = _quizTypes[random.nextInt(_quizTypes.length)];
           
-          onProgress(i + 1, _totalQuestions, 
-            'Gerando pergunta ${i + 1}/$_totalQuestions\n'
+          onProgress(i + 1, totalQuestions, 
+            'Gerando pergunta ${i + 1}/$totalQuestions\n'
             '${topic['unidade']} - ${topic['ano']}\n'
             'Tipo: $quizType');
 
@@ -191,14 +206,15 @@ class PreloadService {
       // Define créditos baseado no número de perguntas geradas com sucesso
       await setCredits(generated);
 
-      onProgress(_totalQuestions, _totalQuestions, 
+      onProgress(totalQuestions, totalQuestions, 
         'Precarregamento concluído!\n'
         'Geradas: $generated perguntas\n'
         'Créditos disponíveis: $generated\n'
         'Falhas: $failures');
 
     } catch (e) {
-      onProgress(0, _totalQuestions, 'Erro: $e');
+      final totalQuestions = await getPreloadQuantity();
+      onProgress(0, totalQuestions, 'Erro: $e');
       rethrow;
     } finally {
       _isPreloading = false;

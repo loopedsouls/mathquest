@@ -22,6 +22,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   String _modeloOllama = 'llama2';
   bool _preloadEnabled = false;
   int _currentCredits = 0;
+  int _preloadQuantity = 100;
 
   List<String> _ollamaModels = [];
   bool _loadingModels = false;

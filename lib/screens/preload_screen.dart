@@ -30,18 +30,18 @@ class _PreloadScreenState extends State<PreloadScreen>
   int _totalQuestions = 100;
   String _status = 'Iniciando...';
   bool _isCompleted = false;
-  
+
   // Mini-jogo: Math Bubble Pop
   late AnimationController _gameController;
   late AnimationController _progressController;
   late Timer _gameTimer;
-  
+
   final List<MathBubble> _bubbles = [];
   int _score = 0;
   int _lives = 3;
   String _currentProblem = '';
   int _correctAnswer = 0;
-  
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +55,7 @@ class _PreloadScreenState extends State<PreloadScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat();
-    
+
     _progressController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -76,7 +76,7 @@ class _PreloadScreenState extends State<PreloadScreen>
     final a = random.nextInt(10) + 1;
     final b = random.nextInt(10) + 1;
     final operation = random.nextInt(2); // 0 = soma, 1 = subtração
-    
+
     if (operation == 0) {
       _currentProblem = '$a + $b = ?';
       _correctAnswer = a + b;
@@ -89,14 +89,15 @@ class _PreloadScreenState extends State<PreloadScreen>
         _correctAnswer = b - a;
       }
     }
-    
+
     setState(() {});
   }
 
   void _addBubble() {
     final random = Random();
-    final isCorrect = random.nextDouble() < 0.3; // 30% chance de ser a resposta correta
-    
+    final isCorrect =
+        random.nextDouble() < 0.3; // 30% chance de ser a resposta correta
+
     int answer;
     if (isCorrect) {
       answer = _correctAnswer;
@@ -106,7 +107,7 @@ class _PreloadScreenState extends State<PreloadScreen>
       if (answer == _correctAnswer) answer += 1;
       if (answer < 0) answer = random.nextInt(10);
     }
-    
+
     final bubble = MathBubble(
       id: DateTime.now().millisecondsSinceEpoch,
       answer: answer,
@@ -115,14 +116,14 @@ class _PreloadScreenState extends State<PreloadScreen>
       x: random.nextDouble() * 250 + 25, // Ajusta para caber na tela
       color: isCorrect ? Colors.green : Colors.red.withValues(alpha: 0.8),
     );
-    
+
     setState(() {
       _bubbles.add(bubble);
     });
-    
+
     // Anima a bolha descendo
     _animateBubble(bubble);
-    
+
     // Remove bubble after 8 seconds if not popped
     Timer(const Duration(seconds: 8), () {
       _bubbles.removeWhere((b) => b.id == bubble.id);
@@ -136,11 +137,11 @@ class _PreloadScreenState extends State<PreloadScreen>
         timer.cancel();
         return;
       }
-      
+
       setState(() {
         bubble.currentY += 2; // Velocidade de descida
       });
-      
+
       // Para quando sai da tela
       if (bubble.currentY > MediaQuery.of(context).size.height) {
         timer.cancel();
@@ -153,7 +154,7 @@ class _PreloadScreenState extends State<PreloadScreen>
   void _popBubble(MathBubble bubble) {
     setState(() {
       _bubbles.removeWhere((b) => b.id == bubble.id);
-      
+
       if (bubble.isCorrect) {
         _score += 10;
         _generateNewProblem();
@@ -178,18 +179,18 @@ class _PreloadScreenState extends State<PreloadScreen>
             _currentQuestion = current;
             _totalQuestions = total;
             _status = status;
-            
+
             if (current == total) {
               _isCompleted = true;
               _gameTimer.cancel();
-              
+
               // Aguarda 3 segundos para garantir que os créditos sejam salvos
               Timer(const Duration(seconds: 3), () {
                 widget.onComplete();
               });
             }
           });
-          
+
           _progressController.animateTo(current / total);
         },
       );
@@ -198,7 +199,7 @@ class _PreloadScreenState extends State<PreloadScreen>
         _status = 'Erro: $e';
         _isCompleted = true;
       });
-      
+
       Timer(const Duration(seconds: 3), () {
         widget.onComplete();
       });
@@ -237,7 +238,8 @@ class _PreloadScreenState extends State<PreloadScreen>
           child: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -345,7 +347,8 @@ class _PreloadScreenState extends State<PreloadScreen>
                   return LinearProgressIndicator(
                     value: _progressController.value,
                     backgroundColor: AppTheme.darkBorderColor,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                   );
                 },
               ),
@@ -446,7 +449,8 @@ class _PreloadScreenState extends State<PreloadScreen>
                     animation: _gameController,
                     builder: (context, child) {
                       return CustomPaint(
-                        painter: BackgroundPatternPainter(_gameController.value),
+                        painter:
+                            BackgroundPatternPainter(_gameController.value),
                         size: Size.infinite,
                       );
                     },
@@ -552,7 +556,6 @@ class _PreloadScreenState extends State<PreloadScreen>
             ),
             SizedBox(height: isTablet ? 12 : 8),
           ],
-
           Text(
             'Sua pontuação final: $_score pontos',
             style: AppTheme.bodyMedium.copyWith(
@@ -604,7 +607,7 @@ class BackgroundPatternPainter extends CustomPainter {
         final centerX = (size.width / 5) * i + (size.width / 10);
         final centerY = (size.height / 5) * j + (size.height / 10);
         final radius = 15 + sin(animation * 2 * pi + i + j) * 5;
-        
+
         canvas.drawCircle(
           Offset(centerX, centerY),
           radius,

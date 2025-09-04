@@ -148,7 +148,7 @@ class _ModulosScreenState extends State<ModulosScreen>
       children: [
         ResponsiveHeader(
           title: 'Módulos BNCC',
-          subtitle: _progresso != null 
+          subtitle: _progresso != null
               ? 'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}'
               : 'Carregando...',
           showBackButton: true,
@@ -176,7 +176,7 @@ class _ModulosScreenState extends State<ModulosScreen>
     if (_progresso == null) return const SizedBox.shrink();
 
     final progressoGeral = _progresso!.calcularProgressoGeral();
-    
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isTablet ? 24 : 16,
@@ -240,7 +240,8 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildStatChip(String value, String label, IconData icon, bool isTablet) {
+  Widget _buildStatChip(
+      String value, String label, IconData icon, bool isTablet) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isTablet ? 16 : 12,
@@ -290,7 +291,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildUnidadesSeletor(bool isTablet) {
     final unidades = ModulosBNCCData.obterUnidadesTematicas();
-    
+
     return Container(
       height: isTablet ? 60 : 50,
       margin: EdgeInsets.symmetric(
@@ -303,14 +304,15 @@ class _ModulosScreenState extends State<ModulosScreen>
         itemBuilder: (context, index) {
           final unidade = unidades[index];
           final isSelected = unidade == _unidadeSelecionada;
-          final progresso = _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
-          
+          final progresso =
+              _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
+
           return Container(
             margin: EdgeInsets.only(right: isTablet ? 12 : 8),
             child: Material(
               borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-              color: isSelected 
-                  ? AppTheme.primaryColor 
+              color: isSelected
+                  ? AppTheme.primaryColor
                   : AppTheme.darkSurfaceColor,
               child: InkWell(
                 borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
@@ -326,8 +328,8 @@ class _ModulosScreenState extends State<ModulosScreen>
                       Text(
                         unidade,
                         style: TextStyle(
-                          color: isSelected 
-                              ? Colors.white 
+                          color: isSelected
+                              ? Colors.white
                               : AppTheme.darkTextPrimaryColor,
                           fontSize: isTablet ? 14 : 12,
                           fontWeight: FontWeight.w600,
@@ -339,7 +341,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                         height: isTablet ? 4 : 3,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
-                          color: isSelected 
+                          color: isSelected
                               ? Colors.white.withValues(alpha: 0.7)
                               : AppTheme.primaryColor.withValues(alpha: 0.5),
                         ),
@@ -349,7 +351,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(2),
-                              color: isSelected 
+                              color: isSelected
                                   ? Colors.white
                                   : AppTheme.primaryColor,
                             ),
@@ -369,7 +371,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildModulosGrid(bool isTablet, bool isDesktop) {
     final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isTablet ? 24 : 16,
@@ -394,10 +396,14 @@ class _ModulosScreenState extends State<ModulosScreen>
   Widget _buildModuloCard(ModuloBNCC modulo, bool isTablet) {
     if (_progresso == null) return const SizedBox.shrink();
 
-    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]?[modulo.anoEscolar] ?? false;
-    final isDesbloqueado = _progresso!.moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
+            ?[modulo.anoEscolar] ??
+        false;
+    final isDesbloqueado = _progresso!
+        .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
     final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
-    final exerciciosConsecutivos = _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
+    final exerciciosConsecutivos =
+        _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
     final taxaAcerto = _progresso!.taxaAcertoPorModulo[chaveModulo] ?? 0.0;
 
     return ModernCard(
@@ -415,10 +421,19 @@ class _ModulosScreenState extends State<ModulosScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isCompleto
-                        ? [AppTheme.successColor, AppTheme.successColor.withValues(alpha: 0.7)]
+                        ? [
+                            AppTheme.successColor,
+                            AppTheme.successColor.withValues(alpha: 0.7)
+                          ]
                         : isDesbloqueado
-                            ? [AppTheme.primaryColor, AppTheme.primaryLightColor]
-                            : [AppTheme.darkBorderColor, AppTheme.darkBorderColor],
+                            ? [
+                                AppTheme.primaryColor,
+                                AppTheme.primaryLightColor
+                              ]
+                            : [
+                                AppTheme.darkBorderColor,
+                                AppTheme.darkBorderColor
+                              ],
                   ),
                   shape: BoxShape.circle,
                 ),
@@ -428,7 +443,9 @@ class _ModulosScreenState extends State<ModulosScreen>
                       : isDesbloqueado
                           ? Icons.play_circle_outline_rounded
                           : Icons.lock_outline_rounded,
-                  color: isDesbloqueado ? Colors.white : AppTheme.darkTextSecondaryColor,
+                  color: isDesbloqueado
+                      ? Colors.white
+                      : AppTheme.darkTextSecondaryColor,
                   size: isTablet ? 20 : 16,
                 ),
               ),
@@ -441,7 +458,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                       modulo.anoEscolar,
                       style: AppTheme.headingSmall.copyWith(
                         fontSize: isTablet ? 16 : 14,
-                        color: isDesbloqueado 
+                        color: isDesbloqueado
                             ? AppTheme.darkTextPrimaryColor
                             : AppTheme.darkTextSecondaryColor,
                       ),
@@ -449,11 +466,11 @@ class _ModulosScreenState extends State<ModulosScreen>
                     if (isCompleto || exerciciosConsecutivos > 0) ...[
                       SizedBox(height: isTablet ? 4 : 2),
                       Text(
-                        isCompleto 
+                        isCompleto
                             ? 'Completo!'
                             : '$exerciciosConsecutivos/${modulo.exerciciosNecessarios} exercícios',
                         style: TextStyle(
-                          color: isCompleto 
+                          color: isCompleto
                               ? AppTheme.successColor
                               : AppTheme.darkTextSecondaryColor,
                           fontSize: isTablet ? 12 : 10,
@@ -466,15 +483,15 @@ class _ModulosScreenState extends State<ModulosScreen>
               ),
             ],
           ),
-          
+
           SizedBox(height: isTablet ? 16 : 12),
-          
+
           // Título e descrição
           Text(
             modulo.titulo,
             style: AppTheme.headingMedium.copyWith(
               fontSize: isTablet ? 16 : 14,
-              color: isDesbloqueado 
+              color: isDesbloqueado
                   ? AppTheme.darkTextPrimaryColor
                   : AppTheme.darkTextSecondaryColor,
             ),
@@ -489,27 +506,29 @@ class _ModulosScreenState extends State<ModulosScreen>
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           SizedBox(height: isTablet ? 16 : 12),
-          
+
           // Progresso e botão
           if (isDesbloqueado) ...[
             if (taxaAcerto > 0) ...[
               ModernProgressIndicator(
                 value: exerciciosConsecutivos / modulo.exerciciosNecessarios,
                 label: 'Progresso (${(taxaAcerto * 100).round()}% acerto)',
-                color: isCompleto ? AppTheme.successColor : AppTheme.primaryColor,
+                color:
+                    isCompleto ? AppTheme.successColor : AppTheme.primaryColor,
               ),
               SizedBox(height: isTablet ? 12 : 8),
             ],
-            
             SizedBox(
               width: double.infinity,
               child: ModernButton(
                 text: isCompleto ? 'Revisar' : 'Começar',
                 onPressed: () => _iniciarModulo(modulo),
                 isPrimary: !isCompleto,
-                icon: isCompleto ? Icons.refresh_rounded : Icons.play_arrow_rounded,
+                icon: isCompleto
+                    ? Icons.refresh_rounded
+                    : Icons.play_arrow_rounded,
               ),
             ),
           ] else ...[
@@ -562,7 +581,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   Widget _buildQuizTypePicker(ModuloBNCC modulo) {
     final isTablet = MediaQuery.of(context).size.width >= 768;
-    
+
     return Container(
       padding: EdgeInsets.all(isTablet ? 24 : 20),
       child: Column(
@@ -591,7 +610,6 @@ class _ModulosScreenState extends State<ModulosScreen>
             ),
           ),
           SizedBox(height: isTablet ? 24 : 20),
-          
           _buildQuizOption(
             'Múltipla Escolha',
             'Questões com alternativas',
@@ -615,14 +633,14 @@ class _ModulosScreenState extends State<ModulosScreen>
             () => _navegarParaQuiz('complete_frase', modulo),
             isTablet,
           ),
-          
           SizedBox(height: isTablet ? 20 : 16),
         ],
       ),
     );
   }
 
-  Widget _buildQuizOption(String titulo, String descricao, IconData icon, VoidCallback onTap, bool isTablet) {
+  Widget _buildQuizOption(String titulo, String descricao, IconData icon,
+      VoidCallback onTap, bool isTablet) {
     return Material(
       color: AppTheme.darkBackgroundColor,
       borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
@@ -691,7 +709,7 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   void _navegarParaQuiz(String tipo, ModuloBNCC modulo) {
     Navigator.pop(context); // Fecha o bottom sheet
-    
+
     Widget quizScreen;
     switch (tipo) {
       case 'multipla_escolha':
@@ -717,7 +735,7 @@ class _ModulosScreenState extends State<ModulosScreen>
       default:
         return;
     }
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => quizScreen),
@@ -726,9 +744,9 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   void _mostrarRecomendacoes() async {
     final recomendacoes = await ProgressoService.obterRecomendacoes();
-    
+
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -744,28 +762,32 @@ class _ModulosScreenState extends State<ModulosScreen>
               )
             : Column(
                 mainAxisSize: MainAxisSize.min,
-                children: recomendacoes.map((rec) => ListTile(
-                  leading: Icon(
-                    rec['tipo'] == 'proximo_modulo' 
-                        ? Icons.arrow_forward_rounded
-                        : Icons.refresh_rounded,
-                    color: AppTheme.primaryColor,
-                  ),
-                  title: Text(
-                    rec['titulo']!,
-                    style: TextStyle(color: AppTheme.darkTextPrimaryColor),
-                  ),
-                  subtitle: Text(
-                    rec['descricao']!,
-                    style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      _unidadeSelecionada = rec['unidade']!;
-                    });
-                  },
-                )).toList(),
+                children: recomendacoes
+                    .map((rec) => ListTile(
+                          leading: Icon(
+                            rec['tipo'] == 'proximo_modulo'
+                                ? Icons.arrow_forward_rounded
+                                : Icons.refresh_rounded,
+                            color: AppTheme.primaryColor,
+                          ),
+                          title: Text(
+                            rec['titulo']!,
+                            style:
+                                TextStyle(color: AppTheme.darkTextPrimaryColor),
+                          ),
+                          subtitle: Text(
+                            rec['descricao']!,
+                            style: TextStyle(
+                                color: AppTheme.darkTextSecondaryColor),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              _unidadeSelecionada = rec['unidade']!;
+                            });
+                          },
+                        ))
+                    .toList(),
               ),
         actions: [
           TextButton(
@@ -779,9 +801,9 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   void _mostrarRelatorioDetalhado() async {
     final relatorio = await ProgressoService.obterRelatorioGeral();
-    
+
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -797,7 +819,9 @@ class _ModulosScreenState extends State<ModulosScreen>
             children: [
               Text(
                 'Nível: ${(relatorio['nivel_usuario'] as NivelUsuario).nome}',
-                style: TextStyle(color: AppTheme.darkTextPrimaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -819,7 +843,9 @@ class _ModulosScreenState extends State<ModulosScreen>
               const SizedBox(height: 16),
               Text(
                 'Progresso por Unidade:',
-                style: TextStyle(color: AppTheme.darkTextPrimaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               ...(relatorio['progresso_por_unidade'] as Map<String, double>)
@@ -828,7 +854,8 @@ class _ModulosScreenState extends State<ModulosScreen>
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Text(
                           '${entry.key}: ${(entry.value * 100).round()}%',
-                          style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+                          style:
+                              TextStyle(color: AppTheme.darkTextSecondaryColor),
                         ),
                       )),
             ],

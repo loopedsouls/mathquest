@@ -88,7 +88,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final quantity = await PreloadService.getPreloadQuantity();
 
     if (kDebugMode) {
-      print('🔧 Configurações carregadas - Créditos: $credits, Preload: $preloadEnabled');
+      print(
+          '🔧 Configurações carregadas - Créditos: $credits, Preload: $preloadEnabled');
     }
 
     if (apiKey != null) {
@@ -632,8 +633,75 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ),
           ),
           SizedBox(height: isTablet ? 16 : 12),
-          
+
+          // Informações sobre créditos atuais
+          Container(
+            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            decoration: BoxDecoration(
+              color: _currentCredits > 0
+                  ? AppTheme.successColor.withValues(alpha: 0.1)
+                  : AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              border: Border.all(
+                color: _currentCredits > 0
+                    ? AppTheme.successColor.withValues(alpha: 0.3)
+                    : AppTheme.warningColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _currentCredits > 0
+                      ? Icons.inventory_rounded
+                      : Icons.warning_rounded,
+                  color: _currentCredits > 0
+                      ? AppTheme.successColor
+                      : AppTheme.warningColor,
+                  size: isTablet ? 24 : 20,
+                ),
+                SizedBox(width: isTablet ? 12 : 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Perguntas Precarregadas',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 4 : 2),
+                      Text(
+                        _currentCredits > 0
+                            ? '$_currentCredits pergunta${_currentCredits != 1 ? 's' : ''} disponível${_currentCredits != 1 ? 'eis' : ''}'
+                            : 'Nenhuma pergunta precarregada',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: _currentCredits > 0
+                              ? AppTheme.successColor
+                              : AppTheme.warningColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 4 : 2),
+                      Text(
+                        _currentCredits > 0
+                            ? 'Cada pergunta usada é removida do cache'
+                            : 'Inicie o precarregamento para criar perguntas',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Switch para habilitar precarregamento
+          SizedBox(height: isTablet ? 16 : 12),
           Container(
             padding: EdgeInsets.all(isTablet ? 16 : 12),
             decoration: BoxDecoration(
@@ -663,28 +731,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                           color: AppTheme.darkTextSecondaryColor,
                         ),
                       ),
-                      if (_preloadEnabled) ...[
-                        SizedBox(height: isTablet ? 8 : 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.stars_rounded,
-                              color: AppTheme.primaryColor,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Créditos disponíveis: $_currentCredits',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: _currentCredits > 0 
-                                  ? AppTheme.successColor 
-                                  : AppTheme.warningColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -701,7 +747,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ],
             ),
           ),
-          
+
           // Controle de quantidade (só aparece se preload estiver ativo)
           if (_preloadEnabled) ...[
             SizedBox(height: isTablet ? 16 : 12),
@@ -742,7 +788,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       activeTrackColor: AppTheme.primaryColor,
                       inactiveTrackColor: AppTheme.darkBorderColor,
                       thumbColor: AppTheme.primaryColor,
-                      overlayColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      overlayColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.2),
                     ),
                     child: Slider(
                       value: _preloadQuantity.toDouble(),
@@ -768,7 +815,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ),
             ),
           ],
-          
+
           // Botão para iniciar precarregamento manual
           if (_preloadEnabled) ...[
             SizedBox(height: isTablet ? 16 : 12),
@@ -782,7 +829,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ),
             ),
           ],
-          
+
           // Informações sobre o precarregamento
           SizedBox(height: isTablet ? 16 : 12),
           Container(
@@ -809,7 +856,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Como funciona:',
+                        'Sistema de Créditos:',
                         style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w600,
@@ -817,12 +864,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                       SizedBox(height: isTablet ? 8 : 4),
                       Text(
-                        '• Quantidade configurável (10-200 perguntas)\n'
-                        '• Cada pergunta usada do cache consome 1 crédito\n'
-                        '• Prioriza sempre perguntas precarregadas nos quizzes\n'
-                        '• Recarrega automaticamente quando créditos acabam\n'
-                        '• Inclui um mini-jogo durante o carregamento\n'
-                        '• Só funciona quando a IA está online',
+                        '• 1 pergunta precarregada = 1 crédito\n'
+                        '• Cada pergunta usada é removida do cache\n'
+                        '• Quando os créditos acabam, usa IA em tempo real\n'
+                        '• Precarregamento: 10-200 perguntas por vez\n'
+                        '• Mini-jogo disponível durante o processo\n'
+                        '• Requer IA online para funcionar',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
@@ -850,11 +897,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             Navigator.of(context).pop();
             // Recarrega os créditos após o precarregamento
             final credits = await PreloadService.getCredits();
-            
+
             if (kDebugMode) {
-              print('🔧 Callback precarregamento - Créditos recarregados: $credits');
+              print(
+                  '🔧 Callback precarregamento - Créditos recarregados: $credits');
             }
-            
+
             setState(() {
               _currentCredits = credits;
             });

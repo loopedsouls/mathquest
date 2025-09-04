@@ -169,14 +169,22 @@ class _ModernQuizScreenState extends State<ModernQuizScreen>
       final prefs = await SharedPreferences.getInstance();
       apiKey = prefs.getString('gemini_api_key');
 
+      debugPrint('Inicializando serviço de IA...');
+      debugPrint('Modo offline: ${widget.isOfflineMode}');
+      debugPrint('Usar Gemini: $_useGemini');
+      debugPrint('API Key presente: ${apiKey != null ? 'Sim' : 'Não'}');
+
       AIService aiService;
       if (_useGemini) {
         aiService = GeminiService(apiKey: apiKey);
+        debugPrint('GeminiService inicializado');
       } else {
         aiService = OllamaService(defaultModel: _modeloOllama);
+        debugPrint('OllamaService inicializado com modelo: $_modeloOllama');
       }
 
       tutorService = MathTutorService(aiService: aiService);
+      debugPrint('MathTutorService inicializado');
     }
   }
 
@@ -234,6 +242,10 @@ class _ModernQuizScreenState extends State<ModernQuizScreen>
       final topico = widget.topico ?? 'matemática geral';
       final dificuldade = widget.dificuldade ?? 'médio';
 
+      debugPrint('Iniciando geração de pergunta com IA...');
+      debugPrint('Tópico: $topico');
+      debugPrint('Dificuldade: $dificuldade');
+
       final prompt = '''
 Crie uma pergunta de múltipla escolha sobre $topico com nível de dificuldade $dificuldade.
 
@@ -256,21 +268,30 @@ Tópico: $topico
 Dificuldade: $dificuldade
 ''';
 
+      debugPrint('Prompt criado, enviando para IA...');
       final response = await tutorService.aiService.generate(prompt);
+      debugPrint('Resposta da IA recebida: $response');
       _processarRespostaIA(response);
     } catch (e) {
       // Fallback para pergunta offline em caso de erro
       debugPrint('Erro ao gerar pergunta: $e');
+      debugPrint('Carregando pergunta offline como fallback...');
       _carregarPerguntaOffline();
     }
   }
 
   void _processarRespostaIA(String response) {
     try {
+      debugPrint('Processando resposta da IA...');
       final linhas = response
           .split('\n')
           .where((linha) => linha.trim().isNotEmpty)
           .toList();
+
+      debugPrint('Linhas processadas: ${linhas.length}');
+      for (int i = 0; i < linhas.length; i++) {
+        debugPrint('Linha $i: ${linhas[i]}');
+      }
 
       String pergunta = '';
       List<String> opcoes = [];
@@ -282,28 +303,39 @@ Dificuldade: $dificuldade
 
         if (linha.startsWith('PERGUNTA:')) {
           pergunta = linha.substring(9).trim();
+          debugPrint('Pergunta encontrada: $pergunta');
         } else if (linha.startsWith('A)')) {
           opcoes.add(linha.substring(2).trim());
+          debugPrint('Opção A encontrada: ${opcoes.last}');
         } else if (linha.startsWith('B)')) {
           opcoes.add(linha.substring(2).trim());
+          debugPrint('Opção B encontrada: ${opcoes.last}');
         } else if (linha.startsWith('C)')) {
           opcoes.add(linha.substring(2).trim());
+          debugPrint('Opção C encontrada: ${opcoes.last}');
         } else if (linha.startsWith('D)')) {
           opcoes.add(linha.substring(2).trim());
+          debugPrint('Opção D encontrada: ${opcoes.last}');
         } else if (linha.startsWith('RESPOSTA_CORRETA:')) {
           final letra = linha.substring(17).trim().toUpperCase();
+          debugPrint('Letra da resposta correta: $letra');
           final index = letra.codeUnitAt(0) - 65; // A=0, B=1, C=2, D=3
           if (index >= 0 && index < opcoes.length) {
             respostaCorreta = opcoes[index];
+            debugPrint('Resposta correta definida: $respostaCorreta');
           }
         } else if (linha.startsWith('EXPLICACAO:')) {
           explicacao = linha.substring(11).trim();
+          debugPrint('Explicação encontrada: $explicacao');
         }
       }
 
       // Embaralhar opções
       final opcoesMapeadas = List<String>.from(opcoes);
       opcoesMapeadas.shuffle(Random());
+
+      debugPrint('Opções embaralhadas: $opcoesMapeadas');
+      debugPrint('Resposta correta final: $respostaCorreta');
 
       setState(() {
         perguntaAtual = {
@@ -320,6 +352,9 @@ Dificuldade: $dificuldade
           'dificuldade': widget.dificuldade ?? 'médio',
         };
       });
+
+      debugPrint(
+          'Pergunta processada com sucesso: ${perguntaAtual!['pergunta']}');
     } catch (e) {
       debugPrint('Erro ao processar resposta da IA: $e');
       _carregarPerguntaOffline();

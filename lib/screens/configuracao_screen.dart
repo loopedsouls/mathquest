@@ -648,7 +648,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                               color: AppTheme.primaryColor,
                               size: 16,
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               'Créditos disponíveis: $_currentCredits',
                               style: AppTheme.bodySmall.copyWith(
@@ -726,10 +726,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                       SizedBox(height: isTablet ? 8 : 4),
                       Text(
-                        '• Gera 100 perguntas diversas ao iniciar o app\n'
+                        '• Gera 100 perguntas diversas com 100 créditos\n'
+                        '• Cada pergunta usada do cache consome 1 crédito\n'
+                        '• Recarrega automaticamente quando créditos acabam\n'
                         '• Inclui um mini-jogo durante o carregamento\n'
-                        '• Melhora significativamente a velocidade dos quizzes\n'
-                        '• Renova automaticamente a cada 24 horas',
+                        '• Só funciona quando a IA está online',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
@@ -753,8 +754,13 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           selectedAI: _selectedAI,
           apiKey: _selectedAI == 'gemini' ? apiKeyController.text.trim() : null,
           ollamaModel: _selectedAI == 'ollama' ? _modeloOllama : null,
-          onComplete: () {
+          onComplete: () async {
             Navigator.of(context).pop();
+            // Recarrega os créditos após o precarregamento
+            final credits = await PreloadService.getCredits();
+            setState(() {
+              _currentCredits = credits;
+            });
           },
         ),
       ),

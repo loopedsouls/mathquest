@@ -24,13 +24,26 @@ class CacheIAService {
     String? fonteIA,
   }) async {
     try {
-      // Decide se deve usar cache ou gerar nova pergunta
-      final deveUsarCache = await _deveUsarCache(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-      );
+      // Verifica se o modo preload está ativo e há créditos
+      final preloadEnabled = await PreloadService.isPreloadEnabled();
+      final hasCredits = await PreloadService.hasCredits();
+      
+      // Se preload ativo e há créditos, SEMPRE prioriza cache
+      bool deveUsarCache;
+      if (preloadEnabled && hasCredits) {
+        deveUsarCache = true;
+        if (kDebugMode) {
+          print('🎯 Modo preload ativo - priorizando cache');
+        }
+      } else {
+        // Decide normalmente se deve usar cache ou gerar nova pergunta
+        deveUsarCache = await _deveUsarCache(
+          unidade: unidade,
+          ano: ano,
+          tipoQuiz: tipoQuiz,
+          dificuldade: dificuldade,
+        );
+      }
 
       Map<String, dynamic>? pergunta;
 
@@ -44,8 +57,11 @@ class CacheIAService {
         );
 
         if (pergunta != null) {
-          // Usa um crédito se disponível
-          final creditUsed = await PreloadService.useCredit();
+          // Usa um crédito se disponível (só no modo preload)
+          bool creditUsed = false;
+          if (preloadEnabled && hasCredits) {
+            creditUsed = await PreloadService.useCredit();
+          }
           
           _cacheHits++;
           if (kDebugMode) {
@@ -53,11 +69,16 @@ class CacheIAService {
           }
           
           // Se os créditos acabaram, inicia precarregamento em background
-          if (!await PreloadService.hasCredits() && await PreloadService.isPreloadEnabled()) {
+          if (preloadEnabled && !await PreloadService.hasCredits()) {
             _startBackgroundPreload();
           }
           
           return pergunta;
+        } else if (preloadEnabled && hasCredits) {
+          // Se modo preload ativo mas não achou no cache, força geração para manter créditos
+          if (kDebugMode) {
+            print('⚠️ Modo preload ativo mas pergunta não encontrada no cache');
+          }
         }
       }
 

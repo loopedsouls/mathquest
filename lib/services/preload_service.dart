@@ -10,8 +10,8 @@ class PreloadService {
   static const String _preloadEnabledKey = 'preload_enabled';
   static const String _lastPreloadKey = 'last_preload_timestamp';
   static const String _creditsKey = 'preload_credits';
-  static const int _totalQuestions = 100;
-  static const int _initialCredits = 100;
+  static const String _preloadQuantityKey = 'preload_quantity';
+  static const int _defaultQuantity = 100;
   static bool _isPreloading = false;
 
   /// Lista de tópicos para precarregar

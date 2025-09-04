@@ -5,9 +5,9 @@ import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
-import 'quiz_multipla_escolha_screen.dart';
-import 'quiz_verdadeiro_falso_screen.dart';
-import 'quiz_complete_a_frase_screen.dart';
+import '../unused/quiz_multipla_escolha_screen.dart';
+import '../unused/quiz_verdadeiro_falso_screen.dart';
+import '../unused/quiz_complete_a_frase_screen.dart';
 
 class ModulosScreen extends StatefulWidget {
   final bool isOfflineMode;

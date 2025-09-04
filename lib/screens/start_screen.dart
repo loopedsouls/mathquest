@@ -424,7 +424,8 @@ class _StartScreenState extends State<StartScreen>
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final buttonHeight = isTablet ? 60.0 : 50.0; // Altura fixa para melhor controle
+                final buttonHeight =
+                    isTablet ? 60.0 : 50.0; // Altura fixa para melhor controle
                 final spacing = isTablet ? 16.0 : 12.0;
 
                 return SingleChildScrollView(

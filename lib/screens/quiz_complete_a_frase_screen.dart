@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
+import '../services/explicacao_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -314,6 +315,19 @@ Seja preciso na análise matemática e didático na explicação.
       explicacao = explicacaoResposta;
       carregando = false;
     });
+
+    // Salvar explicação no histórico quando a resposta está errada
+    if (!correta) {
+      await ExplicacaoService.salvarExplicacao(
+        unidade: _exercicioAtual?['topico'] ?? 'Geral',
+        ano: 'Não especificado',
+        pergunta: pergunta,
+        respostaUsuario: resposta,
+        respostaCorreta: _exercicioAtual?['resposta_correta'] ?? 'Não disponível',
+        explicacao: explicacaoResposta.isNotEmpty ? explicacaoResposta : 'Explicação não disponível',
+        topicoEspecifico: _exercicioAtual?['topico'] ?? 'Complete a Frase',
+      );
+    }
 
     // Animar feedback
     _feedbackAnimationController.reset();

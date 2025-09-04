@@ -4,6 +4,7 @@ import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
+import '../services/explicacao_service.dart';
 import '../models/conquista.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -433,6 +434,17 @@ Dificuldade: $dificuldade
       } else {
         await ProgressoService.registrarRespostaIncorreta(unidade, ano);
         await GamificacaoService.registrarRespostaIncorreta();
+        
+        // Salvar explicação no histórico quando a resposta está errada
+        await ExplicacaoService.salvarExplicacao(
+          unidade: unidade,
+          ano: ano,
+          pergunta: perguntaAtual!['pergunta'],
+          respostaUsuario: respostaSelecionada!,
+          respostaCorreta: perguntaAtual!['resposta_correta'],
+          explicacao: perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
+          topicoEspecifico: perguntaAtual!['topico'],
+        );
       }
     }
 

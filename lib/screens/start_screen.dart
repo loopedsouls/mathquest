@@ -10,6 +10,7 @@ import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'conquistas_screen.dart';
 import 'relatorios_screen.dart';
+import 'historico_explicacoes_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -193,6 +194,14 @@ class _StartScreenState extends State<StartScreen>
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const AjudaScreen(),
+      ),
+    );
+  }
+
+  void _goToHistoricoExplicacoes() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const HistoricoExplicacoesScreen(),
       ),
     );
   }
@@ -733,6 +742,13 @@ class _StartScreenState extends State<StartScreen>
                 _buildVisualNovelButton(
                   title: 'Configurações',
                   onPressed: _goToConfig,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                _buildVisualNovelButton(
+                  title: 'Histórico de Explicações',
+                  onPressed: _goToHistoricoExplicacoes,
                 ),
                 
                 const SizedBox(height: 20),

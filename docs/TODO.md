@@ -150,11 +150,33 @@ enum NivelUsuario {
 - ✅ Tela de conquistas: `lib/screens/conquistas_screen.dart`
 - ✅ 16 tipos diferentes de conquistas implementadas
 
+### 7. **Sistema de Explicações e Histórico de Erros** 📚
+**Status:** ✅ IMPLEMENTADO COMPLETAMENTE  
+**Implementado:**
+
+#### 7.1 Rastreamento de Erros ✅
+- ✅ Salvamento automático de explicações quando o usuário erra
+- ✅ Integração em todos os tipos de quiz (Múltipla Escolha, Verdadeiro/Falso, Complete a Frase)
+- ✅ Categorização por temas/tópicos específicos
+- ✅ Sistema implementado em `explicacao_service.dart`
+
+#### 7.2 Histórico de Explicações ✅
+- ✅ Tela dedicada para revisão de erros passados
+- ✅ Organização por temas com interface de abas
+- ✅ Funcionalidade de busca por explicações
+- ✅ Identificação de pontos fracos do usuário
+- ✅ Tela implementada: `lib/screens/historico_explicacoes_screen.dart`
+
+#### 7.3 Análise de Padrões de Erro ✅
+- ✅ Estatísticas de erros por tema
+- ✅ Identificação de tópicos que mais geram dúvidas
+- ✅ Recomendações baseadas no histórico de erros
+
 ---
 
 ## ❌ **FUNCIONALIDADES FALTANTES (PRIORIDADE BAIXA)**
 
-### 7. **Modo Professor** 👩‍🏫
+### 8. **Modo Professor** 👩‍🏫
 **Status:** NÃO IMPLEMENTADO  
 **Implementar:**
 
@@ -178,8 +200,14 @@ lib/
 │   ✅ modulos_screen.dart           # Seleção de módulos
 │   ✅ relatorios_screen.dart        # Relatórios detalhados
 │   ✅ conquistas_screen.dart        # Badges e conquistas
+│   ✅ historico_explicacoes_screen.dart # Histórico de explicações de erros
 ├── services/
-│   ✅ progresso_service.dart        # Lógica de progressão
+│   ✅ progresso_service.dart        # Lógica de progressão (v1)
+│   ✅ progresso_service_v2.dart     # Lógica de progressão com SQLite (v2)
+│   ✅ database_service.dart         # Serviço de banco SQLite
+│   ✅ cache_ia_service.dart         # Cache inteligente para IA
+│   ✅ quiz_helper_service.dart      # Helper para integração quiz+cache
+│   ✅ explicacao_service.dart       # Sistema de tracking de erros e explicações
 │   ✅ gamificacao_service.dart      # Sistema de pontos/badges
 │   ✅ relatorio_service.dart        # Geração de relatórios
 │   ✅ ia_service.dart               # Serviço de IA contextualizada
@@ -216,8 +244,8 @@ lib/
 3. ✅ Adicionar gráficos de progresso
 
 ### 🔄 Fase 5: Otimizações e Melhorias (NOVA FASE)
-1. ❌ Migrar de SharedPreferences para SQLite para melhor performance
-2. ❌ Implementar cache inteligente para perguntas geradas pela IA
+1. ✅ Migrar de SharedPreferences para SQLite para melhor performance
+2. ✅ Implementar cache inteligente para perguntas geradas pela IA
 3. ❌ Adicionar animações mais sofisticadas
 4. ❌ Implementar modo offline mais robusto
 5. ❌ Adicionar sistema de backup/sincronização
@@ -233,20 +261,21 @@ dependencies:
   ✅ http: ^1.2.1                     # Para requisições HTTP
   ✅ shared_preferences: ^2.2.3       # Para persistência de dados
   ✅ google_generative_ai: ^0.2.2     # Para integração com Gemini
+  ✅ sqflite: ^2.3.0                  # Para banco de dados local
+  ✅ path: ^1.8.3                     # Para manipulação de caminhos
   
   # Pendentes para futuras melhorias:
   # pdf: ^3.10.7                      # Para geração de PDF
   # printing: ^5.11.1                 # Para impressão
   # provider: ^6.1.1                  # Para melhor gerenciamento de estado
-  # sqflite: ^2.3.0                   # Para persistência mais robusta
 ```
 
 ### ✅ Implementações de Performance
 - ✅ Cache em memória para progresso (_progressoCache)
 - ✅ Carregamento lazy de módulos
 - ✅ Otimização de consultas com SharedPreferences
-- ❌ TODO: Implementar sqflite para dados complexos
-- ❌ TODO: Cache para perguntas geradas pela IA
+- ✅ TODO IMPLEMENTADO: SQLite para dados complexos (`database_service.dart`)
+- ✅ TODO IMPLEMENTADO: Cache inteligente para perguntas da IA (`cache_ia_service.dart`)
 
 ### ✅ Implementações UX/UI
 - ✅ Consistência visual com tema moderno

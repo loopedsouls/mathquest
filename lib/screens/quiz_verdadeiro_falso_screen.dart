@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
+import '../services/explicacao_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -345,6 +346,17 @@ Dificuldade: $dificuldade
       pontuacao += _calcularPontos(tempoResposta);
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
+      
+      // Salvar explicação no histórico quando a resposta está errada
+      await ExplicacaoService.salvarExplicacao(
+        unidade: perguntaAtual!['topico'] ?? 'Geral',
+        ano: 'Não especificado',
+        pergunta: perguntaAtual!['pergunta'],
+        respostaUsuario: respostaSelecionada! ? 'Verdadeiro' : 'Falso',
+        respostaCorreta: perguntaAtual!['resposta_correta'] ? 'Verdadeiro' : 'Falso',
+        explicacao: perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
+        topicoEspecifico: perguntaAtual!['topico'] ?? 'Quiz Verdadeiro/Falso',
+      );
     }
 
     // Mostrar feedback

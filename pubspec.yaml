@@ -45,6 +45,7 @@ dependencies:
   # Para banco de dados local
   sqflite: ^2.3.0
   path: ^1.8.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@ import '../services/ai_queue_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../widgets/latex_markdown_widget.dart';
+import '../widgets/queue_status_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatWithSidebarScreen extends StatefulWidget {
@@ -545,6 +546,7 @@ Responda de forma educativa e clara, usando Markdown e LaTeX.
               ],
             ),
           ),
+          const QueueStatusIndicator(),
           IconButton(
             onPressed: _novaConversa,
             icon: const Icon(Icons.add_rounded),

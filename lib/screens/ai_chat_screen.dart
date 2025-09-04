@@ -6,6 +6,7 @@ import '../services/conversa_service.dart';
 import '../services/ai_queue_service.dart';
 import '../models/conversa.dart';
 import '../widgets/latex_markdown_widget.dart';
+import '../widgets/queue_status_indicator.dart';
 
 class AIChatScreen extends StatefulWidget {
   const AIChatScreen({super.key});
@@ -420,6 +421,7 @@ Use emojis quando apropriado, seja encorajador e sempre formate sua resposta em 
               ],
             ),
           ),
+          const QueueStatusIndicator(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(

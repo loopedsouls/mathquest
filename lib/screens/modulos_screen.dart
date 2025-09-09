@@ -180,7 +180,11 @@ class _ModulosScreenState extends State<ModulosScreen>
                   : AppTheme.darkSurfaceColor,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () => setState(() => _unidadeSelecionada = unidade),
+                onTap: () {
+                  setState(() {
+                    _unidadeSelecionada = unidade;
+                  });
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -234,7 +238,8 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildModulosGrid() {
-    final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
+    final subcategorias =
+        ModulosBNCCData.obterSubcategoriasPorUnidade(_unidadeSelecionada);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -242,12 +247,57 @@ class _ModulosScreenState extends State<ModulosScreen>
         vertical: 12,
       ),
       child: ListView.builder(
-        itemCount: modulos.length,
+        itemCount: subcategorias.length,
         itemBuilder: (context, index) {
-          final modulo = modulos[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: _buildModuloCard(modulo),
+          final subcategoria = subcategorias[index];
+          final subSubcategorias =
+              ModulosBNCCData.obterSubSubcategoriasPorSubcategoria(
+                  _unidadeSelecionada, subcategoria);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header da subcategoria
+              Container(
+                margin: const EdgeInsets.only(bottom: 16, top: 8),
+                child: Text(
+                  subcategoria,
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: 18,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              // Sub-subcategorias da subcategoria
+              ...subSubcategorias.map((subSubcategoria) {
+                final modulos = ModulosBNCCData.obterModulosPorSubSubcategoria(
+                    _unidadeSelecionada, subcategoria, subSubcategoria);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header da sub-subcategoria
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8, left: 8),
+                      child: Text(
+                        subSubcategoria,
+                        style: AppTheme.headingSmall.copyWith(
+                          fontSize: 14,
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    // Módulos da sub-subcategoria
+                    ...modulos.map((modulo) => Container(
+                          margin: const EdgeInsets.only(bottom: 12, left: 16),
+                          child: _buildModuloCard(modulo),
+                        )),
+                  ],
+                );
+              }),
+            ],
           );
         },
       ),

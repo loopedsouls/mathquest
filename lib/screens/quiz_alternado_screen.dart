@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
@@ -39,12 +38,13 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   bool _perguntaDoCache = false;
   final TextEditingController _respostaController = TextEditingController();
 
-  // Tipos de quiz disponíveis
+  // Tipos de quiz disponíveis - ciclo através deles para garantir todos os tipos
   final List<String> _tiposQuiz = [
     'multipla_escolha',
     'verdadeiro_falso',
     'complete_frase'
   ];
+  int _tipoIndex = 0;
 
   // Resultados
   List<Map<String, dynamic>> respostas = [];
@@ -153,9 +153,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     await _gerarPergunta();
   }
 
-  String _getTipoAleatorio() {
-    final random = Random();
-    return _tiposQuiz[random.nextInt(_tiposQuiz.length)];
+  String _getTipoAtual() {
+    final tipo = _tiposQuiz[_tipoIndex % _tiposQuiz.length];
+    _tipoIndex++;
+    return tipo;
   }
 
   Future<void> _gerarPergunta() async {
@@ -174,13 +175,13 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     try {
-      // Escolhe tipo aleatório para esta pergunta
-      tipoAtual = _getTipoAleatorio();
+      // Escolhe tipo em ciclo para garantir todos os tipos
+      tipoAtual = _getTipoAtual();
 
       debugPrint('Gerando pergunta tipo: $tipoAtual');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
-      // Usa o QuizHelperService que verifica cache primeiro
+      // Sempre tenta gerar com IA via QuizHelperService
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
@@ -189,15 +190,28 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       );
 
       if (pergunta != null) {
-        debugPrint('Pergunta obtida (cache ou IA): ${pergunta['pergunta']}');
+        debugPrint('Pergunta obtida da IA: ${pergunta['pergunta']}');
         _processarPerguntaCache(pergunta);
       } else {
-        // Fallback para geração offline se disponível
-        await _gerarPerguntaOffline();
+        // Sem fallback offline, mostra erro se IA falhar
+        _showErrorDialog(
+            'Falha ao gerar pergunta com IA. Verifique sua conexão ou configuração.');
+        if (mounted) {
+          setState(() {
+            carregando = false;
+          });
+        }
+        return;
       }
     } catch (e) {
       debugPrint('Erro ao gerar pergunta: $e');
-      await _gerarPerguntaOffline();
+      _showErrorDialog('Erro ao gerar pergunta: $e');
+      if (mounted) {
+        setState(() {
+          carregando = false;
+        });
+      }
+      return;
     }
 
     if (mounted) {
@@ -222,53 +236,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     debugPrint('Pergunta processada. Do cache: $_perguntaDoCache');
     debugPrint('Conteúdo: ${pergunta['pergunta']}');
-  }
-
-  Future<void> _gerarPerguntaOffline() async {
-    // Fallback simples para quando não há IA disponível
-    Map<String, dynamic> pergunta;
-
-    switch (tipoAtual) {
-      case 'multipla_escolha':
-        pergunta = {
-          'pergunta': 'Quanto é 2 + 2?',
-          'opcoes': ['3', '4', '5', '6'],
-          'resposta_correta': 'B',
-          'explicacao': '2 + 2 = 4, que corresponde à opção B.',
-        };
-        break;
-
-      case 'verdadeiro_falso':
-        pergunta = {
-          'pergunta': '3 + 3 = 6',
-          'resposta_correta': 'Verdadeiro',
-          'explicacao': '3 + 3 realmente é igual a 6.',
-        };
-        break;
-
-      case 'complete_frase':
-        pergunta = {
-          'pergunta': 'Complete: 5 + 3 = ___',
-          'resposta_correta': '8',
-          'explicacao': '5 + 3 = 8',
-        };
-        break;
-
-      default:
-        pergunta = {
-          'pergunta': 'Erro na geração da pergunta',
-          'opcoes': ['Erro'],
-          'resposta_correta': 'A',
-          'explicacao': 'Houve um erro.',
-        };
-    }
-
-    if (mounted) {
-      setState(() {
-        perguntaAtual = pergunta;
-        _perguntaDoCache = false;
-      });
-    }
   }
 
   Widget _buildMultiplaEscolha() {

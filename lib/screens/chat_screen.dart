@@ -1360,57 +1360,7 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     }
   }
 
-  Future<void> _criarConversaModulo() async {
-    if (widget.modulo == null) return;
 
-    try {
-      print('Criando conversa para módulo: ${widget.modulo!.titulo}');
-      print('Mensagens atuais: ${_messages.length}');
-
-      // Se já existe uma conversa atual, atualizar ela com as mensagens atuais
-      if (_conversaAtual != null) {
-        print('Atualizando conversa existente: ${_conversaAtual!.id}');
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-        print('Conversa atualizada com sucesso');
-        return;
-      }
-
-      // Criar nova conversa com as mensagens atuais (se houver)
-      final conversaId = 'module_${widget.modulo!.titulo}';
-      print('Criando nova conversa com ID: $conversaId');
-
-      final novaConversa = Conversa(
-        id: conversaId,
-        titulo: widget.modulo!.titulo,
-        contexto: widget.modulo!.titulo,
-        mensagens: List.from(_messages), // Copiar mensagens atuais
-        dataCreacao: DateTime.now(),
-        ultimaAtualizacao: DateTime.now(),
-      );
-
-      await ConversaService.salvarConversa(novaConversa);
-      print('Nova conversa salva com sucesso');
-
-      if (mounted) {
-        setState(() {
-          _conversaAtual = novaConversa;
-          _contextoAtual = widget.modulo!.titulo;
-        });
-      }
-    } catch (e) {
-      print('Erro ao criar conversa do módulo: $e');
-      // Em caso de erro, continua sem conversa salva
-      if (mounted) {
-        setState(() {
-          _contextoAtual = widget.modulo!.titulo;
-        });
-      }
-    }
-  }
 
   void _novaConversa() {
     if (mounted) {
@@ -1489,15 +1439,6 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salvar conversa imediatamente após adicionar mensagem da IA
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } catch (e) {
       _addMessage(ChatMessage(
         text: 'Desculpe, não foi possível gerar o quiz. Tente novamente. 😅',

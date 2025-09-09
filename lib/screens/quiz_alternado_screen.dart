@@ -737,11 +737,38 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Header responsivo
-              ResponsiveHeader(
-                title: 'Quiz Alternado',
-                subtitle: _buildSubtitle(),
-                trailing: _buildHeaderTrailing(isTablet),
+              // Header responsivo com botão voltar para a tela inicial
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 24 : 16,
+                  vertical: isTablet ? 8 : 6,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                      icon: Icon(
+                        Icons.home_rounded,
+                        color: AppTheme.primaryColor,
+                        size: isTablet ? 28 : 24,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: isTablet ? 12 : 8),
+                    Expanded(
+                      child: ResponsiveHeader(
+                        title: 'Quiz Alternado',
+                        subtitle: _buildSubtitle(),
+                        trailing: _buildHeaderTrailing(isTablet),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // Conteúdo principal

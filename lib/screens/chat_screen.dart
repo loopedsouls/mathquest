@@ -666,15 +666,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       }
 
       // Envia mensagem de boas-vindas se necessário
-      if (widget.mode == ChatMode.module && _messages.isEmpty) {
-        // Para módulos sem mensagens, sempre envia boas-vindas
-        await _sendWelcomeMessage();
-      } else if (widget.mode != ChatMode.saved &&
-          widget.mode != ChatMode.module &&
-          _conversaAtual == null) {
-        // Para outros modos sem conversa atual
-        await _sendWelcomeMessage();
-      }
+      // Removido daqui - será chamado após carregamento da conversa
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -810,6 +802,11 @@ Escolha uma das opções abaixo para continuar seus estudos!
 
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
+      }
+
+      // Para módulos, garantir que a conversa seja salva após as boas-vindas
+      if (widget.mode == ChatMode.module && _conversaAtual == null) {
+        await _criarConversaModulo();
       }
     }
   }
@@ -1317,6 +1314,27 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
+
+    // Não verificar boas-vindas aqui - será feito pelo método que chamou _carregarConversa
+  }
+
+  // Método para verificar se deve enviar mensagem de boas-vindas
+  Future<void> _verificarEnviarBoasVindas() async {
+    // Só envia boas-vindas se o tutor estiver inicializado
+    if (!_tutorInitialized) return;
+
+    // Para módulos: só envia se não há conversa atual E mensagens estão vazias
+    if (widget.mode == ChatMode.module &&
+        _conversaAtual == null &&
+        _messages.isEmpty) {
+      await _sendWelcomeMessage();
+    }
+    // Para outros modos: só envia se não há conversa atual
+    else if (widget.mode != ChatMode.saved &&
+        widget.mode != ChatMode.module &&
+        _conversaAtual == null) {
+      await _sendWelcomeMessage();
+    }
   }
 
   Future<void> _carregarConversaModuloExistente() async {
@@ -1331,22 +1349,42 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
           .toList();
 
       if (conversaModulo.isNotEmpty) {
-        _carregarConversa(conversaModulo.first);
+        final conversa = conversaModulo.first;
+        // Verificar se a conversa tem mensagens da IA (não está vazia)
+        final temMensagensIA = conversa.mensagens.any((msg) => !msg.isUser);
+
+        if (temMensagensIA) {
+          // Se tem mensagens da IA, carregar normalmente
+          _carregarConversa(conversa);
+        } else {
+          // Se não tem mensagens da IA, sobrescrever com boas-vindas
+          if (mounted) {
+            setState(() {
+              _conversaAtual = conversa;
+              _messages.clear();
+              _contextoAtual = conversa.contexto;
+            });
+          }
+          // Enviar mensagem de boas-vindas para conversa existente vazia
+          await _sendWelcomeMessage();
+        }
       } else {
-        // Se não existe conversa, deixa vazio (sem mensagem de boas-vindas)
+        // Se não existe conversa, criar uma nova com boas-vindas
         if (mounted) {
           setState(() {
             _contextoAtual = widget.modulo!.titulo;
           });
         }
+        await _sendWelcomeMessage();
       }
     } catch (e) {
-      // Em caso de erro, deixa vazio
+      // Em caso de erro, criar conversa com boas-vindas
       if (mounted) {
         setState(() {
           _contextoAtual = widget.modulo!.titulo;
         });
       }
+      await _sendWelcomeMessage();
     }
   }
 
@@ -1354,11 +1392,22 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     if (widget.modulo == null) return;
 
     try {
+      // Se já existe uma conversa atual, atualizar ela com as mensagens atuais
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+        return;
+      }
+
+      // Criar nova conversa com as mensagens atuais (se houver)
       final novaConversa = Conversa(
         id: 'module_${widget.modulo!.titulo}',
         titulo: widget.modulo!.titulo,
         contexto: widget.modulo!.titulo,
-        mensagens: [],
+        mensagens: List.from(_messages), // Copiar mensagens atuais
         dataCreacao: DateTime.now(),
         ultimaAtualizacao: DateTime.now(),
       );
@@ -1391,10 +1440,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
       });
     }
 
-    // Só envia mensagem de boas-vindas se não for modo módulo
-    if (_tutorInitialized && widget.mode != ChatMode.module) {
-      _sendWelcomeMessage();
-    }
+    // Verificar se deve enviar mensagem de boas-vindas
+    _verificarEnviarBoasVindas();
   }
 
   void _abrirConversaNoChat(Conversa conversa) {
@@ -1490,43 +1537,51 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         );
         try {
           final file = result.files.first;
-          
+
           // Verificar se os bytes estão disponíveis
           if (file.bytes == null) {
             ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
               SnackBar(
-                content: Text('Erro: Não foi possível ler o arquivo ${file.name}'),
+                content:
+                    Text('Erro: Não foi possível ler o arquivo ${file.name}'),
                 backgroundColor: AppTheme.errorColor,
               ),
             );
             return;
           }
-          
+
           // Ler o conteúdo do arquivo localmente
           final fileBytes = file.bytes!;
           String fileContent = '';
-          
+
           // Tentar decodificar como texto se for um arquivo de texto comum
-          if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
+          if (file.name.endsWith('.txt') ||
+              file.name.endsWith('.md') ||
+              file.name.endsWith('.json')) {
             fileContent = String.fromCharCodes(fileBytes);
           } else if (file.name.endsWith('.pdf')) {
             // Para PDFs, você pode usar uma biblioteca como pdf_text ou similar para extrair texto
             // Por enquanto, apenas indicar que é um PDF
-            fileContent = '[Conteúdo do PDF: ${file.name}] - Extração de texto não implementada localmente';
-          } else if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
+            fileContent =
+                '[Conteúdo do PDF: ${file.name}] - Extração de texto não implementada localmente';
+          } else if (file.name.endsWith('.png') ||
+              file.name.endsWith('.jpg') ||
+              file.name.endsWith('.jpeg')) {
             // Para imagens, codificar em base64 para enviar à IA
-            fileContent = 'data:image/${file.name.split('.').last};base64,${base64Encode(fileBytes)}';
+            fileContent =
+                'data:image/${file.name.split('.').last};base64,${base64Encode(fileBytes)}';
           } else {
-            fileContent = '[Arquivo binário: ${file.name}] - Tipo não suportado para processamento local';
+            fileContent =
+                '[Arquivo binário: ${file.name}] - Tipo não suportado para processamento local';
           }
-          
+
           // Adicionar mensagem no chat sobre o arquivo
           _addMessage(ChatMessage(
             text: 'Arquivo anexado: ${file.name}\nConteúdo: $fileContent',
             isUser: true,
             timestamp: DateTime.now(),
           ));
-          
+
           // Enviar para a IA processar o conteúdo do arquivo
           if (_tutorInitialized) {
             final promptComArquivo = '''
@@ -1538,10 +1593,10 @@ Use emojis e formatação Markdown para deixar mais atrativo!
       Se for uma imagem, descreva o que vê e como se relaciona com matemática.
       Se for texto, resuma ou explique o conteúdo.
       ''';
-            
+
             await _sendMessage(promptComArquivo);
           }
-          
+
           ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
             SnackBar(
               content: Text('Arquivo "${file.name}" processado localmente!'),

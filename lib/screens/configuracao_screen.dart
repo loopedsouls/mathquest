@@ -807,7 +807,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       _preloadEnabled = value;
                     });
                   },
-                  activeColor: AppTheme.primaryColor,
+                  activeThumbColor: AppTheme.primaryColor,
                 ),
               ],
             ),

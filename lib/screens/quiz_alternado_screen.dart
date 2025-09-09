@@ -80,6 +80,15 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   final int _initialSnakeLength = 10;
   int _currentSnakeLength = 10;
 
+  // Inimigos (tipo Slither.io)
+  List<List<Offset>> _enemySnakes = [];
+  List<Offset> _enemyDirections = [];
+  List<Color> _enemyColors = [];
+
+  // Configurações do jogo
+  int _gridSize = 20;
+  double _cellSize = 15;
+
   // Configurações visuais
   late String ano;
   late String topico;
@@ -149,6 +158,51 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     // Posição inicial da comida
     _foodPosition = const Offset(15, 10);
+
+    // Inicializar inimigos
+    _initializeEnemies();
+  }
+
+  void _initializeEnemies() {
+    _enemySnakes.clear();
+    _enemyDirections.clear();
+    _enemyColors.clear();
+
+    // Criar 3 inimigos
+    for (int i = 0; i < 3; i++) {
+      // Posições iniciais diferentes para cada inimigo
+      List<Offset> enemySegments = [];
+      for (int j = 0; j < 5; j++) {
+        enemySegments.add(Offset(
+          (5 + i * 5).toDouble() - j,
+          (5 + i * 3).toDouble(),
+        ));
+      }
+
+      _enemySnakes.add(enemySegments);
+      _enemyDirections.add(_getRandomDirection());
+      _enemyColors.add(_getEnemyColor(i));
+    }
+  }
+
+  Offset _getRandomDirection() {
+    final directions = [
+      const Offset(1, 0), // direita
+      const Offset(-1, 0), // esquerda
+      const Offset(0, 1), // baixo
+      const Offset(0, -1), // cima
+    ];
+    return directions[(DateTime.now().millisecondsSinceEpoch + DateTime.now().microsecondsSinceEpoch) % 4];
+  }
+
+  Color _getEnemyColor(int index) {
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.orange,
+      Colors.pink,
+    ];
+    return colors[index % colors.length];
   }
 
   void _startSnakeGame() {
@@ -173,17 +227,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     // Verificar colisão com as bordas (simples)
     if (newHead.dx < 0 ||
-        newHead.dx >= 20 ||
+        newHead.dx >= _gridSize ||
         newHead.dy < 0 ||
-        newHead.dy >= 20) {
+        newHead.dy >= _gridSize) {
       // Bater na parede - apenas muda direção aleatoriamente
-      final directions = [
-        const Offset(1, 0), // direita
-        const Offset(-1, 0), // esquerda
-        const Offset(0, 1), // baixo
-        const Offset(0, -1), // cima
-      ];
-      _direction = directions[(DateTime.now().millisecondsSinceEpoch % 4)];
+      _direction = _getRandomDirection();
       return;
     }
 
@@ -198,18 +246,73 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       _generateFood();
     }
 
+    // Atualizar inimigos
+    _updateEnemies();
+
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void _updateEnemies() {
+    for (int i = 0; i < _enemySnakes.length; i++) {
+      if (_enemySnakes[i].isEmpty) continue;
+
+      final head = _enemySnakes[i].first;
+      Offset newDirection = _enemyDirections[i];
+
+      // Lógica simples: 70% chance de continuar na mesma direção, 30% de mudar
+      if ((DateTime.now().millisecondsSinceEpoch + i * 100) % 10 < 3) {
+        newDirection = _getRandomDirection();
+      }
+
+      final newHead = head + newDirection;
+
+      // Verificar colisão com as bordas
+      if (newHead.dx < 0 ||
+          newHead.dx >= _gridSize ||
+          newHead.dy < 0 ||
+          newHead.dy >= _gridSize) {
+        // Mudar direção ao bater na parede
+        newDirection = _getRandomDirection();
+        _enemyDirections[i] = newDirection;
+        continue;
+      }
+
+      // Adicionar nova cabeça
+      _enemySnakes[i].insert(0, newHead);
+
+      // Remover cauda se não comeu comida
+      if (_enemySnakes[i].first != _foodPosition) {
+        _enemySnakes[i].removeLast();
+      } else {
+        // Inimigo comeu a comida - gerar nova posição
+        _generateFood();
+      }
+
+      _enemyDirections[i] = newDirection;
     }
   }
 
   void _generateFood() {
     final random = DateTime.now().millisecondsSinceEpoch;
     _foodPosition = Offset(
-      (random % 18).toDouble() + 1,
-      ((random ~/ 100) % 18).toDouble() + 1,
+      (random % (_gridSize - 2)).toDouble() + 1,
+      ((random ~/ 100) % (_gridSize - 2)).toDouble() + 1,
     );
   }
+
+  void _changeDirection(Offset newDirection) {
+    // Evitar mudança para direção oposta (não pode ir para trás)
+    if (_direction + newDirection != Offset.zero) {
+      _direction = newDirection;
+    }
+  }
+
+  void _moveUp() => _changeDirection(const Offset(0, -1));
+  void _moveDown() => _changeDirection(const Offset(0, 1));
+  void _moveLeft() => _changeDirection(const Offset(-1, 0));
+  void _moveRight() => _changeDirection(const Offset(1, 0));
 
   void _diminuirCobra() {
     if (_snakeSegments.length > 1) {
@@ -1204,22 +1307,120 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                         ),
                       ),
 
-                      // Área do jogo
+                      // Área do jogo com controles
                       Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: CustomPaint(
-                            painter: SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: 15,
+                        child: Column(
+                          children: [
+                            // Área do jogo (usa LayoutBuilder para auto-redimensionamento)
+                            Expanded(
+                              flex: 3,
+                              child: Container(
+                                margin: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    // Calcular tamanho da célula baseado no espaço disponível
+                                    final availableWidth = constraints.maxWidth;
+                                    final availableHeight = constraints.maxHeight;
+                                    _cellSize = (availableWidth < availableHeight ? availableWidth : availableHeight) / _gridSize;
+                                    
+                                    return CustomPaint(
+                                      painter: SnakePainter(
+                                        snakeSegments: _snakeSegments,
+                                        foodPosition: _foodPosition,
+                                        cellSize: _cellSize,
+                                        enemySnakes: _enemySnakes,
+                                        enemyColors: _enemyColors,
+                                        gridSize: _gridSize,
+                                      ),
+                                      child: Container(),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                            child: Container(),
-                          ),
+
+                            // Controles de toque
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                children: [
+                                  // Botão cima
+                                  IconButton(
+                                    onPressed: _moveUp,
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_up,
+                                      color: AppTheme.primaryColor,
+                                      size: 32,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  
+                                  // Linha com esquerda, centro (vazio), direita
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                        onPressed: _moveLeft,
+                                        icon: Icon(
+                                          Icons.keyboard_arrow_left,
+                                          color: AppTheme.primaryColor,
+                                          size: 32,
+                                        ),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 40), // Espaço vazio no centro
+                                      IconButton(
+                                        onPressed: _moveRight,
+                                        icon: Icon(
+                                          Icons.keyboard_arrow_right,
+                                          color: AppTheme.primaryColor,
+                                          size: 32,
+                                        ),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  
+                                  // Botão baixo
+                                  IconButton(
+                                    onPressed: _moveDown,
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: AppTheme.primaryColor,
+                                      size: 32,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
@@ -1602,11 +1803,17 @@ class SnakePainter extends CustomPainter {
   final List<Offset> snakeSegments;
   final Offset foodPosition;
   final double cellSize;
+  final List<List<Offset>> enemySnakes;
+  final List<Color> enemyColors;
+  final int gridSize;
 
   SnakePainter({
     required this.snakeSegments,
     required this.foodPosition,
     required this.cellSize,
+    required this.enemySnakes,
+    required this.enemyColors,
+    required this.gridSize,
   });
 
   @override
@@ -1615,8 +1822,8 @@ class SnakePainter extends CustomPainter {
 
     // Desenhar grade de fundo
     paint.color = Colors.grey.withValues(alpha: 0.1);
-    for (int i = 0; i < 20; i++) {
-      for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < gridSize; i++) {
+      for (int j = 0; j < gridSize; j++) {
         canvas.drawRect(
           Rect.fromLTWH(i * cellSize, j * cellSize, cellSize, cellSize),
           paint,
@@ -1624,7 +1831,40 @@ class SnakePainter extends CustomPainter {
       }
     }
 
-    // Desenhar cobra
+    // Desenhar inimigos primeiro (atrás da cobra principal)
+    for (int enemyIndex = 0; enemyIndex < enemySnakes.length; enemyIndex++) {
+      if (enemyIndex < enemyColors.length) {
+        paint.color = enemyColors[enemyIndex];
+        for (final segment in enemySnakes[enemyIndex]) {
+          canvas.drawRect(
+            Rect.fromLTWH(
+              segment.dx * cellSize,
+              segment.dy * cellSize,
+              cellSize - 1,
+              cellSize - 1,
+            ),
+            paint,
+          );
+        }
+
+        // Desenhar cabeça do inimigo (mais clara)
+        if (enemySnakes[enemyIndex].isNotEmpty) {
+          paint.color = enemyColors[enemyIndex].withValues(alpha: 0.7);
+          final head = enemySnakes[enemyIndex].first;
+          canvas.drawRect(
+            Rect.fromLTWH(
+              head.dx * cellSize,
+              head.dy * cellSize,
+              cellSize - 1,
+              cellSize - 1,
+            ),
+            paint,
+          );
+        }
+      }
+    }
+
+    // Desenhar cobra principal
     paint.color = Colors.green;
     for (final segment in snakeSegments) {
       canvas.drawRect(
@@ -1638,7 +1878,7 @@ class SnakePainter extends CustomPainter {
       );
     }
 
-    // Desenhar cabeça da cobra (diferente)
+    // Desenhar cabeça da cobra principal (diferente)
     if (snakeSegments.isNotEmpty) {
       paint.color = Colors.greenAccent;
       final head = snakeSegments.first;

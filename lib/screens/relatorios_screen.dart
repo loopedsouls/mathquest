@@ -10,7 +10,7 @@ class RelatoriosScreen extends StatefulWidget {
 }
 
 class _RelatoriosScreenState extends State<RelatoriosScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   Map<String, dynamic> _dadosProgresso = {};
   List<Conquista> _conquistas = [];
 

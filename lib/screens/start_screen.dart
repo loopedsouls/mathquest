@@ -7,7 +7,7 @@ import 'configuracao_screen.dart';
 import 'quiz_alternado_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
-import 'relatorios_screen.dart';
+import 'dashboard_screen.dart';
 import 'chat_screen.dart';
 
 class NavigationItem {
@@ -246,7 +246,7 @@ class _StartScreenState extends State<StartScreen>
   void _goToRelatorios() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const RelatoriosScreen(),
+        builder: (context) => const DashboardScreen(),
       ),
     );
   }
@@ -260,7 +260,7 @@ class _StartScreenState extends State<StartScreen>
   Widget _getCurrentScreen(bool isTablet, bool isDesktop) {
     switch (_selectedIndex) {
       case 0:
-        return const RelatoriosScreen();
+        return const DashboardScreen();
       case 1:
         return ModulosScreen(
           isOfflineMode: _isOfflineMode,

@@ -760,10 +760,7 @@ Use emojis e formatação Markdown.
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
 
-      // Adicionar botões de ação se for módulo
-      if (widget.mode == ChatMode.module) {
-        _adicionarBotoesAcao();
-      }
+      // Adicionar botões de ação se for módulo - REMOVIDO
     } catch (e) {
       String fallbackMessage;
       if (widget.mode == ChatMode.module) {
@@ -801,9 +798,7 @@ Escolha uma das opções abaixo para continuar seus estudos!
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
 
-      if (widget.mode == ChatMode.module) {
-        _adicionarBotoesAcao();
-      }
+      // Adicionar botões de ação se for módulo - REMOVIDO
     }
   }
 
@@ -829,55 +824,7 @@ Escolha uma das opções abaixo para continuar seus estudos!
     }
   }
 
-  // Método para adicionar botões de ação após a mensagem de boas-vindas
-  void _adicionarBotoesAcao() {
-    final botaoAula = widget.progresso != null && widget.modulo != null
-        ? widget.progresso!.obterProximaAula(
-            widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar)
-        : 1;
-
-    final buttons = [
-      ChatButton(
-        text: 'Quiz do Conteúdo',
-        action: 'quiz',
-        icon: '🧩',
-        description: 'Teste seus conhecimentos com perguntas sobre o módulo',
-      ),
-      ChatButton(
-        text: 'Aula $botaoAula',
-        action: 'aula_$botaoAula',
-        icon: '📖',
-        description: botaoAula == 1
-            ? 'Comece sua primeira aula'
-            : 'Continue com a próxima aula',
-      ),
-      ChatButton(
-        text: 'Curiosidades do Assunto',
-        action: 'curiosidades',
-        icon: '🔍',
-        description: 'Descubra fatos interessantes e aplicações práticas',
-      ),
-    ];
-
-    const mensagemComBotoes = '''
-## 🎯 **Escolha uma opção para continuar:**
-
-Use os botões abaixo para navegar pelo módulo:
-''';
-
-    // Adiciona mensagem com botões clicáveis
-    setState(() {
-      _messages.add(ChatMessage(
-        text: mensagemComBotoes,
-        isUser: false,
-        timestamp: DateTime.now(),
-        aiProvider: 'system',
-        buttons: buttons,
-      ));
-    });
-  }
-
-  // Método para detectar se o texto é um clique em botão
+  // Método para detectar se o texto é um clique em botão - REMOVIDO
   bool _detectarCliqueBotao(String texto) {
     final textoLower = texto.toLowerCase();
     return textoLower.contains('quiz do conteúdo') ||
@@ -886,7 +833,7 @@ Use os botões abaixo para navegar pelo módulo:
         textoLower.contains('revisar módulo');
   }
 
-  // Método para detectar e processar cliques nos botões
+  // Método para detectar e processar cliques nos botões - REMOVIDO
   Future<void> _processarCliqueBotao(String texto) async {
     String prompt = '';
 

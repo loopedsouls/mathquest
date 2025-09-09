@@ -38,6 +38,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   bool _perguntaDoCache = false;
   final TextEditingController _respostaController = TextEditingController();
 
+  // Fila de perguntas pré-carregadas
+  final List<Map<String, dynamic>> _perguntasPreCarregadas = [];
+  bool _preCarregamentoAtivo = false;
+
   // Tipos de quiz disponíveis - ciclo através deles para garantir todos os tipos
   final List<String> _tiposQuiz = [
     'multipla_escolha',
@@ -150,6 +154,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     tutorService = MathTutorService(aiService: aiService);
+
+    // Limpa fila de perguntas pré-carregadas
+    _perguntasPreCarregadas.clear();
+    _preCarregamentoAtivo = false;
+
     await _gerarPergunta();
   }
 
@@ -175,13 +184,26 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     try {
-      // Escolhe tipo em ciclo para garantir todos os tipos
+      // Primeiro, verifica se há perguntas pré-carregadas disponíveis
+      if (_perguntasPreCarregadas.isNotEmpty) {
+        debugPrint(
+            'Usando pergunta pré-carregada. Restam: ${_perguntasPreCarregadas.length - 1}');
+        final perguntaPreCarregada = _perguntasPreCarregadas.removeAt(0);
+        _processarPerguntaPreCarregada(perguntaPreCarregada);
+
+        // Inicia pré-carregamento da próxima pergunta em background se necessário
+        if (_perguntasPreCarregadas.length < 2 && !_preCarregamentoAtivo) {
+          _iniciarPreCarregamento();
+        }
+        return;
+      }
+
+      // Se não há perguntas pré-carregadas, gera normalmente
       tipoAtual = _getTipoAtual();
 
-      debugPrint('Gerando pergunta tipo: $tipoAtual');
+      debugPrint('Gerando primeira pergunta tipo: $tipoAtual');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
-      // Sempre tenta gerar com IA via QuizHelperService
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
@@ -190,10 +212,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       );
 
       if (pergunta != null) {
-        debugPrint('Pergunta obtida da IA: ${pergunta['pergunta']}');
+        debugPrint('Primeira pergunta obtida da IA: ${pergunta['pergunta']}');
         _processarPerguntaCache(pergunta);
+
+        // Após gerar a primeira pergunta, inicia o pré-carregamento das próximas
+        _iniciarPreCarregamento();
       } else {
-        // Sem fallback offline, mostra erro se IA falhar
         _showErrorDialog(
             'Falha ao gerar pergunta com IA. Verifique sua conexão ou configuração.');
         if (mounted) {
@@ -236,6 +260,68 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     debugPrint('Pergunta processada. Do cache: $_perguntaDoCache');
     debugPrint('Conteúdo: ${pergunta['pergunta']}');
+  }
+
+  void _processarPerguntaPreCarregada(Map<String, dynamic> pergunta) {
+    if (mounted) {
+      setState(() {
+        perguntaAtual = pergunta;
+        tipoAtual = pergunta['tipo'] ?? 'multipla_escolha';
+        _perguntaDoCache = pergunta['fonte_ia'] == null;
+        carregando = false;
+      });
+    }
+
+    debugPrint('Pergunta pré-carregada processada. Tipo: $tipoAtual');
+    debugPrint('Conteúdo: ${pergunta['pergunta']}');
+
+    _animationController.reset();
+    _animationController.forward();
+    _cardAnimationController.reset();
+    _cardAnimationController.forward();
+  }
+
+  void _iniciarPreCarregamento() {
+    if (_preCarregamentoAtivo || perguntaIndex >= totalPerguntas - 1) {
+      return;
+    }
+
+    _preCarregamentoAtivo = true;
+    debugPrint('Iniciando pré-carregamento de perguntas...');
+
+    // Pré-carrega até 3 perguntas em background
+    final perguntasParaCarregar = totalPerguntas - perguntaIndex - 1;
+    final limite = perguntasParaCarregar > 3 ? 3 : perguntasParaCarregar;
+
+    for (int i = 0; i < limite; i++) {
+      _preCarregarPergunta();
+    }
+  }
+
+  Future<void> _preCarregarPergunta() async {
+    try {
+      final tipo = _getTipoAtual();
+      debugPrint('Pré-carregando pergunta tipo: $tipo');
+
+      final pergunta = await QuizHelperService.gerarPerguntaInteligente(
+        unidade: topico,
+        ano: ano,
+        tipoQuiz: tipo,
+        dificuldade: dificuldade,
+      );
+
+      if (pergunta != null && mounted) {
+        // Adiciona tipo à pergunta para uso posterior
+        pergunta['tipo'] = tipo;
+        _perguntasPreCarregadas.add(pergunta);
+        debugPrint(
+            'Pergunta pré-carregada adicionada. Total na fila: ${_perguntasPreCarregadas.length}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao pré-carregar pergunta: $e');
+    } finally {
+      _preCarregamentoAtivo = false;
+    }
   }
 
   Widget _buildMultiplaEscolha() {
@@ -385,7 +471,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       });
     }
 
-    // Próxima pergunta
+    // Próxima pergunta - será instantânea se houver pré-carregada
     await _gerarPergunta();
   }
 
@@ -424,6 +510,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   void _finalizarQuiz() {
+    // Limpa fila de perguntas pré-carregadas
+    _perguntasPreCarregadas.clear();
+    _preCarregamentoAtivo = false;
+
     if (mounted) {
       setState(() {
         quizFinalizado = true;
@@ -466,10 +556,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     String progresso = 'Pergunta ${perguntaIndex + 1}/$totalPerguntas';
     String nivel = 'Tipo: ${_getTipoTitulo(tipoAtual)}';
 
+    // Adiciona indicador de perguntas pré-carregadas
+    String preCarregadas = '';
+    if (_perguntasPreCarregadas.isNotEmpty) {
+      preCarregadas = ' • ${_perguntasPreCarregadas.length} prontas';
+    }
+
     if (_useGemini) {
-      return '$progresso • $nivel • IA: Gemini';
+      return '$progresso • $nivel • IA: Gemini$preCarregadas';
     } else {
-      return '$progresso • $nivel • IA: Ollama ($_modeloOllama)';
+      return '$progresso • $nivel • IA: Ollama ($_modeloOllama)$preCarregadas';
     }
   }
 
@@ -485,7 +581,42 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
           isActive: true,
         ),
         const SizedBox(height: 4),
-        if (_perguntaDoCache) ...[
+        // Indicador de perguntas pré-carregadas
+        if (_perguntasPreCarregadas.isNotEmpty) ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 12 : 8,
+              vertical: isTablet ? 6 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.successColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+              border: Border.all(
+                color: AppTheme.successColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.flash_on,
+                  size: isTablet ? 14 : 12,
+                  color: AppTheme.successColor,
+                ),
+                SizedBox(width: isTablet ? 6 : 4),
+                Text(
+                  '${_perguntasPreCarregadas.length} prontas',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.successColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isTablet ? 12 : 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else if (_perguntaDoCache) ...[
           Container(
             padding: EdgeInsets.symmetric(
               horizontal: isTablet ? 12 : 8,

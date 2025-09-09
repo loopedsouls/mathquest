@@ -10,7 +10,7 @@ import '../screens/chat_screen.dart';
 // Configuração para o programador - definir como false na produção
 // ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão
 // Definir como 'true' apenas durante desenvolvimento/testes
-const bool debugUnlockAllModules = true;
+const bool debugUnlockAllModules = false;
 
 class ModulosScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -162,7 +162,17 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildUnidadesSeletor() {
-    final cursos = Matematica.cursos.keys.toList();
+    List<String> cursos = Matematica.cursos.keys.toList();
+
+    // Ordenar: desbloqueados primeiro, depois bloqueados
+    cursos.sort((a, b) {
+      final aDesbloqueado = _cursoEstaDesbloqueado(a);
+      final bDesbloqueado = _cursoEstaDesbloqueado(b);
+
+      if (aDesbloqueado && !bDesbloqueado) return -1;
+      if (!aDesbloqueado && bDesbloqueado) return 1;
+      return 0; // mantém ordem original se ambos têm mesmo status
+    });
 
     return Container(
       height: 60,
@@ -288,73 +298,184 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildModulosGrid() {
-    final assuntos = Matematica.cursos[_cursoSelecionado]?.keys.toList() ?? [];
+    final todosAssuntos =
+        Matematica.cursos[_cursoSelecionado]?.keys.toList() ?? [];
+
+    // Separar assuntos em disponíveis e bloqueados
+    final assuntosDisponiveis = <String>[];
+    final assuntosBloqueados = <String>[];
+
+    for (final assunto in todosAssuntos) {
+      final modulo = _mapearAssuntoParaModulo(assunto);
+      if (modulo != null && _progresso != null) {
+        final preRequisitosAtendidos = _verificarPreRequisitos(modulo);
+        final isDesbloqueado = _progresso!.moduloDesbloqueado(
+                modulo.unidadeTematica, modulo.anoEscolar) &&
+            preRequisitosAtendidos;
+
+        if (isDesbloqueado) {
+          assuntosDisponiveis.add(assunto);
+        } else {
+          assuntosBloqueados.add(assunto);
+        }
+      } else {
+        // Se não encontrou módulo ou não tem progresso, considera como bloqueado
+        assuntosBloqueados.add(assunto);
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.separated(
-        itemCount: assuntos.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final assunto = assuntos[index];
-          return _buildAssuntoCard(assunto);
-        },
+      child: ListView(
+        children: [
+          // Seção de Disponíveis
+          if (assuntosDisponiveis.isNotEmpty) ...[
+            _buildSecaoHeader('Disponíveis', Icons.play_circle_rounded,
+                AppTheme.primaryColor),
+            const SizedBox(height: 8),
+            ...assuntosDisponiveis.map((assunto) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildAssuntoCard(assunto),
+                )),
+          ],
+
+          // Divider entre seções
+          if (assuntosDisponiveis.isNotEmpty &&
+              assuntosBloqueados.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Container(
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    AppTheme.darkBorderColor.withValues(alpha: 0.5),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Seção de Bloqueados
+          if (assuntosBloqueados.isNotEmpty) ...[
+            _buildSecaoHeader('Bloqueados', Icons.lock_rounded,
+                AppTheme.darkTextSecondaryColor),
+            const SizedBox(height: 8),
+            ...assuntosBloqueados.map((assunto) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildAssuntoCard(assunto),
+                )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecaoHeader(String titulo, IconData icone, Color cor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            icone,
+            color: cor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            titulo,
+            style: AppTheme.headingMedium.copyWith(
+              fontSize: 16,
+              color: cor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    cor.withValues(alpha: 0.3),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAssuntoCard(String assunto) {
-    // Em modo debug, sempre criar um módulo virtual se necessário
+    // Buscar módulo relacionado ao assunto
+    final moduloMapeado = _mapearAssuntoParaModulo(assunto);
+
     ModuloBNCC? modulo;
-
-    if (debugUnlockAllModules) {
-      // Tentar mapeamento direto primeiro
-      modulo = _mapearAssuntoParaModulo(assunto);
-
-      // Se não encontrou mapeamento, criar um módulo virtual
-      modulo ??= _criarModuloVirtual(assunto);
+    if (moduloMapeado != null) {
+      modulo = moduloMapeado;
     } else {
-      // Lógica normal de produção
-      final moduloMapeado = _mapearAssuntoParaModulo(assunto);
+      // Fallback: Buscar módulos relacionados com melhor correspondência
+      final modulosRelacionados =
+          ModulosBNCCData.obterTodosModulos().where((modulo) {
+        final assuntoLower = assunto.toLowerCase();
+        final tituloLower = modulo.titulo.toLowerCase();
+        final descricaoLower = modulo.descricao.toLowerCase();
 
-      if (moduloMapeado != null) {
-        modulo = moduloMapeado;
-      } else {
-        // Fallback: Buscar módulos relacionados com melhor correspondência
-        final modulosRelacionados =
-            ModulosBNCCData.obterTodosModulos().where((modulo) {
-          final assuntoLower = assunto.toLowerCase();
-          final tituloLower = modulo.titulo.toLowerCase();
-          final descricaoLower = modulo.descricao.toLowerCase();
+        // Verificar correspondência exata primeiro
+        if (tituloLower.contains(assuntoLower) ||
+            tituloLower.contains(assuntoLower.replaceAll(' ', ''))) {
+          return true;
+        }
 
-          // Verificar correspondência exata primeiro
-          if (tituloLower.contains(assuntoLower) ||
-              tituloLower.contains(assuntoLower.replaceAll(' ', ''))) {
+        // Verificar se alguma palavra do assunto está no título
+        final palavrasAssunto = assuntoLower.split(' ');
+        for (final palavra in palavrasAssunto) {
+          if (palavra.length > 3 && tituloLower.contains(palavra)) {
             return true;
           }
+        }
 
-          // Verificar se alguma palavra do assunto está no título
-          final palavrasAssunto = assuntoLower.split(' ');
-          for (final palavra in palavrasAssunto) {
-            if (palavra.length > 3 && tituloLower.contains(palavra)) {
-              return true;
-            }
+        // Verificar na descrição
+        for (final palavra in palavrasAssunto) {
+          if (palavra.length > 3 && descricaoLower.contains(palavra)) {
+            return true;
           }
+        }
 
-          // Verificar na descrição
-          for (final palavra in palavrasAssunto) {
-            if (palavra.length > 3 && descricaoLower.contains(palavra)) {
-              return true;
-            }
-          }
+        return false;
+      }).toList();
 
-          return false;
-        }).toList();
-
-        modulo =
-            modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
-      }
+      modulo =
+          modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
     }
+
+    // Se não encontrou módulo, mostrar card simples
+    if (modulo == null) {
+      final subtemas = Matematica.cursos[_cursoSelecionado]?[assunto] ?? [];
+      final subtemasPreview = subtemas.take(3).toList();
+      final subtemasTexto = subtemasPreview.isNotEmpty
+          ? subtemasPreview.join(', ')
+          : 'Conteúdo a ser definido';
+
+      return _buildAssuntoCardSimples(assunto, subtemasTexto);
+    }
+
+    // Verificar se o usuário tem progresso carregado
+    if (_progresso == null) {
+      return _buildAssuntoCardBloqueado(assunto, 'Carregando progresso...');
+    }
+
+    // Verificar pré-requisitos do módulo
+    final preRequisitosAtendidos = _verificarPreRequisitos(modulo);
+    final isDesbloqueado = _progresso!
+            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar) &&
+        preRequisitosAtendidos;
 
     // Obter os subtópicos do assunto
     final subtemas = Matematica.cursos[_cursoSelecionado]?[assunto] ?? [];
@@ -363,17 +484,9 @@ class _ModulosScreenState extends State<ModulosScreen>
         ? subtemasPreview.join(', ')
         : 'Conteúdo a ser definido';
 
-    if (_progresso == null || modulo == null) {
-      return _buildAssuntoCardSimples(assunto, subtemasTexto);
-    }
-
-    final isCompleto = debugUnlockAllModules ||
-        (_progresso!.modulosCompletos[modulo.unidadeTematica]
-                ?[modulo.anoEscolar] ??
-            false);
-    final isDesbloqueado = debugUnlockAllModules ||
-        _progresso!
-            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
+            ?[modulo.anoEscolar] ??
+        false;
 
     return ModernCard(
       hasGlow: isDesbloqueado,
@@ -437,7 +550,9 @@ class _ModulosScreenState extends State<ModulosScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtemasTexto,
+                      isDesbloqueado
+                          ? subtemasTexto
+                          : _getMensagemBloqueio(modulo),
                       style: AppTheme.bodySmall.copyWith(
                         fontSize: 12,
                         color: AppTheme.darkTextSecondaryColor,
@@ -481,7 +596,7 @@ class _ModulosScreenState extends State<ModulosScreen>
               ] else ...[
                 const SizedBox(width: 12),
                 Icon(
-                  Icons.chevron_right_rounded,
+                  Icons.lock_rounded,
                   color: AppTheme.darkTextSecondaryColor,
                   size: 20,
                 ),
@@ -549,6 +664,109 @@ class _ModulosScreenState extends State<ModulosScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildAssuntoCardBloqueado(String assunto, String mensagem) {
+    return ModernCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.lock_rounded,
+                color: AppTheme.darkTextSecondaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    assunto,
+                    style: AppTheme.headingMedium.copyWith(
+                      fontSize: 16,
+                      color: AppTheme.darkTextSecondaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    mensagem,
+                    style: AppTheme.bodySmall.copyWith(
+                      fontSize: 12,
+                      color: AppTheme.darkTextSecondaryColor,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.lock_rounded,
+              color: AppTheme.darkTextSecondaryColor,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _verificarPreRequisitos(ModuloBNCC modulo) {
+    if (modulo.prerequisitos.isEmpty) {
+      return true; // Sem pré-requisitos
+    }
+
+    // Verificar se todos os pré-requisitos foram atendidos
+    for (final prerequisito in modulo.prerequisitos) {
+      // Aqui você pode implementar a lógica específica de pré-requisitos
+      // Por enquanto, vamos considerar que módulos básicos não têm pré-requisitos complexos
+      if (prerequisito.isNotEmpty) {
+        // Verificar se o módulo pré-requisito foi completado
+        final moduloPreReq = ModulosBNCCData.obterTodosModulos()
+            .where((m) =>
+                m.titulo.contains(prerequisito) ||
+                m.unidadeTematica.contains(prerequisito))
+            .toList();
+
+        if (moduloPreReq.isNotEmpty) {
+          final preReqCompleto =
+              _progresso?.modulosCompletos[moduloPreReq.first.unidadeTematica]
+                      ?[moduloPreReq.first.anoEscolar] ??
+                  false;
+
+          if (!preReqCompleto) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  String _getMensagemBloqueio(ModuloBNCC modulo) {
+    final anos = ['6º ano', '7º ano', '8º ano', '9º ano'];
+    final indiceAno = anos.indexOf(modulo.anoEscolar);
+
+    if (indiceAno == 0) {
+      return 'Disponível em breve';
+    }
+
+    final anoAnterior = anos[indiceAno - 1];
+    return 'Complete os módulos de $anoAnterior primeiro';
   }
 
   void _iniciarAssunto(String assunto, ModuloBNCC modulo) {
@@ -662,27 +880,28 @@ class _ModulosScreenState extends State<ModulosScreen>
     return null;
   }
 
-  ModuloBNCC _criarModuloVirtual(String assunto) {
-    // Criar um módulo virtual para assuntos sem mapeamento BNCC
-    return ModuloBNCC(
-      unidadeTematica: 'Matemática Geral',
-      subcategoria: assunto,
-      subSubcategoria: assunto,
-      anoEscolar: '6º ano', // Ano padrão
-      titulo: assunto,
-      descricao:
-          'Módulo de estudo sobre $assunto. Conteúdo abrangente e estruturado.',
-      habilidades: ['EF06MA01', 'EF06MA02'], // Habilidades genéricas
-      objetivos: [
-        'Compreender os conceitos fundamentais de $assunto',
-        'Aplicar os conhecimentos em situações práticas',
-        'Desenvolver habilidades de resolução de problemas'
-      ],
-      exerciciosNecessarios: 5,
-      taxaAcertoMinima: 0.8,
-      prerequisitos: [],
-      codigoBNCC: 'EF06MA99', // Código genérico
-    );
+  bool _cursoEstaDesbloqueado(String curso) {
+    if (_progresso == null) return false;
+
+    // Mapeamento direto: nível do usuário -> cursos disponíveis
+    final nivelUsuario = _progresso!.nivelUsuario.index;
+    final cursosPorNivel = {
+      0: ['Matemática Básica'], // Iniciante
+      1: ['Matemática Básica', 'Geometria'], // Intermediário
+      2: ['Matemática Básica', 'Geometria', 'Álgebra'], // Avançado
+      3: [
+        'Matemática Básica',
+        'Geometria',
+        'Álgebra',
+        'Trigonometria',
+        'Cálculo',
+        'Outros'
+      ], // Especialista
+    };
+
+    // Verificar se o curso está disponível para o nível atual do usuário
+    final cursosDisponiveis = cursosPorNivel[nivelUsuario] ?? [];
+    return cursosDisponiveis.contains(curso);
   }
 
   Widget _buildChatView() {

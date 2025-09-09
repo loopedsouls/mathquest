@@ -2165,9 +2165,12 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                     data: message.text,
                   ),
                   // Renderiza botões se presentes
-                  if (message.buttons != null && message.buttons!.isNotEmpty) ...[
+                  if (message.buttons != null &&
+                      message.buttons!.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    ...message.buttons!.map((button) => _buildActionButton(button, isTablet)).toList(),
+                    ...message.buttons!
+                        .map((button) => _buildActionButton(button, isTablet))
+                        .toList(),
                   ],
                 ],
               ),
@@ -2223,23 +2226,26 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                   Text(
                     button.text,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ) ?? const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ) ??
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  if (button.description != null && button.description!.isNotEmpty) ...[
+                  if (button.description != null &&
+                      button.description!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       button.description!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ) ?? TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 12,
-                      ),
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ) ??
+                          TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 12,
+                          ),
                     ),
                   ],
                 ],
@@ -2256,7 +2262,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
     );
   }
 
-  void _handleButtonAction(String action) {
+  void _handleButtonAction(String action) async {
     // Processa a ação do botão como se fosse uma mensagem do usuário
     setState(() {
       _messages.add(ChatMessage(
@@ -2265,8 +2271,8 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         timestamp: DateTime.now(),
       ));
     });
-    
-    _processarCliqueBotao(action);
+
+    await _processarCliqueBotao(action);
   }
 
   Widget _buildFilterChip(String valor, String label, bool isTablet) {

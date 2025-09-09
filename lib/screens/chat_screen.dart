@@ -663,9 +663,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       }
 
       // Envia mensagem de boas-vindas se necessário
-      if (widget.mode != ChatMode.saved &&
+      if (widget.mode == ChatMode.module && _messages.isEmpty) {
+        // Para módulos sem mensagens, sempre envia boas-vindas
+        await _sendWelcomeMessage();
+      } else if (widget.mode != ChatMode.saved &&
           widget.mode != ChatMode.module &&
           _conversaAtual == null) {
+        // Para outros modos sem conversa atual
         await _sendWelcomeMessage();
       }
     } catch (e) {
@@ -836,32 +840,43 @@ Escolha uma das opções abaixo para continuar seus estudos!
             widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar)
         : 1;
 
-    final mensagemBotoes = '''
----
+    final buttons = [
+      ChatButton(
+        text: 'Quiz do Conteúdo',
+        action: 'quiz',
+        icon: '🧩',
+        description: 'Teste seus conhecimentos com perguntas sobre o módulo',
+      ),
+      ChatButton(
+        text: 'Aula $botaoAula',
+        action: 'aula_$botaoAula',
+        icon: '📖',
+        description: botaoAula == 1
+            ? 'Comece sua primeira aula'
+            : 'Continue com a próxima aula',
+      ),
+      ChatButton(
+        text: 'Curiosidades do Assunto',
+        action: 'curiosidades',
+        icon: '🔍',
+        description: 'Descubra fatos interessantes e aplicações práticas',
+      ),
+    ];
 
+    final mensagemComBotoes = '''
 ## 🎯 **Escolha uma opção para continuar:**
 
-### 🧩 Quiz do Conteúdo
-*Teste seus conhecimentos com perguntas sobre o módulo*
-
-### 📖 Aula $botaoAula
-*${botaoAula == 1 ? 'Comece sua primeira aula' : 'Continue com a próxima aula'}*
-
-### 🔍 Curiosidades do Assunto  
-*Descubra fatos interessantes e aplicações práticas*
-
----
-
-💡 **Dica:** Clique em qualquer uma das opções acima digitando o nome (ex: "Quiz do Conteúdo")
+Use os botões abaixo para navegar pelo módulo:
 ''';
 
-    // Adiciona como uma mensagem do sistema (não aparece como usuário nem IA)
+    // Adiciona mensagem com botões clicáveis
     setState(() {
       _messages.add(ChatMessage(
-        text: mensagemBotoes,
+        text: mensagemComBotoes,
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: 'system', // Marca como mensagem do sistema
+        aiProvider: 'system',
+        buttons: buttons,
       ));
     });
   }

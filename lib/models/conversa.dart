@@ -61,12 +61,14 @@ class ChatMessage {
   final DateTime timestamp;
   final String?
       aiProvider; // 'gemini', 'ollama', ou null para mensagens do usuário
+  final List<ChatButton>? buttons; // Botões opcionais para interação
 
   ChatMessage({
     required this.text,
     required this.isUser,
     required this.timestamp,
     this.aiProvider,
+    this.buttons,
   });
 
   Map<String, dynamic> toJson() {
@@ -75,6 +77,7 @@ class ChatMessage {
       'isUser': isUser,
       'timestamp': timestamp.toIso8601String(),
       'aiProvider': aiProvider,
+      'buttons': buttons?.map((b) => b.toJson()).toList(),
     };
   }
 
@@ -84,6 +87,43 @@ class ChatMessage {
       isUser: json['isUser'],
       timestamp: DateTime.parse(json['timestamp']),
       aiProvider: json['aiProvider'],
+      buttons: json['buttons'] != null
+          ? (json['buttons'] as List)
+              .map((b) => ChatButton.fromJson(b))
+              .toList()
+          : null,
+    );
+  }
+}
+
+class ChatButton {
+  final String text;
+  final String action;
+  final String icon;
+  final String? description;
+
+  ChatButton({
+    required this.text,
+    required this.action,
+    required this.icon,
+    this.description,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'text': text,
+      'action': action,
+      'icon': icon,
+      'description': description,
+    };
+  }
+
+  factory ChatButton.fromJson(Map<String, dynamic> json) {
+    return ChatButton(
+      text: json['text'],
+      action: json['action'],
+      icon: json['icon'],
+      description: json['description'],
     );
   }
 }

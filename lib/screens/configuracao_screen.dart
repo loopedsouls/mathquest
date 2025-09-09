@@ -316,6 +316,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                           SizedBox(height: isTablet ? 30 : 20),
                         ],
 
+                        // Configuração do Flutter Gemma
+                        if (_selectedAI == 'flutter_gemma') ...[
+                          _buildFlutterGemmaConfig(isTablet),
+                          SizedBox(height: isTablet ? 30 : 20),
+                        ],
+
                         // Configurações de Precarregamento
                         _buildPreloadConfig(isTablet),
                         SizedBox(height: isTablet ? 30 : 20),
@@ -740,6 +746,129 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         '• Ollama deve estar instalado e rodando\n'
                         '• Servidor local em http://localhost:11434\n'
                         '• Modelo selecionado deve estar baixado',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlutterGemmaConfig(bool isTablet) {
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.smartphone_rounded,
+                color: AppTheme.accentColor,
+                size: isTablet ? 24 : 20,
+              ),
+              SizedBox(width: isTablet ? 12 : 8),
+              Text(
+                'Configuração do Flutter Gemma',
+                style: AppTheme.headingMedium.copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 20 : 16),
+          Container(
+            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            decoration: BoxDecoration(
+              color: AppTheme.infoColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              border: Border.all(
+                color: AppTheme.infoColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppTheme.infoColor,
+                  size: isTablet ? 20 : 18,
+                ),
+                SizedBox(width: isTablet ? 12 : 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'IA Local no Android',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.infoColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 8 : 4),
+                      Text(
+                        '• Executa diretamente no dispositivo Android\n'
+                        '• Não requer conexão com internet após configuração\n'
+                        '• Melhor privacidade e segurança dos dados\n'
+                        '• Recomendado modelo: Gemma 3 1B para melhor performance\n'
+                        '• Funciona apenas em dispositivos Android',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: isTablet ? 16 : 12),
+          Container(
+            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            decoration: BoxDecoration(
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              border: Border.all(
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  color: AppTheme.warningColor,
+                  size: isTablet ? 20 : 18,
+                ),
+                SizedBox(width: isTablet ? 12 : 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Configuração Necessária:',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.warningColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 8 : 4),
+                      Text(
+                        '• Baixar modelo Gemma do HuggingFace ou Kaggle\n'
+                        '• Carregar modelo no app via assets ou rede\n'
+                        '• Requer Android com pelo menos 4GB RAM\n'
+                        '• Primeira configuração pode demorar alguns minutos',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,

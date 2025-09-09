@@ -396,10 +396,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         final perguntaPreCarregada = _perguntasPreCarregadas.removeAt(0);
         _processarPerguntaPreCarregada(perguntaPreCarregada);
 
-        // Inicia pré-carregamento da próxima pergunta em background se necessário
-        if (_perguntasPreCarregadas.length < 2 && !_preCarregamentoAtivo) {
-          _iniciarPreCarregamento();
-        }
+        // Não precisa mais iniciar pré-carregamento - todas as perguntas já foram geradas no início
         return;
       }
 
@@ -423,8 +420,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         // Diminuir cobra quando gerar primeira pergunta
         _diminuirCobra();
 
-        // Após gerar a primeira pergunta, inicia o pré-carregamento das próximas
-        _iniciarPreCarregamento();
+        // Todas as perguntas já foram pré-carregadas no início, não precisa mais
       } else {
         _showErrorDialog(
             'Falha ao gerar pergunta com IA. Verifique sua conexão ou configuração.');
@@ -495,15 +491,27 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     _preCarregamentoAtivo = true;
-    debugPrint('Iniciando pré-carregamento de perguntas...');
+    debugPrint('Iniciando pré-carregamento de TODAS as perguntas restantes...');
 
-    // Pré-carrega até 3 perguntas em background
+    // Pré-carrega TODAS as perguntas restantes de uma vez
     final perguntasParaCarregar = totalPerguntas - perguntaIndex - 1;
-    final limite = perguntasParaCarregar > 3 ? 3 : perguntasParaCarregar;
 
-    for (int i = 0; i < limite; i++) {
-      _preCarregarPergunta();
+    debugPrint('Gerando $perguntasParaCarregar perguntas de uma vez...');
+
+    // Usar Future.wait para gerar todas as perguntas em paralelo
+    final futures = <Future>[];
+    for (int i = 0; i < perguntasParaCarregar; i++) {
+      futures.add(_preCarregarPergunta());
     }
+
+    // Aguardar todas as perguntas serem geradas
+    Future.wait(futures).then((_) {
+      debugPrint('Todas as perguntas foram pré-carregadas! Total: ${_perguntasPreCarregadas.length}');
+      _preCarregamentoAtivo = false;
+    }).catchError((error) {
+      debugPrint('Erro ao pré-carregar perguntas: $error');
+      _preCarregamentoAtivo = false;
+    });
   }
 
   Future<void> _preCarregarPergunta() async {
@@ -530,9 +538,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       }
     } catch (e) {
       debugPrint('Erro ao pré-carregar pergunta: $e');
-    } finally {
-      _preCarregamentoAtivo = false;
     }
+    // Removido: _preCarregamentoAtivo = false; - será feito na função chamadora
   }
 
   Widget _buildMultiplaEscolha() {
@@ -1182,12 +1189,30 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _iniciarCarregamentoPerguntas();
   }
 
+  Future<void> _gerarTodasPerguntas() async {
+    debugPrint('Gerando TODAS as 10 perguntas de uma vez...');
+
+    final futures = <Future>[];
+    for (int i = 0; i < totalPerguntas; i++) {
+      futures.add(_preCarregarPergunta());
+    }
+
+    await Future.wait(futures);
+    debugPrint('Todas as ${totalPerguntas} perguntas foram geradas! Total na fila: ${_perguntasPreCarregadas.length}');
+  }
+
   Future<void> _iniciarCarregamentoPerguntas() async {
     // Aguardar um pouco para mostrar a tela de carregamento
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Iniciar geração da primeira pergunta
-    await _gerarPergunta();
+    // Gerar TODAS as perguntas de uma vez
+    await _gerarTodasPerguntas();
+
+    // Usar a primeira pergunta da fila
+    if (_perguntasPreCarregadas.isNotEmpty) {
+      final primeiraPergunta = _perguntasPreCarregadas.removeAt(0);
+      _processarPerguntaPreCarregada(primeiraPergunta);
+    }
 
     // Aguardar mais um pouco para mostrar o jogo
     await Future.delayed(const Duration(seconds: 2));

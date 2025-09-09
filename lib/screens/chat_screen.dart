@@ -463,6 +463,7 @@ class ChatScreen extends StatefulWidget {
   final bool isOfflineMode;
   final Conversa? conversaInicial;
   final String? promptPreconfigurado;
+  final VoidCallback? onBackPressed;
 
   const ChatScreen({
     super.key,
@@ -472,6 +473,7 @@ class ChatScreen extends StatefulWidget {
     this.isOfflineMode = false,
     this.conversaInicial,
     this.promptPreconfigurado,
+    this.onBackPressed,
   });
 
   @override
@@ -572,6 +574,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } else if (widget.mode == ChatMode.general) {
       // Para o modo geral, iniciar automaticamente uma nova conversa
       _novaConversa();
+    } else if (widget.mode == ChatMode.module) {
+      // Para o modo módulo, tentar carregar conversa existente ou deixar vazio
+      _carregarConversaModuloExistente();
     }
   }
 
@@ -645,7 +650,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       }
 
       // Envia mensagem de boas-vindas se necessário
-      if (widget.mode != ChatMode.saved && _conversaAtual == null) {
+      if (widget.mode != ChatMode.saved &&
+          widget.mode != ChatMode.module &&
+          _conversaAtual == null) {
         await _sendWelcomeMessage();
       }
     } catch (e) {
@@ -751,6 +758,11 @@ Use emojis e formatação Markdown.
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty || !_tutorInitialized) return;
 
+    // Se estamos no modo módulo e não há conversa atual, criar uma nova
+    if (widget.mode == ChatMode.module && _conversaAtual == null) {
+      await _criarConversaModulo();
+    }
+
     _addMessage(ChatMessage(
       text: text,
       isUser: true,
@@ -784,6 +796,15 @@ Use emojis e formatação Markdown.
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salva a conversa se existir uma
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
     } catch (e) {
       _addMessage(ChatMessage(
         text:
@@ -794,6 +815,15 @@ Use emojis e formatação Markdown.
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salva a conversa mesmo em caso de erro
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -905,6 +935,68 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     });
   }
 
+  Future<void> _carregarConversaModuloExistente() async {
+    if (widget.modulo == null) return;
+
+    try {
+      final conversas = await ConversaService.listarConversas();
+      final conversaModulo = conversas
+          .where(
+            (conversa) => conversa.id == 'module_${widget.modulo!.titulo}',
+          )
+          .toList();
+
+      if (conversaModulo.isNotEmpty) {
+        _carregarConversa(conversaModulo.first);
+      } else {
+        // Se não existe conversa, deixa vazio (sem mensagem de boas-vindas)
+        if (mounted) {
+          setState(() {
+            _contextoAtual = widget.modulo!.titulo;
+          });
+        }
+      }
+    } catch (e) {
+      // Em caso de erro, deixa vazio
+      if (mounted) {
+        setState(() {
+          _contextoAtual = widget.modulo!.titulo;
+        });
+      }
+    }
+  }
+
+  Future<void> _criarConversaModulo() async {
+    if (widget.modulo == null) return;
+
+    try {
+      final novaConversa = Conversa(
+        id: 'module_${widget.modulo!.titulo}',
+        titulo: widget.modulo!.titulo,
+        contexto: widget.modulo!.titulo,
+        mensagens: [],
+        dataCreacao: DateTime.now(),
+        ultimaAtualizacao: DateTime.now(),
+      );
+
+      await ConversaService.salvarConversa(novaConversa);
+
+      if (mounted) {
+        setState(() {
+          _conversaAtual = novaConversa;
+          _contextoAtual = widget.modulo!.titulo;
+        });
+      }
+    } catch (e) {
+      // Em caso de erro, continua sem conversa salva
+      if (mounted) {
+        setState(() {
+          _contextoAtual = widget.modulo!.titulo;
+        });
+      }
+    }
+  }
+
   void _novaConversa() {
     if (mounted) {
       setState(() {
@@ -915,7 +1007,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
       });
     }
 
-    if (_tutorInitialized) {
+    // Só envia mensagem de boas-vindas se não for modo módulo
+    if (_tutorInitialized && widget.mode != ChatMode.module) {
       _sendWelcomeMessage();
     }
   }
@@ -1327,18 +1420,32 @@ Use emojis e formatação Markdown para deixar mais atrativo!
       ),
       child: Row(
         children: [
+          // Botão de voltar apenas no modo módulo
+          if (widget.mode == ChatMode.module) ...[
+            IconButton(
+              onPressed:
+                  widget.onBackPressed ?? () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+              tooltip: 'Voltar aos módulos',
+            ),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _conversaAtual?.titulo ?? 'Nova Conversa',
+                  widget.mode == ChatMode.module && widget.modulo != null
+                      ? widget.modulo!.titulo
+                      : _conversaAtual?.titulo ?? 'Nova Conversa',
                   style: AppTheme.headingMedium.copyWith(
                     fontSize: isTablet ? 18 : 16,
                   ),
                 ),
                 Text(
-                  _contextoAtual,
+                  widget.mode == ChatMode.module && widget.modulo != null
+                      ? '${widget.modulo!.anoEscolar} - ${widget.modulo!.unidadeTematica}'
+                      : _contextoAtual,
                   style: AppTheme.bodySmall.copyWith(
                     color: AppTheme.darkTextSecondaryColor,
                   ),
@@ -1347,16 +1454,18 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             ),
           ),
           const QueueStatusIndicator(),
-          IconButton(
-            onPressed: () => _mostrarConversasSalvasDialog(),
-            icon: const Icon(Icons.history_rounded),
-            tooltip: 'Ver conversas salvas',
-          ),
-          IconButton(
-            onPressed: _novaConversa,
-            icon: const Icon(Icons.add_rounded),
-            tooltip: 'Nova conversa',
-          ),
+          if (widget.mode != ChatMode.module) ...[
+            IconButton(
+              onPressed: () => _mostrarConversasSalvasDialog(),
+              icon: const Icon(Icons.history_rounded),
+              tooltip: 'Ver conversas salvas',
+            ),
+            IconButton(
+              onPressed: _novaConversa,
+              icon: const Icon(Icons.add_rounded),
+              tooltip: 'Nova conversa',
+            ),
+          ],
         ],
       ),
     );

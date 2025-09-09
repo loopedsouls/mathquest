@@ -33,6 +33,10 @@ class _ModulosScreenState extends State<ModulosScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  // Estado para controlar visualização
+  bool _mostrarChat = false;
+  ModuloBNCC? _moduloSelecionado;
+
   @override
   void initState() {
     super.initState();
@@ -99,10 +103,12 @@ class _ModulosScreenState extends State<ModulosScreen>
         child: SafeArea(
           child: _carregando
               ? _buildLoadingScreen()
-              : FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: _buildMobileLayout(),
-                ),
+              : _mostrarChat
+                  ? _buildChatView()
+                  : FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: _buildMobileLayout(),
+                    ),
         ),
       ),
     );
@@ -483,23 +489,33 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  void _iniciarModulo(ModuloBNCC modulo) {
-    // Criar prompt personalizado baseado no módulo
-    final prompt = _criarPromptParaModulo(modulo);
+  Widget _buildChatView() {
+    if (_moduloSelecionado == null) {
+      return _buildMobileLayout();
+    }
 
-    // Navegar para o ChatScreen com o prompt preconfigurado
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(
-          mode: ChatMode.module,
-          modulo: modulo,
-          progresso: _progresso,
-          isOfflineMode: widget.isOfflineMode,
-          promptPreconfigurado: prompt,
-        ),
-      ),
+    final prompt = _criarPromptParaModulo(_moduloSelecionado!);
+
+    return ChatScreen(
+      mode: ChatMode.module,
+      modulo: _moduloSelecionado,
+      progresso: _progresso,
+      isOfflineMode: widget.isOfflineMode,
+      promptPreconfigurado: prompt,
+      onBackPressed: () {
+        setState(() {
+          _mostrarChat = false;
+          _moduloSelecionado = null;
+        });
+      },
     );
+  }
+
+  void _iniciarModulo(ModuloBNCC modulo) {
+    setState(() {
+      _moduloSelecionado = modulo;
+      _mostrarChat = true;
+    });
   }
 
   String _criarPromptParaModulo(ModuloBNCC modulo) {

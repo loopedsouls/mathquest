@@ -13,12 +13,10 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
     with SingleTickerProviderStateMixin {
   Map<String, dynamic> _dadosProgresso = {};
   List<Conquista> _conquistas = [];
-  Map<String, dynamic> _estatisticas = {};
 
   bool _carregando = true;
   late TabController _tabController;
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -28,13 +26,6 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
     _carregarDados();
   }
 
@@ -109,17 +100,6 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
         ),
       ];
 
-      _estatisticas = {
-        'exercicios_por_semana': [15, 12, 18, 22, 16, 19, 25],
-        'topicos_progresso': {
-          'Números': 90,
-          'Operações': 75,
-          'Frações': 60,
-          'Geometria': 45,
-          'Medidas': 30,
-        },
-        'desempenho_mensal': [78, 82, 85, 88, 91, 85],
-      };
 
       setState(() => _carregando = false);
       _animationController.forward();
@@ -492,7 +472,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Progresso Geral',
               style: TextStyle(
                 fontSize: 18,
@@ -574,7 +554,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Desempenho',
               style: TextStyle(
                 fontSize: 18,

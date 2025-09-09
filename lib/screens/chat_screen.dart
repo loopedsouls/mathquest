@@ -822,11 +822,6 @@ Escolha uma das opções abaixo para continuar seus estudos!
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
       }
-
-      // Para módulos, garantir que a conversa seja salva após as boas-vindas
-      if (widget.mode == ChatMode.module && _conversaAtual == null) {
-        await _criarConversaModulo();
-      }
     }
   }
 
@@ -1088,15 +1083,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
             widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar);
         await ProgressoService.salvarProgresso(widget.progresso!);
       }
-
-      // Salva a conversa se existir uma
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } catch (e) {
       _addMessage(ChatMessage(
         text:
@@ -1107,15 +1093,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salva a conversa mesmo em caso de erro
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } finally {
       if (mounted) {
         setState(() {
@@ -1161,11 +1138,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty || !_tutorInitialized) return;
 
-    // Se estamos no modo módulo e não há conversa atual, criar uma nova
-    if (widget.mode == ChatMode.module && _conversaAtual == null) {
-      await _criarConversaModulo();
-    }
-
     // Verificar se é um clique em botão de ação no modo módulo
     if (widget.mode == ChatMode.module && _detectarCliqueBotao(text)) {
       await _processarCliqueBotao(text);
@@ -1205,15 +1177,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salva a conversa se existir uma
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } catch (e) {
       _addMessage(ChatMessage(
         text:
@@ -1224,15 +1187,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salva a conversa mesmo em caso de erro
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } finally {
       if (mounted) {
         setState(() {
@@ -1370,32 +1324,56 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
 
     try {
       final conversas = await ConversaService.listarConversas();
+      final conversaId = 'module_${widget.modulo!.titulo}';
+
+      // Debug: imprimir informações sobre as conversas encontradas
+      print('Procurando conversa com ID: $conversaId');
+      print('Total de conversas encontradas: ${conversas.length}');
+      print('IDs das conversas: ${conversas.map((c) => c.id).toList()}');
+
       final conversaModulo = conversas
           .where(
-            (conversa) => conversa.id == 'module_${widget.modulo!.titulo}',
+            (conversa) => conversa.id == conversaId,
           )
           .toList();
 
       if (conversaModulo.isNotEmpty) {
         final conversa = conversaModulo.first;
+        print(
+            'Conversa encontrada: ${conversa.id} com ${conversa.mensagens.length} mensagens');
         // Se já existe uma conversa para o módulo, carregar ela
         _carregarConversa(conversa);
       } else {
-        // Se não existe conversa, criar uma nova com boas-vindas
+        print('Nenhuma conversa encontrada para o módulo, criando nova');
+        // Se não existe conversa, aguardar inicialização do tutor e enviar boas-vindas
         if (mounted) {
           setState(() {
             _contextoAtual = widget.modulo!.titulo;
           });
         }
+
+        // Aguardar inicialização do tutor se necessário
+        if (!_tutorInitialized) {
+          print('Aguardando inicialização do tutor...');
+          await _initializeTutor();
+        }
+
         await _sendWelcomeMessage();
       }
     } catch (e) {
-      // Em caso de erro, criar conversa com boas-vindas
+      print('Erro ao carregar conversa do módulo: $e');
+      // Em caso de erro, tentar enviar boas-vindas mesmo assim
       if (mounted) {
         setState(() {
           _contextoAtual = widget.modulo!.titulo;
         });
       }
+
+      // Aguardar inicialização do tutor se necessário
+      if (!_tutorInitialized) {
+        await _initializeTutor();
+      }
+
       await _sendWelcomeMessage();
     }
   }
@@ -1404,19 +1382,27 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     if (widget.modulo == null) return;
 
     try {
+      print('Criando conversa para módulo: ${widget.modulo!.titulo}');
+      print('Mensagens atuais: ${_messages.length}');
+
       // Se já existe uma conversa atual, atualizar ela com as mensagens atuais
       if (_conversaAtual != null) {
+        print('Atualizando conversa existente: ${_conversaAtual!.id}');
         final conversaAtualizada = _conversaAtual!.copyWith(
           mensagens: List.from(_messages),
           ultimaAtualizacao: DateTime.now(),
         );
         await ConversaService.salvarConversa(conversaAtualizada);
+        print('Conversa atualizada com sucesso');
         return;
       }
 
       // Criar nova conversa com as mensagens atuais (se houver)
+      final conversaId = 'module_${widget.modulo!.titulo}';
+      print('Criando nova conversa com ID: $conversaId');
+
       final novaConversa = Conversa(
-        id: 'module_${widget.modulo!.titulo}',
+        id: conversaId,
         titulo: widget.modulo!.titulo,
         contexto: widget.modulo!.titulo,
         mensagens: List.from(_messages), // Copiar mensagens atuais
@@ -1425,6 +1411,7 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
       );
 
       await ConversaService.salvarConversa(novaConversa);
+      print('Nova conversa salva com sucesso');
 
       if (mounted) {
         setState(() {
@@ -1433,6 +1420,7 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
         });
       }
     } catch (e) {
+      print('Erro ao criar conversa do módulo: $e');
       // Em caso de erro, continua sem conversa salva
       if (mounted) {
         setState(() {

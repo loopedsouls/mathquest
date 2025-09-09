@@ -263,9 +263,20 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 768;
-    final isDesktop = screenWidth >= 1024;
+    final screenSize = MediaQuery.of(context).size;
+    final isMobile = screenSize.width < 600;
+    final isTablet = screenSize.width >= 600 && screenSize.width < 1200;
+    final isDesktop = screenSize.width >= 1200;
+
+    // Calcula padding responsivo
+    double horizontalPadding = 16;
+    if (isTablet) horizontalPadding = 32;
+    if (isDesktop) horizontalPadding = 64;
+
+    // Calcula largura máxima do conteúdo
+    double maxWidth = double.infinity;
+    if (isDesktop) maxWidth = 1000;
+    if (isTablet) maxWidth = 800;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
@@ -294,51 +305,66 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
                 // Conteúdo principal
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 80 : (isTablet ? 40 : 20),
-                    ),
-                    child: Column(
-                      children: [
-                        // Seleção de serviço
-                        _buildServiceSelector(isTablet),
-                        SizedBox(height: isTablet ? 30 : 20),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                          vertical: isMobile ? 12 : 16,
+                        ),
+                        child: Column(
+                          children: [
+                            // Seleção de serviço
+                            _buildServiceSelector(
+                                isMobile, isTablet, isDesktop),
+                            SizedBox(
+                                height: isMobile ? 16 : (isTablet ? 20 : 24)),
 
-                        // Configuração do Gemini
-                        if (_selectedAI == 'gemini') ...[
-                          _buildGeminiConfig(isTablet),
-                          SizedBox(height: isTablet ? 30 : 20),
-                        ],
+                            // Configuração do Gemini
+                            if (_selectedAI == 'gemini') ...[
+                              _buildGeminiConfig(isMobile, isTablet, isDesktop),
+                              SizedBox(
+                                  height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                            ],
 
-                        // Configuração do Ollama
-                        if (_selectedAI == 'ollama') ...[
-                          _buildOllamaConfig(isTablet),
-                          SizedBox(height: isTablet ? 30 : 20),
-                        ],
+                            // Configuração do Ollama
+                            if (_selectedAI == 'ollama') ...[
+                              _buildOllamaConfig(isMobile, isTablet, isDesktop),
+                              SizedBox(
+                                  height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                            ],
 
-                        // Configuração do Flutter Gemma
-                        if (_selectedAI == 'flutter_gemma') ...[
-                          _buildFlutterGemmaConfig(isTablet),
-                          SizedBox(height: isTablet ? 30 : 20),
-                        ],
+                            // Configuração do Flutter Gemma
+                            if (_selectedAI == 'flutter_gemma') ...[
+                              _buildFlutterGemmaConfig(
+                                  isMobile, isTablet, isDesktop),
+                              SizedBox(
+                                  height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                            ],
 
-                        // Configurações de Precarregamento
-                        _buildPreloadConfig(isTablet),
-                        SizedBox(height: isTablet ? 30 : 20),
+                            // Configurações de Precarregamento
+                            _buildPreloadConfig(isMobile, isTablet, isDesktop),
+                            SizedBox(
+                                height: isMobile ? 16 : (isTablet ? 20 : 24)),
 
-                        // Botões de ação
-                        _buildActionButtons(isTablet),
-                        SizedBox(height: isTablet ? 30 : 20),
+                            // Botões de ação
+                            _buildActionButtons(isMobile, isTablet, isDesktop),
+                            SizedBox(
+                                height: isMobile ? 16 : (isTablet ? 20 : 24)),
 
-                        // Status
-                        if (status.isNotEmpty) ...[
-                          _buildStatusCard(isTablet),
-                          SizedBox(height: isTablet ? 30 : 20),
-                        ],
+                            // Status
+                            if (status.isNotEmpty) ...[
+                              _buildStatusCard(isMobile, isTablet, isDesktop),
+                              SizedBox(
+                                  height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                            ],
 
-                        // Informações adicionais
-                        _buildInfoSection(isTablet),
-                      ],
+                            // Informações adicionais
+                            _buildInfoSection(isMobile, isTablet, isDesktop),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -350,208 +376,188 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildServiceSelector(bool isTablet) {
+  Widget _buildServiceSelector(bool isMobile, bool isTablet, bool isDesktop) {
+    // Calcula tamanhos responsivos
+    final cardPadding = isMobile ? 12.0 : (isTablet ? 16.0 : 20.0);
+    final iconSize = isMobile ? 40.0 : (isTablet ? 48.0 : 56.0);
+    final iconInternalSize = isMobile ? 20.0 : (isTablet ? 24.0 : 28.0);
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Selecionar Serviço de IA',
-            style: AppTheme.headingMedium.copyWith(
+            style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                .copyWith(
               color: AppTheme.darkTextPrimaryColor,
+              fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
             ),
           ),
-          SizedBox(height: isTablet ? 20 : 16),
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => setState(() => _selectedAI = 'gemini'),
-                      borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                      child: Container(
-                        padding: EdgeInsets.all(isTablet ? 20 : 16),
-                        decoration: BoxDecoration(
-                          color: _selectedAI == 'gemini'
-                              ? AppTheme.primaryColor.withValues(alpha: 0.2)
-                              : AppTheme.darkSurfaceColor,
-                          borderRadius:
-                              BorderRadius.circular(isTablet ? 16 : 12),
-                          border: Border.all(
-                            color: _selectedAI == 'gemini'
-                                ? AppTheme.primaryColor
-                                : AppTheme.darkBorderColor,
-                            width: _selectedAI == 'gemini' ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: isTablet ? 60 : 50,
-                              height: isTablet ? 60 : 50,
-                              decoration: BoxDecoration(
-                                color: _selectedAI == 'gemini'
-                                    ? AppTheme.primaryColor
-                                    : AppTheme.darkBorderColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.auto_awesome_rounded,
-                                color: Colors.white,
-                                size: isTablet ? 28 : 24,
-                              ),
-                            ),
-                            SizedBox(height: isTablet ? 12 : 8),
-                            Text(
-                              'Google Gemini',
-                              style: AppTheme.bodyLarge.copyWith(
-                                color: _selectedAI == 'gemini'
-                                    ? AppTheme.primaryColor
-                                    : AppTheme.darkTextPrimaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: isTablet ? 4 : 2),
-                            Text(
-                              'Serviço em nuvem',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.darkTextSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: isTablet ? 16 : 12),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        setState(() => _selectedAI = 'ollama');
-                        _fetchOllamaModels();
-                      },
-                      borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                      child: Container(
-                        padding: EdgeInsets.all(isTablet ? 20 : 16),
-                        decoration: BoxDecoration(
-                          color: _selectedAI == 'ollama'
-                              ? AppTheme.secondaryColor.withValues(alpha: 0.2)
-                              : AppTheme.darkSurfaceColor,
-                          borderRadius:
-                              BorderRadius.circular(isTablet ? 16 : 12),
-                          border: Border.all(
-                            color: _selectedAI == 'ollama'
-                                ? AppTheme.secondaryColor
-                                : AppTheme.darkBorderColor,
-                            width: _selectedAI == 'ollama' ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: isTablet ? 60 : 50,
-                              height: isTablet ? 60 : 50,
-                              decoration: BoxDecoration(
-                                color: _selectedAI == 'ollama'
-                                    ? AppTheme.secondaryColor
-                                    : AppTheme.darkBorderColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.computer_rounded,
-                                color: Colors.white,
-                                size: isTablet ? 28 : 24,
-                              ),
-                            ),
-                            SizedBox(height: isTablet ? 12 : 8),
-                            Text(
-                              'Ollama',
-                              style: AppTheme.bodyLarge.copyWith(
-                                color: _selectedAI == 'ollama'
-                                    ? AppTheme.secondaryColor
-                                    : AppTheme.darkTextPrimaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: isTablet ? 4 : 2),
-                            Text(
-                              'Execução local',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.darkTextSecondaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: isTablet ? 16 : 12),
-              InkWell(
-                onTap: () => setState(() => _selectedAI = 'flutter_gemma'),
-                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                child: Container(
-                  padding: EdgeInsets.all(isTablet ? 20 : 16),
-                  decoration: BoxDecoration(
-                    color: _selectedAI == 'flutter_gemma'
-                        ? AppTheme.accentColor.withValues(alpha: 0.2)
-                        : AppTheme.darkSurfaceColor,
-                    borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                    border: Border.all(
-                      color: _selectedAI == 'flutter_gemma'
-                          ? AppTheme.accentColor
-                          : AppTheme.darkBorderColor,
-                      width: _selectedAI == 'flutter_gemma' ? 2 : 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: isTablet ? 60 : 50,
-                        height: isTablet ? 60 : 50,
-                        decoration: BoxDecoration(
-                          color: _selectedAI == 'flutter_gemma'
-                              ? AppTheme.accentColor
-                              : AppTheme.darkBorderColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.smartphone_rounded,
-                          color: Colors.white,
-                          size: isTablet ? 28 : 24,
-                        ),
-                      ),
-                      SizedBox(height: isTablet ? 12 : 8),
-                      Text(
-                        'Flutter Gemma',
-                        style: AppTheme.bodyLarge.copyWith(
-                          color: _selectedAI == 'flutter_gemma'
-                              ? AppTheme.accentColor
-                              : AppTheme.darkTextPrimaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: isTablet ? 4 : 2),
-                      Text(
-                        'IA local no Android',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
+          SizedBox(height: spacing),
+
+          // Layout responsivo: grid para desktop, coluna para mobile
+          if (isDesktop)
+            Row(
+              children: [
+                Expanded(
+                    child: _buildServiceCard('gemini', cardPadding, iconSize,
+                        iconInternalSize, borderRadius, spacing, isMobile)),
+                SizedBox(width: spacing),
+                Expanded(
+                    child: _buildServiceCard('ollama', cardPadding, iconSize,
+                        iconInternalSize, borderRadius, spacing, isMobile)),
+                SizedBox(width: spacing),
+                Expanded(
+                    child: _buildServiceCard(
+                        'flutter_gemma',
+                        cardPadding,
+                        iconSize,
+                        iconInternalSize,
+                        borderRadius,
+                        spacing,
+                        isMobile)),
+              ],
+            )
+          else
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                        child: _buildServiceCard(
+                            'gemini',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                    SizedBox(width: spacing),
+                    Expanded(
+                        child: _buildServiceCard(
+                            'ollama',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                  ],
                 ),
-              ),
-            ],
-          ),
+                SizedBox(height: spacing),
+                _buildServiceCard('flutter_gemma', cardPadding, iconSize,
+                    iconInternalSize, borderRadius, spacing, isMobile),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildGeminiConfig(bool isTablet) {
+  Widget _buildServiceCard(
+      String serviceType,
+      double padding,
+      double iconSize,
+      double iconInternalSize,
+      double borderRadius,
+      double spacing,
+      bool isMobile) {
+    String title, subtitle;
+    IconData icon;
+    Color color;
+
+    switch (serviceType) {
+      case 'gemini':
+        title = 'Google Gemini';
+        subtitle = 'Serviço em nuvem';
+        icon = Icons.auto_awesome_rounded;
+        color = AppTheme.primaryColor;
+        break;
+      case 'ollama':
+        title = 'Ollama';
+        subtitle = 'Execução local';
+        icon = Icons.computer_rounded;
+        color = AppTheme.secondaryColor;
+        break;
+      case 'flutter_gemma':
+        title = 'Flutter Gemma';
+        subtitle = 'IA local no Android';
+        icon = Icons.smartphone_rounded;
+        color = AppTheme.accentColor;
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    final isSelected = _selectedAI == serviceType;
+
+    return InkWell(
+      onTap: () {
+        setState(() => _selectedAI = serviceType);
+        if (serviceType == 'ollama') _fetchOllamaModels();
+      },
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Container(
+        padding: EdgeInsets.all(padding),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.15)
+              : AppTheme.darkSurfaceColor,
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: Border.all(
+            color: isSelected ? color : AppTheme.darkBorderColor,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: iconSize,
+              height: iconSize,
+              decoration: BoxDecoration(
+                color: isSelected ? color : AppTheme.darkBorderColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: iconInternalSize,
+              ),
+            ),
+            SizedBox(height: spacing * 0.75),
+            Text(
+              title,
+              style: AppTheme.bodyMedium.copyWith(
+                color: isSelected ? color : AppTheme.darkTextPrimaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: isMobile ? 12 : 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: spacing * 0.25),
+            Text(
+              subtitle,
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: isMobile ? 10 : 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeminiConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,38 +567,41 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               Icon(
                 Icons.auto_awesome_rounded,
                 color: AppTheme.primaryColor,
-                size: isTablet ? 24 : 20,
+                size: iconSize,
               ),
-              SizedBox(width: isTablet ? 12 : 8),
+              SizedBox(width: spacing),
               Text(
                 'Configuração do Google Gemini',
-                style: AppTheme.headingMedium.copyWith(
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
                   color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isTablet ? 20 : 16),
+          SizedBox(height: spacing * 1.5),
           Text(
             'Chave da API',
-            style: AppTheme.bodyLarge.copyWith(
+            style: AppTheme.bodyMedium.copyWith(
               color: AppTheme.darkTextPrimaryColor,
               fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 12 : 14,
             ),
           ),
-          SizedBox(height: isTablet ? 12 : 8),
+          SizedBox(height: spacing),
           ModernTextField(
             hint: 'Digite sua chave da API do Google Gemini',
             controller: apiKeyController,
             prefixIcon: Icons.key_rounded,
             obscureText: true,
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.infoColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.infoColor.withValues(alpha: 0.3),
                 width: 1,
@@ -604,21 +613,22 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 Icon(
                   Icons.info_rounded,
                   color: AppTheme.infoColor,
-                  size: isTablet ? 20 : 18,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Como obter sua chave API:',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.infoColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 8 : 4),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         '1. Acesse https://makersuite.google.com/app/apikey\n'
                         '2. Faça login com sua conta Google\n'
@@ -627,6 +637,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -640,7 +651,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildOllamaConfig(bool isTablet) {
+  Widget _buildOllamaConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -650,31 +665,34 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               Icon(
                 Icons.computer_rounded,
                 color: AppTheme.secondaryColor,
-                size: isTablet ? 24 : 20,
+                size: iconSize,
               ),
-              SizedBox(width: isTablet ? 12 : 8),
+              SizedBox(width: spacing),
               Text(
                 'Configuração do Ollama',
-                style: AppTheme.headingMedium.copyWith(
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
                   color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isTablet ? 20 : 16),
+          SizedBox(height: spacing * 1.5),
           Text(
             'Modelo',
-            style: AppTheme.bodyLarge.copyWith(
+            style: AppTheme.bodyMedium.copyWith(
               color: AppTheme.darkTextPrimaryColor,
               fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 12 : 14,
             ),
           ),
-          SizedBox(height: isTablet ? 12 : 8),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 12),
+            padding: EdgeInsets.symmetric(horizontal: spacing),
             decoration: BoxDecoration(
               color: AppTheme.darkSurfaceColor,
-              borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+              borderRadius: BorderRadius.circular(borderRadius * 1.5),
               border: Border.all(
                 color: AppTheme.darkBorderColor,
                 width: 1.5,
@@ -686,8 +704,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     child: DropdownButton<String>(
                       value: _modeloOllama,
                       isExpanded: true,
-                      style: AppTheme.bodyLarge.copyWith(
+                      style: AppTheme.bodyMedium.copyWith(
                         color: AppTheme.darkTextPrimaryColor,
+                        fontSize: isMobile ? 12 : 14,
                       ),
                       dropdownColor: AppTheme.darkSurfaceColor,
                       icon: Icon(
@@ -697,7 +716,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       items: _ollamaModels.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              fontSize: isMobile ? 12 : 14,
+                            ),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -710,12 +734,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     ),
                   ),
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.warningColor.withValues(alpha: 0.3),
                 width: 1,
@@ -727,21 +751,22 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 Icon(
                   Icons.warning_rounded,
                   color: AppTheme.warningColor,
-                  size: isTablet ? 20 : 18,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Requisitos do Ollama:',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.warningColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 8 : 4),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         '• Ollama deve estar instalado e rodando\n'
                         '• Servidor local em http://localhost:11434\n'
@@ -749,6 +774,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -762,7 +788,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildFlutterGemmaConfig(bool isTablet) {
+  Widget _buildFlutterGemmaConfig(
+      bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,23 +803,25 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               Icon(
                 Icons.smartphone_rounded,
                 color: AppTheme.accentColor,
-                size: isTablet ? 24 : 20,
+                size: iconSize,
               ),
-              SizedBox(width: isTablet ? 12 : 8),
+              SizedBox(width: spacing),
               Text(
                 'Configuração do Flutter Gemma',
-                style: AppTheme.headingMedium.copyWith(
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
                   color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isTablet ? 20 : 16),
+          SizedBox(height: spacing * 1.5),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.infoColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.infoColor.withValues(alpha: 0.3),
                 width: 1,
@@ -800,21 +833,22 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 Icon(
                   Icons.info_outline_rounded,
                   color: AppTheme.infoColor,
-                  size: isTablet ? 20 : 18,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'IA Local no Android',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.infoColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 8 : 4),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         '• Executa diretamente no dispositivo Android\n'
                         '• Não requer conexão com internet após configuração\n'
@@ -824,6 +858,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -832,12 +867,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ],
             ),
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.warningColor.withValues(alpha: 0.3),
                 width: 1,
@@ -849,21 +884,22 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 Icon(
                   Icons.warning_rounded,
                   color: AppTheme.warningColor,
-                  size: isTablet ? 20 : 18,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Configuração Necessária:',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.warningColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 8 : 4),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         '• Baixar modelo Gemma do HuggingFace ou Kaggle\n'
                         '• Carregar modelo no app via assets ou rede\n'
@@ -872,6 +908,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -885,27 +922,33 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildPreloadConfig(bool isTablet) {
+  Widget _buildPreloadConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Precarregamento de Perguntas',
-            style: AppTheme.headingMedium.copyWith(
+            style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                .copyWith(
               color: AppTheme.darkTextPrimaryColor,
+              fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
             ),
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
 
           // Informações sobre créditos atuais
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: _currentCredits > 0
                   ? AppTheme.successColor.withValues(alpha: 0.1)
                   : AppTheme.warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: _currentCredits > 0
                     ? AppTheme.successColor.withValues(alpha: 0.3)
@@ -922,39 +965,42 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                   color: _currentCredits > 0
                       ? AppTheme.successColor
                       : AppTheme.warningColor,
-                  size: isTablet ? 24 : 20,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Perguntas Precarregadas',
-                        style: AppTheme.bodyLarge.copyWith(
+                        style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.darkTextPrimaryColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 12 : 14,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 4 : 2),
+                      SizedBox(height: spacing * 0.25),
                       Text(
                         _currentCredits > 0
                             ? '$_currentCredits pergunta${_currentCredits != 1 ? 's' : ''} disponível${_currentCredits != 1 ? 'eis' : ''}'
                             : 'Nenhuma pergunta precarregada',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: _currentCredits > 0
                               ? AppTheme.successColor
                               : AppTheme.warningColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 4 : 2),
+                      SizedBox(height: spacing * 0.25),
                       Text(
                         _currentCredits > 0
                             ? 'Cada pergunta usada é removida do cache'
                             : 'Inicie o precarregamento para criar perguntas',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -965,12 +1011,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           ),
 
           // Switch para habilitar precarregamento
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.darkSurfaceColor,
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.darkBorderColor,
               ),
@@ -983,16 +1029,18 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     children: [
                       Text(
                         'Modo Precarregamento Inteligente',
-                        style: AppTheme.bodyLarge.copyWith(
+                        style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.darkTextPrimaryColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 12 : 14,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 4 : 2),
+                      SizedBox(height: spacing * 0.25),
                       Text(
                         'Prioriza perguntas precarregadas nos quizzes',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -1014,12 +1062,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
           // Controle de quantidade (só aparece se preload estiver ativo)
           if (_preloadEnabled) ...[
-            SizedBox(height: isTablet ? 16 : 12),
+            SizedBox(height: spacing),
             Container(
-              padding: EdgeInsets.all(isTablet ? 16 : 12),
+              padding: EdgeInsets.all(spacing),
               decoration: BoxDecoration(
                 color: AppTheme.darkSurfaceColor,
-                borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
                   color: AppTheme.darkBorderColor,
                 ),
@@ -1032,21 +1080,23 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     children: [
                       Text(
                         'Quantidade de perguntas',
-                        style: AppTheme.bodyLarge.copyWith(
+                        style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.darkTextPrimaryColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 12 : 14,
                         ),
                       ),
                       Text(
                         '$_preloadQuantity',
-                        style: AppTheme.bodyLarge.copyWith(
+                        style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 12 : 14,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: isTablet ? 12 : 8),
+                  SizedBox(height: spacing * 0.75),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: AppTheme.primaryColor,
@@ -1073,6 +1123,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     'Define quantos créditos serão gerados (10-200)',
                     style: AppTheme.bodySmall.copyWith(
                       color: AppTheme.darkTextSecondaryColor,
+                      fontSize: isMobile ? 10 : 11,
                     ),
                   ),
                 ],
@@ -1082,7 +1133,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
           // Botão para iniciar precarregamento manual
           if (_preloadEnabled) ...[
-            SizedBox(height: isTablet ? 16 : 12),
+            SizedBox(height: spacing),
             SizedBox(
               width: double.infinity,
               child: ModernButton(
@@ -1096,22 +1147,23 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
           // Botão para limpar cache (só aparece se há créditos)
           if (_currentCredits > 0) ...[
-            SizedBox(height: isTablet ? 12 : 8),
+            SizedBox(height: spacing * 0.75),
             SizedBox(
               width: double.infinity,
-              height: isTablet ? 56 : 48,
+              height: isMobile ? 44 : (isTablet ? 52 : 56),
               child: ElevatedButton.icon(
                 onPressed: carregando ? null : _limparCache,
                 icon: Icon(
                   Icons.delete_sweep_rounded,
                   color: AppTheme.warningColor,
-                  size: isTablet ? 20 : 18,
+                  size: isMobile ? 16 : (isTablet ? 18 : 20),
                 ),
                 label: Text(
                   'Limpar Perguntas Precarregadas',
-                  style: AppTheme.bodyMedium.copyWith(
+                  style: AppTheme.bodySmall.copyWith(
                     color: AppTheme.warningColor,
                     fontWeight: FontWeight.w600,
+                    fontSize: isMobile ? 11 : 12,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -1123,7 +1175,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     width: 1,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                    borderRadius: BorderRadius.circular(borderRadius),
                   ),
                 ),
               ),
@@ -1131,12 +1183,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           ],
 
           // Informações sobre o precarregamento
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 12),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: AppTheme.primaryColor.withValues(alpha: 0.3),
                 width: 1,
@@ -1148,21 +1200,22 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 Icon(
                   Icons.info_outline_rounded,
                   color: AppTheme.primaryColor,
-                  size: isTablet ? 20 : 18,
+                  size: iconSize,
                 ),
-                SizedBox(width: isTablet ? 12 : 8),
+                SizedBox(width: spacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Sistema de Créditos:',
-                        style: AppTheme.bodyMedium.copyWith(
+                        style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 8 : 4),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         '• 1 pergunta precarregada = 1 crédito\n'
                         '• Cada pergunta usada é removida do cache\n'
@@ -1173,6 +1226,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
                         ),
                       ),
                     ],
@@ -1212,7 +1266,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildActionButtons(bool isTablet) {
+  Widget _buildActionButtons(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+
     return Row(
       children: [
         Expanded(
@@ -1223,7 +1279,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             isPrimary: true,
           ),
         ),
-        SizedBox(width: isTablet ? 16 : 12),
+        SizedBox(width: spacing),
         Expanded(
           child: ModernButton(
             text: 'Testar Conexão',
@@ -1237,7 +1293,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildStatusCard(bool isTablet) {
+  Widget _buildStatusCard(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+
     final isSuccess = status.contains('✅');
     final isError = status.contains('❌');
 
@@ -1255,15 +1314,16 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     ? Icons.error_rounded
                     : Icons.info_rounded,
             color: statusColor,
-            size: isTablet ? 24 : 20,
+            size: iconSize,
           ),
-          SizedBox(width: isTablet ? 16 : 12),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               status,
-              style: AppTheme.bodyLarge.copyWith(
+              style: AppTheme.bodyMedium.copyWith(
                 color: statusColor,
                 fontWeight: FontWeight.w600,
+                fontSize: isMobile ? 12 : 14,
               ),
             ),
           ),
@@ -1272,7 +1332,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  Widget _buildInfoSection(bool isTablet) {
+  Widget _buildInfoSection(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : 24.0);
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1282,51 +1345,63 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               Icon(
                 Icons.help_rounded,
                 color: AppTheme.primaryColor,
-                size: isTablet ? 24 : 20,
+                size: iconSize,
               ),
-              SizedBox(width: isTablet ? 12 : 8),
+              SizedBox(width: spacing),
               Text(
                 'Informações Importantes',
-                style: AppTheme.headingMedium.copyWith(
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
                   color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isTablet ? 20 : 16),
+          SizedBox(height: spacing * 1.5),
           _buildInfoItem(
             'Privacidade',
             'Suas chaves de API são armazenadas localmente no dispositivo',
             Icons.security_rounded,
+            isMobile,
             isTablet,
+            isDesktop,
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           _buildInfoItem(
             'Modo Offline',
             'Se nenhum serviço estiver disponível, o app funcionará offline',
             Icons.offline_bolt_rounded,
+            isMobile,
             isTablet,
+            isDesktop,
           ),
-          SizedBox(height: isTablet ? 16 : 12),
+          SizedBox(height: spacing),
           _buildInfoItem(
             'Performance',
             'Gemini oferece maior precisão, Ollama oferece maior privacidade',
             Icons.speed_rounded,
+            isMobile,
             isTablet,
+            isDesktop,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoItem(
-      String title, String description, IconData icon, bool isTablet) {
+  Widget _buildInfoItem(String title, String description, IconData icon,
+      bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
+    final iconSize = isMobile ? 16.0 : (isTablet ? 18.0 : 20.0);
+    final containerSize = isMobile ? 28.0 : (isTablet ? 32.0 : 40.0);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: isTablet ? 40 : 32,
-          height: isTablet ? 40 : 32,
+          width: containerSize,
+          height: containerSize,
           decoration: BoxDecoration(
             color: AppTheme.primaryColor.withValues(alpha: 0.2),
             shape: BoxShape.circle,
@@ -1334,27 +1409,29 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           child: Icon(
             icon,
             color: AppTheme.primaryColor,
-            size: isTablet ? 20 : 16,
+            size: iconSize,
           ),
         ),
-        SizedBox(width: isTablet ? 16 : 12),
+        SizedBox(width: spacing),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: AppTheme.bodyLarge.copyWith(
+                style: AppTheme.bodyMedium.copyWith(
                   color: AppTheme.darkTextPrimaryColor,
                   fontWeight: FontWeight.w600,
+                  fontSize: isMobile ? 12 : 14,
                 ),
               ),
-              SizedBox(height: isTablet ? 4 : 2),
+              SizedBox(height: spacing * 0.25),
               Text(
                 description,
-                style: AppTheme.bodyMedium.copyWith(
+                style: AppTheme.bodySmall.copyWith(
                   color: AppTheme.darkTextSecondaryColor,
                   height: 1.4,
+                  fontSize: isMobile ? 10 : 11,
                 ),
               ),
             ],

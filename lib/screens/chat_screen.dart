@@ -30,16 +30,18 @@ class _ConversasSalvasScreenState extends State<ConversasSalvasScreen> {
   }
 
   Future<void> _carregarConversas() async {
-    setState(() => _isLoading = true);
+    if (mounted) setState(() => _isLoading = true);
 
     try {
       final conversas = await ConversaService.listarConversas();
-      setState(() {
-        _conversas = conversas;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _conversas = conversas;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -517,7 +519,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     // Listener para atualizar o estado do botão de enviar
     _textController.addListener(() {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
 
     if (widget.mode == ChatMode.sidebar ||
@@ -573,10 +577,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
       // Verifica se a configuração está completa
       if (_useGemini && (apiKey == null || apiKey.isEmpty)) {
-        setState(() {
-          _tutorInitialized = false;
-          _aiName = 'Gemini (Não configurado)';
-        });
+        if (mounted) {
+          setState(() {
+            _tutorInitialized = false;
+            _aiName = 'Gemini (Não configurado)';
+          });
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -601,19 +607,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _tutorService = MathTutorService(aiService: aiService);
       _aiQueueService.initialize(_tutorService);
 
-      setState(() {
-        _tutorInitialized = true;
-      });
+      if (mounted) {
+        setState(() {
+          _tutorInitialized = true;
+        });
+      }
 
       // Envia mensagem de boas-vindas se necessário
       if (widget.mode != ChatMode.saved && _conversaAtual == null) {
         await _sendWelcomeMessage();
       }
     } catch (e) {
-      setState(() {
-        _tutorInitialized = false;
-        _aiName = 'IA (Erro)';
-      });
+      if (mounted) {
+        setState(() {
+          _tutorInitialized = false;
+          _aiName = 'IA (Erro)';
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -718,9 +728,11 @@ Use emojis e formatação Markdown.
     ));
 
     _textController.clear();
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     _typingAnimationController.repeat();
 
     try {
@@ -753,9 +765,11 @@ Use emojis e formatação Markdown.
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       _typingAnimationController.stop();
     }
   }
@@ -801,15 +815,21 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
 
   // Métodos de conversas
   Future<void> _carregarConversas() async {
-    setState(() => _loadingConversas = true);
+    if (mounted) {
+      setState(() => _loadingConversas = true);
+    }
     try {
       final conversas = await ConversaService.listarConversas();
-      setState(() {
-        _conversas = conversas;
-        _loadingConversas = false;
-      });
+      if (mounted) {
+        setState(() {
+          _conversas = conversas;
+          _loadingConversas = false;
+        });
+      }
     } catch (e) {
-      setState(() => _loadingConversas = false);
+      if (mounted) {
+        setState(() => _loadingConversas = false);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -822,13 +842,15 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
   }
 
   Future<void> _carregarConversa(Conversa conversa) async {
-    setState(() {
-      _conversaAtual = conversa;
-      _messages.clear();
-      _messages.addAll(conversa.mensagens);
-      _tituloConversa = conversa.titulo;
-      _contextoAtual = conversa.contexto;
-    });
+    if (mounted) {
+      setState(() {
+        _conversaAtual = conversa;
+        _messages.clear();
+        _messages.addAll(conversa.mensagens);
+        _tituloConversa = conversa.titulo;
+        _contextoAtual = conversa.contexto;
+      });
+    }
 
     // Auto-scroll para a última mensagem
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -839,13 +861,15 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
   }
 
   void _novaConversa() {
-    setState(() {
-      _conversaAtual = null;
-      _messages.clear();
-      _contextoAtual = widget.modulo?.titulo ?? 'geral';
-      _tituloConversa = 'Nova Conversa';
-      _showConversationsList = false; // Garante que estamos no chat
-    });
+    if (mounted) {
+      setState(() {
+        _conversaAtual = null;
+        _messages.clear();
+        _contextoAtual = widget.modulo?.titulo ?? 'geral';
+        _tituloConversa = 'Nova Conversa';
+        _showConversationsList = false; // Garante que estamos no chat
+      });
+    }
 
     if (_tutorInitialized) {
       _sendWelcomeMessage();
@@ -853,22 +877,28 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
   }
 
   void _voltarParaConversas() {
-    setState(() {
-      _showConversationsList = true;
-    });
+    if (mounted) {
+      setState(() {
+        _showConversationsList = true;
+      });
+    }
   }
 
   void _abrirConversaNoChat(Conversa conversa) {
     _carregarConversa(conversa);
-    setState(() {
-      _showConversationsList = false;
-    });
+    if (mounted) {
+      setState(() {
+        _showConversationsList = false;
+      });
+    }
   }
 
   void _gerarQuizModulo() async {
     if (widget.modulo == null) return;
 
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
     _typingAnimationController.repeat();
 
     try {
@@ -927,7 +957,9 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
       _typingAnimationController.stop();
     }
   }

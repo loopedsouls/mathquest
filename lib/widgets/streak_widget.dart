@@ -9,11 +9,12 @@ class StreakWidget extends StatefulWidget {
   State<StreakWidget> createState() => _StreakWidgetState();
 }
 
-class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMixin {
+class _StreakWidgetState extends State<StreakWidget>
+    with TickerProviderStateMixin {
   int streakAtual = 0;
   int melhorStreak = 0;
   bool isLoading = true;
-  
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -52,13 +53,15 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
     try {
       final streak = await GamificacaoService.obterStreakAtual();
       final melhor = await GamificacaoService.obterMelhorStreak();
-      
-      setState(() {
-        streakAtual = streak;
-        melhorStreak = melhor;
-        isLoading = false;
-      });
-      
+
+      if (mounted) {
+        setState(() {
+          streakAtual = streak;
+          melhorStreak = melhor;
+          isLoading = false;
+        });
+      }
+
       // Para animação se não há streak
       if (streak == 0) {
         _pulseController.stop();
@@ -67,9 +70,11 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
         _pulseController.repeat(reverse: true);
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -115,16 +120,16 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: streakAtual > 0 
-            ? LinearGradient(
-                colors: [
-                  _getStreakColor().withValues(alpha: 0.1),
-                  _getStreakColor().withValues(alpha: 0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
+          gradient: streakAtual > 0
+              ? LinearGradient(
+                  colors: [
+                    _getStreakColor().withValues(alpha: 0.1),
+                    _getStreakColor().withValues(alpha: 0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -141,14 +146,14 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
                       color: _getStreakColor(),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: streakAtual > 0
-                        ? [
-                            BoxShadow(
-                              color: _getStreakColor().withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : null,
+                          ? [
+                              BoxShadow(
+                                color: _getStreakColor().withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : null,
                     ),
                     child: Icon(
                       _getStreakIcon(),
@@ -159,9 +164,9 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
                 );
               },
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Informações do streak
             Expanded(
               child: Column(
@@ -172,15 +177,15 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
                       Text(
                         'Sequência: ',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                              color: Colors.grey[600],
+                            ),
                       ),
                       Text(
                         '$streakAtual',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: _getStreakColor(),
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: _getStreakColor(),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       if (streakAtual > 0) ...[
                         const SizedBox(width: 4),
@@ -196,14 +201,14 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
                   Text(
                     _getStreakMessage(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _getStreakColor(),
-                      fontWeight: FontWeight.w500,
-                    ),
+                          color: _getStreakColor(),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),
             ),
-            
+
             // Melhor streak
             if (melhorStreak > 0)
               Column(
@@ -217,16 +222,16 @@ class _StreakWidgetState extends State<StreakWidget> with TickerProviderStateMix
                   Text(
                     '$melhorStreak',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.accentColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: AppTheme.accentColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
                     'Recorde',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.accentColor,
-                      fontSize: 10,
-                    ),
+                          color: AppTheme.accentColor,
+                          fontSize: 10,
+                        ),
                   ),
                 ],
               ),

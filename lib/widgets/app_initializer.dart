@@ -34,24 +34,30 @@ class _AppInitializerState extends State<AppInitializer> {
 
       // Verifica se deve fazer precarregamento
       final shouldPreload = await PreloadService.shouldPreload();
-      
-      setState(() {
-        _shouldPreload = shouldPreload;
-        _checkingPreload = false;
-      });
+
+      if (mounted) {
+        setState(() {
+          _shouldPreload = shouldPreload;
+          _checkingPreload = false;
+        });
+      }
     } catch (e) {
       // Em caso de erro, pula o precarregamento
-      setState(() {
-        _shouldPreload = false;
-        _checkingPreload = false;
-      });
+      if (mounted) {
+        setState(() {
+          _shouldPreload = false;
+          _checkingPreload = false;
+        });
+      }
     }
   }
 
   void _onPreloadComplete() {
-    setState(() {
-      _shouldPreload = false;
-    });
+    if (mounted) {
+      setState(() {
+        _shouldPreload = false;
+      });
+    }
   }
 
   @override

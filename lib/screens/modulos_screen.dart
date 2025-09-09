@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../widgets/streak_widget.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
@@ -84,10 +83,6 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 768;
-    final isDesktop = screenWidth >= 1024;
-
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
       body: Container(
@@ -106,9 +101,7 @@ class _ModulosScreenState extends State<ModulosScreen>
               ? _buildLoadingScreen()
               : FadeTransition(
                   opacity: _fadeAnimation,
-                  child: isDesktop
-                      ? _buildDesktopLayout()
-                      : _buildMobileTabletLayout(isTablet, isDesktop),
+                  child: _buildMobileLayout(),
                 ),
         ),
       ),
@@ -134,409 +127,45 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildDesktopLayout() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.02, // 2% of screen width
-        vertical: screenHeight * 0.02, // 2% of screen height
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Sidebar esquerdo - Informações e progresso
-          Expanded(
-            flex: 1,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: screenWidth * 0.35, // Max 35% of screen width
-                maxHeight: screenHeight * 0.9, // Max 90% of screen height
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(right: 16),
-                child: Column(
-                  children: [
-                    _buildDesktopHeader(),
-                    SizedBox(height: screenHeight * 0.02),
-                    _buildDesktopProgressCard(),
-                    SizedBox(height: screenHeight * 0.02),
-                    _buildDesktopStreakCard(),
-                    SizedBox(height: screenHeight * 0.02),
-                    _buildDesktopStatsCard(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          SizedBox(width: screenWidth * 0.02), // 2% spacing
-
-          // Área principal - Módulos
-          Expanded(
-            flex: 2,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: screenWidth * 0.6, // Max 60% of screen width
-                maxHeight: screenHeight * 0.9, // Max 90% of screen height
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDesktopModulesHeader(),
-                  SizedBox(height: screenHeight * 0.02),
-                  _buildDesktopUnidadesSelector(),
-                  SizedBox(height: screenHeight * 0.02),
-                  Expanded(
-                    child: _buildDesktopModulosGrid(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileTabletLayout(bool isTablet, bool isDesktop) {
+  Widget _buildMobileLayout() {
     return Column(
       children: [
-        _buildHeader(isTablet),
-        _buildProgressoGeral(isTablet),
-        Container(
-          margin: EdgeInsets.symmetric(
-            horizontal: isTablet ? 24 : 16,
-            vertical: isTablet ? 8 : 6,
-          ),
-          child: const StreakWidget(),
-        ),
-        _buildUnidadesSeletor(isTablet),
+        _buildHeader(),
+        _buildUnidadesSeletor(),
         Expanded(
-          child: _buildModulosGrid(isTablet, isDesktop),
+          child: _buildModulosGrid(),
         ),
       ],
     );
   }
 
-  Widget _buildDesktopHeader() {
+  Widget _buildDesktopLayout() {
+    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.school_rounded,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Módulos BNCC',
-                      style: AppTheme.headingLarge.copyWith(
-                        fontSize: screenWidth > 1400 ? 18 : 16,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _progresso != null
-                          ? 'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}'
-                          : 'Carregando...',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.darkTextSecondaryColor,
-                        fontSize: 12,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, size: 20),
-                tooltip: 'Voltar',
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
-                ),
-                padding: EdgeInsets.zero,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ModernButton(
-                  text: 'Dicas',
-                  onPressed: _mostrarRecomendacoes,
-                  isPrimary: false,
-                  icon: Icons.lightbulb_outline_rounded,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ModernButton(
-                  text: 'Relatório',
-                  onPressed: _mostrarRelatorioDetalhado,
-                  isPrimary: false,
-                  icon: Icons.analytics_outlined,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopProgressCard() {
-    if (_progresso == null) return const SizedBox.shrink();
-
-    final progressoGeral = _progresso!.calcularProgressoGeral();
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.trending_up_rounded,
-                color: AppTheme.primaryColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Progresso Geral',
-                  style: AppTheme.headingMedium.copyWith(
-                    fontSize: screenWidth > 1400 ? 16 : 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            height: 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.primaryColor.withValues(alpha: 0.1),
-                  AppTheme.primaryLightColor.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  right: 12,
-                  top: 8,
-                  child: Text(
-                    '${(progressoGeral * 100).round()}%',
-                    style: AppTheme.headingLarge.copyWith(
-                      fontSize: screenWidth > 1400 ? 24 : 20,
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 12,
-                  bottom: 8,
-                  right: 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Módulos Completos',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: 10,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      ModernProgressIndicator(
-                        value: progressoGeral,
-                        label: '',
-                        color: AppTheme.primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopStreakCard() {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.local_fire_department_rounded,
-                color: AppTheme.accentColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Sequência',
-                  style: AppTheme.headingMedium.copyWith(
-                    fontSize: screenWidth > 1400 ? 16 : 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const StreakWidget(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopStatsCard() {
-    if (_progresso == null) return const SizedBox.shrink();
-
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.bar_chart_rounded,
-                color: AppTheme.successColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Estatísticas',
-                  style: AppTheme.headingMedium.copyWith(
-                    fontSize: screenWidth > 1400 ? 16 : 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildDesktopStatItem(
-            '${_progresso!.totalExerciciosCorretos}',
-            'Exercícios Corretos',
-            Icons.check_circle_outline,
-            AppTheme.successColor,
-          ),
-          const SizedBox(height: 8),
-          _buildDesktopStatItem(
-            '${_progresso!.pontosPorUnidade.values.fold(0, (a, b) => a + b)}',
-            'Pontos Totais',
-            Icons.stars_rounded,
-            AppTheme.accentColor,
-          ),
-          const SizedBox(height: 8),
-          _buildDesktopStatItem(
-            '${_progresso!.modulosCompletos.values.fold(0, (map, count) => map + count.values.where((v) => v).length)}',
-            'Módulos Completos',
-            Icons.school_rounded,
-            AppTheme.primaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopStatItem(
-      String value, String label, IconData icon, Color color) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDesktopModulesHeader(),
+        SizedBox(height: screenHeight * 0.02),
+        _buildDesktopUnidadesSelector(),
+        SizedBox(height: screenHeight * 0.02),
+        Expanded(
+          child: _buildDesktopModulosGrid(),
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: screenWidth > 1400 ? 14 : 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: AppTheme.darkTextSecondaryColor,
-                    fontSize: 9,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
+    );
+  }
+
+  Widget _buildMobileTabletLayout() {
+    return Column(
+      children: [
+        _buildHeader(),
+        _buildUnidadesSeletor(),
+        Expanded(
+          child: _buildModulosGrid(),
+        ),
+      ],
     );
   }
 
@@ -552,12 +181,26 @@ class _ModulosScreenState extends State<ModulosScreen>
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            'Módulos de Estudo',
-            style: AppTheme.headingLarge.copyWith(
-              fontSize: screenWidth > 1400 ? 20 : 18,
-            ),
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Módulos de Estudos',
+                style: AppTheme.headingLarge.copyWith(
+                  fontSize: screenWidth > 1400 ? 20 : 18,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (_progresso != null)
+                Text(
+                  'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.darkTextSecondaryColor,
+                    fontSize: screenWidth > 1400 ? 14 : 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
           ),
         ),
       ],
@@ -650,11 +293,22 @@ class _ModulosScreenState extends State<ModulosScreen>
     final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Calcula largura do card baseado no número de colunas
-    final numColumns = screenWidth > 1600 ? 3 : 2;
+    // Usa toda a largura disponível para desktop
     const spacing = 16.0;
-    final availableWidth = screenWidth * 0.6 - (spacing * (numColumns + 1));
-    final cardWidth = availableWidth / numColumns;
+    final availableWidth =
+        screenWidth - (spacing * 2); // Remove apenas espaçamento lateral
+
+    // Calcula quantos cards cabem baseado na largura disponível
+    // Permite mais flexibilidade para ocupar todo o espaço
+    const minCardWidth =
+        200.0; // Largura mínima reduzida para permitir mais cards
+    final maxColumns = (availableWidth / (minCardWidth + spacing)).floor();
+    final numColumns =
+        maxColumns.clamp(1, 6); // Permite até 6 colunas para ocupar mais espaço
+
+    // Calcula a largura real dos cards dividindo igualmente o espaço disponível
+    final totalSpacing = spacing * (numColumns - 1);
+    final cardWidth = (availableWidth - totalSpacing) / numColumns;
 
     return SingleChildScrollView(
       child: LayoutBuilder(
@@ -883,160 +537,28 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildHeader(bool isTablet) {
+  Widget _buildHeader() {
     return Column(
       children: [
         ResponsiveHeader(
-          title: 'Módulos BNCC',
+          title: 'Módulos de Estudos',
           subtitle: _progresso != null
               ? 'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}'
               : 'Carregando...',
           showBackButton: true,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: _mostrarRecomendacoes,
-                icon: const Icon(Icons.lightbulb_outline_rounded),
-                tooltip: 'Recomendações',
-              ),
-              IconButton(
-                onPressed: _mostrarRelatorioDetalhado,
-                icon: const Icon(Icons.analytics_outlined),
-                tooltip: 'Relatório Detalhado',
-              ),
-            ],
-          ),
         ),
       ],
     );
   }
 
-  Widget _buildProgressoGeral(bool isTablet) {
-    if (_progresso == null) return const SizedBox.shrink();
-
-    final progressoGeral = _progresso!.calcularProgressoGeral();
-
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isTablet ? 24 : 16,
-        vertical: isTablet ? 16 : 12,
-      ),
-      child: ModernCard(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.trending_up_rounded,
-                  color: AppTheme.primaryColor,
-                  size: isTablet ? 24 : 20,
-                ),
-                SizedBox(width: isTablet ? 12 : 8),
-                Expanded(
-                  child: Text(
-                    'Progresso Geral',
-                    style: AppTheme.headingMedium.copyWith(
-                      fontSize: isTablet ? 18 : 16,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${(progressoGeral * 100).round()}%',
-                  style: AppTheme.headingLarge.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontSize: isTablet ? 20 : 18,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: isTablet ? 16 : 12),
-            ModernProgressIndicator(
-              value: progressoGeral,
-              label: 'Módulos Completos',
-              color: AppTheme.primaryColor,
-            ),
-            SizedBox(height: isTablet ? 12 : 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatChip(
-                  '${_progresso!.totalExerciciosCorretos}',
-                  'Exercícios Corretos',
-                  Icons.check_circle_outline,
-                  isTablet,
-                ),
-                _buildStatChip(
-                  '${_progresso!.pontosPorUnidade.values.fold(0, (a, b) => a + b)}',
-                  'Pontos Totais',
-                  Icons.stars_rounded,
-                  isTablet,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatChip(
-      String value, String label, IconData icon, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 16 : 12,
-        vertical: isTablet ? 8 : 6,
-      ),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: AppTheme.primaryColor,
-            size: isTablet ? 16 : 14,
-          ),
-          SizedBox(width: isTablet ? 6 : 4),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontSize: isTablet ? 14 : 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppTheme.darkTextSecondaryColor,
-                  fontSize: isTablet ? 10 : 8,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUnidadesSeletor(bool isTablet) {
+  Widget _buildUnidadesSeletor() {
     final unidades = ModulosBNCCData.obterUnidadesTematicas();
 
     return Container(
-      height: isTablet ? 60 : 50,
-      margin: EdgeInsets.symmetric(
-        horizontal: isTablet ? 24 : 16,
-        vertical: isTablet ? 12 : 8,
+      height: 50,
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -1048,19 +570,19 @@ class _ModulosScreenState extends State<ModulosScreen>
               _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
 
           return Container(
-            margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+            margin: const EdgeInsets.only(right: 8),
             child: Material(
-              borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+              borderRadius: BorderRadius.circular(12),
               color: isSelected
                   ? AppTheme.primaryColor
                   : AppTheme.darkSurfaceColor,
               child: InkWell(
-                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => setState(() => _unidadeSelecionada = unidade),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 20 : 16,
-                    vertical: isTablet ? 12 : 8,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1071,14 +593,14 @@ class _ModulosScreenState extends State<ModulosScreen>
                           color: isSelected
                               ? Colors.white
                               : AppTheme.darkTextPrimaryColor,
-                          fontSize: isTablet ? 14 : 12,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: isTablet ? 4 : 2),
+                      const SizedBox(height: 2),
                       Container(
-                        width: isTablet ? 40 : 30,
-                        height: isTablet ? 4 : 3,
+                        width: 30,
+                        height: 3,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
                           color: isSelected
@@ -1109,49 +631,30 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildModulosGrid(bool isTablet, bool isDesktop) {
+  Widget _buildModulosGrid() {
     final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 24 : 16,
-        vertical: isTablet ? 16 : 12,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
       ),
-      child: isDesktop
-          ? IntrinsicHeight(
-              child: Wrap(
-                spacing: isTablet ? 20 : 16,
-                runSpacing: isTablet ? 20 : 16,
-                children: modulos.map((modulo) {
-                  return SizedBox(
-                    width: (MediaQuery.of(context).size.width -
-                            (isTablet ? 88 : 72)) /
-                        2,
-                    child: IntrinsicHeight(
-                      child: _buildModuloCard(modulo, isTablet),
-                    ),
-                  );
-                }).toList(),
-              ),
-            )
-          : ListView.builder(
-              itemCount: modulos.length,
-              itemBuilder: (context, index) {
-                final modulo = modulos[index];
-                return Container(
-                  margin: EdgeInsets.only(bottom: isTablet ? 20 : 16),
-                  child: _buildModuloCard(modulo, isTablet),
-                );
-              },
-            ),
+      child: ListView.builder(
+        itemCount: modulos.length,
+        itemBuilder: (context, index) {
+          final modulo = modulos[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: _buildModuloCard(modulo),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildModuloCard(ModuloBNCC modulo, bool isTablet) {
+  Widget _buildModuloCard(ModuloBNCC modulo) {
     if (_progresso == null) return const SizedBox.shrink();
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= 1024;
     final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
             ?[modulo.anoEscolar] ??
         false;
@@ -1172,8 +675,8 @@ class _ModulosScreenState extends State<ModulosScreen>
           Row(
             children: [
               Container(
-                width: isTablet ? 40 : 32,
-                height: isTablet ? 40 : 32,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isCompleto
@@ -1202,10 +705,10 @@ class _ModulosScreenState extends State<ModulosScreen>
                   color: isDesbloqueado
                       ? Colors.white
                       : AppTheme.darkTextSecondaryColor,
-                  size: isTablet ? 20 : 16,
+                  size: 16,
                 ),
               ),
-              SizedBox(width: isTablet ? 12 : 8),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1213,14 +716,14 @@ class _ModulosScreenState extends State<ModulosScreen>
                     Text(
                       modulo.anoEscolar,
                       style: AppTheme.headingSmall.copyWith(
-                        fontSize: isTablet ? 16 : 14,
+                        fontSize: 14,
                         color: isDesbloqueado
                             ? AppTheme.darkTextPrimaryColor
                             : AppTheme.darkTextSecondaryColor,
                       ),
                     ),
                     if (isCompleto || exerciciosConsecutivos > 0) ...[
-                      SizedBox(height: isTablet ? 4 : 2),
+                      const SizedBox(height: 2),
                       Text(
                         isCompleto
                             ? 'Completo!'
@@ -1229,7 +732,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                           color: isCompleto
                               ? AppTheme.successColor
                               : AppTheme.darkTextSecondaryColor,
-                          fontSize: isTablet ? 12 : 10,
+                          fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1240,64 +743,35 @@ class _ModulosScreenState extends State<ModulosScreen>
             ],
           ),
 
-          SizedBox(height: isTablet ? 12 : 10),
+          const SizedBox(height: 10),
 
-          // Conteúdo que se expande no desktop/tablet com Wrap
-          isDesktop
-              ? Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        modulo.titulo,
-                        style: AppTheme.headingMedium.copyWith(
-                          fontSize: isTablet ? 16 : 14,
-                          color: isDesbloqueado
-                              ? AppTheme.darkTextPrimaryColor
-                              : AppTheme.darkTextSecondaryColor,
-                        ),
-                      ),
-                      SizedBox(height: isTablet ? 6 : 4),
-                      Expanded(
-                        child: Text(
-                          modulo.descricao,
-                          style: AppTheme.bodySmall.copyWith(
-                            fontSize: isTablet ? 12 : 11,
-                            color: AppTheme.darkTextSecondaryColor,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      modulo.titulo,
-                      style: AppTheme.headingMedium.copyWith(
-                        fontSize: isTablet ? 16 : 14,
-                        color: isDesbloqueado
-                            ? AppTheme.darkTextPrimaryColor
-                            : AppTheme.darkTextSecondaryColor,
-                      ),
-                    ),
-                    SizedBox(height: isTablet ? 6 : 4),
-                    Text(
-                      modulo.descricao,
-                      style: AppTheme.bodySmall.copyWith(
-                        fontSize: isTablet ? 12 : 11,
-                        color: AppTheme.darkTextSecondaryColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+          // Conteúdo
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                modulo.titulo,
+                style: AppTheme.headingMedium.copyWith(
+                  fontSize: 14,
+                  color: isDesbloqueado
+                      ? AppTheme.darkTextPrimaryColor
+                      : AppTheme.darkTextSecondaryColor,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                modulo.descricao,
+                style: AppTheme.bodySmall.copyWith(
+                  fontSize: 11,
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
 
-          SizedBox(height: isTablet ? 12 : 10),
+          const SizedBox(height: 10),
 
           // Progresso e botão
           if (isDesbloqueado) ...[
@@ -1308,7 +782,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                 color:
                     isCompleto ? AppTheme.successColor : AppTheme.primaryColor,
               ),
-              SizedBox(height: isTablet ? 12 : 8),
+              const SizedBox(height: 8),
             ],
             SizedBox(
               width: double.infinity,
@@ -1324,12 +798,12 @@ class _ModulosScreenState extends State<ModulosScreen>
           ] else ...[
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: isTablet ? 12 : 8,
+              padding: const EdgeInsets.symmetric(
+                vertical: 8,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.darkBorderColor.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1337,14 +811,14 @@ class _ModulosScreenState extends State<ModulosScreen>
                   Icon(
                     Icons.lock_outline_rounded,
                     color: AppTheme.darkTextSecondaryColor,
-                    size: isTablet ? 16 : 14,
+                    size: 14,
                   ),
-                  SizedBox(width: isTablet ? 8 : 6),
+                  const SizedBox(width: 6),
                   Text(
                     'Bloqueado',
                     style: TextStyle(
                       color: AppTheme.darkTextSecondaryColor,
-                      fontSize: isTablet ? 14 : 12,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1370,134 +844,5 @@ class _ModulosScreenState extends State<ModulosScreen>
         ),
       ),
     ).then((_) => _carregarProgresso()); // Recarrega progresso ao voltar
-  }
-
-  void _mostrarRecomendacoes() async {
-    final recomendacoes = await ProgressoService.obterRecomendacoes();
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          '💡 Recomendações',
-          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
-        ),
-        content: recomendacoes.isEmpty
-            ? Text(
-                'Parabéns! Você está em dia com seus estudos.',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: recomendacoes
-                    .map((rec) => ListTile(
-                          leading: Icon(
-                            rec['tipo'] == 'proximo_modulo'
-                                ? Icons.arrow_forward_rounded
-                                : Icons.refresh_rounded,
-                            color: AppTheme.primaryColor,
-                          ),
-                          title: Text(
-                            rec['titulo']!,
-                            style:
-                                TextStyle(color: AppTheme.darkTextPrimaryColor),
-                          ),
-                          subtitle: Text(
-                            rec['descricao']!,
-                            style: TextStyle(
-                                color: AppTheme.darkTextSecondaryColor),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            setState(() {
-                              _unidadeSelecionada = rec['unidade']!;
-                            });
-                          },
-                        ))
-                    .toList(),
-              ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _mostrarRelatorioDetalhado() async {
-    final relatorio = await ProgressoService.obterRelatorioGeral();
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          '📊 Relatório Detalhado',
-          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Nível: ${(relatorio['nivel_usuario'] as NivelUsuario).nome}',
-                style: TextStyle(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Progresso Geral: ${(relatorio['progresso_geral'] * 100).round()}%',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Módulos: ${relatorio['modulos_completos']}/${relatorio['total_modulos']}',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Taxa de Acerto: ${(relatorio['taxa_acerto_geral'] * 100).round()}%',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Pontos Totais: ${relatorio['pontos_total']}',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Progresso por Unidade:',
-                style: TextStyle(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...(relatorio['progresso_por_unidade'] as Map<String, double>)
-                  .entries
-                  .map((entry) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Text(
-                          '${entry.key}: ${(entry.value * 100).round()}%',
-                          style:
-                              TextStyle(color: AppTheme.darkTextSecondaryColor),
-                        ),
-                      )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
   }
 }

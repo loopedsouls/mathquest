@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/conquista.dart';
+import '../services/progresso_service.dart';
+import '../models/progresso_usuario.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -37,12 +39,15 @@ class _DashboardScreenState extends State<DashboardScreen>
     setState(() => _carregando = true);
 
     try {
+      // Carregar progresso do usuário
+      final progresso = await ProgressoService.carregarProgresso();
+
       // Simula dados de progresso
       _dadosProgresso = {
         'nivel_atual': 15,
-        'xp_total': 2340,
+        'xp_total': progresso.pontosPorUnidade.values.fold(0, (a, b) => a + b),
         'xp_proximo_nivel': 2500,
-        'exercicios_completados': 128,
+        'exercicios_completados': progresso.totalExerciciosCorretos,
         'sequencia_dias': 7,
         'tempo_estudo_total': 45, // horas
         'pontuacao_media': 85.5,
@@ -97,7 +102,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
       ];
 
-      setState(() => _carregando = false);
+      setState(() {
+        _carregando = false;
+      });
       _animationController.forward();
     } catch (e) {
       setState(() => _carregando = false);
@@ -116,15 +123,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -136,6 +134,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildProgressoGeralCard(),
                   const SizedBox(height: 24),
 
+                  // Card de Sequência
+                  _buildStreakCard(),
+                  const SizedBox(height: 24),
+
                   // Card de Conquistas
                   _buildConquistasCard(),
                   const SizedBox(height: 24),
@@ -145,10 +147,105 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(height: 24),
 
                   // Cards de funcionalidades futuras
-                  _buildFuncionalidadesFuturasCard(),
+                  _buildFuncionalidadesCard(),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildFuncionalidadesCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.rocket_launch,
+                  color: AppTheme.primaryColor,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Ferramentas',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFuncionalidadeButton(
+                    'Recomendações',
+                    'Veja sugestões personalizadas',
+                    Icons.lightbulb,
+                    _mostrarRecomendacoes,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildFuncionalidadeButton(
+                    'Relatório Detalhado',
+                    'Análise completa do progresso',
+                    Icons.analytics,
+                    _mostrarRelatorioDetalhado,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFuncionalidadeButton(
+      String titulo, String descricao, IconData icone, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+        foregroundColor: AppTheme.primaryColor,
+        elevation: 0,
+        padding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(icone, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            titulo,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            descricao,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -510,7 +607,130 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildFuncionalidadesFuturasCard() {
+  void _mostrarRecomendacoes() async {
+    final recomendacoes = await ProgressoService.obterRecomendacoes();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(
+          '💡 Recomendações',
+          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
+        ),
+        content: recomendacoes.isEmpty
+            ? Text(
+                'Parabéns! Você está em dia com seus estudos.',
+                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: recomendacoes
+                    .map((rec) => ListTile(
+                          leading: Icon(
+                            rec['tipo'] == 'proximo_modulo'
+                                ? Icons.arrow_forward_rounded
+                                : Icons.refresh_rounded,
+                            color: AppTheme.primaryColor,
+                          ),
+                          title: Text(
+                            rec['titulo']!,
+                            style:
+                                TextStyle(color: AppTheme.darkTextPrimaryColor),
+                          ),
+                          subtitle: Text(
+                            rec['descricao']!,
+                            style: TextStyle(
+                                color: AppTheme.darkTextSecondaryColor),
+                          ),
+                        ))
+                    .toList(),
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarRelatorioDetalhado() async {
+    final relatorio = await ProgressoService.obterRelatorioGeral();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(
+          '📊 Relatório Detalhado',
+          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Nível: ${(relatorio['nivel_usuario'] as NivelUsuario).nome}',
+                style: TextStyle(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Progresso Geral: ${(relatorio['progresso_geral'] * 100).round()}%',
+                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+              ),
+              Text(
+                'Módulos: ${relatorio['modulos_completos']}/${relatorio['total_modulos']}',
+                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+              ),
+              Text(
+                'Taxa de Acerto: ${(relatorio['taxa_acerto_geral'] * 100).round()}%',
+                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+              ),
+              Text(
+                'Pontos Totais: ${relatorio['pontos_total']}',
+                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Progresso por Unidade:',
+                style: TextStyle(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...(relatorio['progresso_por_unidade'] as Map<String, double>)
+                  .entries
+                  .map((entry) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          '${entry.key}: ${(entry.value * 100).round()}%',
+                          style:
+                              TextStyle(color: AppTheme.darkTextSecondaryColor),
+                        ),
+                      )),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStreakCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -524,78 +744,65 @@ class _DashboardScreenState extends State<DashboardScreen>
             Row(
               children: [
                 Icon(
-                  Icons.rocket_launch,
-                  color: AppTheme.primaryColor,
+                  Icons.local_fire_department_rounded,
+                  color: AppTheme.accentColor,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Em Breve',
+                  'Sequência de Estudo',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
+                        color: AppTheme.accentColor,
                       ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildFuncionalidadeFutura(
-                    'Histórico de Explicações',
-                    'Acompanhe todas as explicações que recebeu',
-                    Icons.history,
-                  ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.accentColor.withValues(alpha: 0.3),
+                  width: 1,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildFuncionalidadeFutura(
-                    'Análise de Pontos Fracos',
-                    'Identifique tópicos que precisam de mais atenção',
-                    Icons.trending_down,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.local_fire_department,
+                    color: AppTheme.accentColor,
+                    size: 32,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${_dadosProgresso['sequencia_dias']} dias',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.accentColor,
+                        ),
+                      ),
+                      Text(
+                        'Sequência atual',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFuncionalidadeFutura(
-      String titulo, String descricao, IconData icone) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Icon(icone, color: Colors.grey[400], size: 24),
-          const SizedBox(height: 8),
-          Text(
-            titulo,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            descricao,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[500],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../widgets/modern_components.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
 import '../services/progresso_service.dart';
+import '../screens/chat_screen.dart';
 
 // Configuração para o programador - definir como false na produção
 // ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão
@@ -29,8 +30,6 @@ class _ModulosScreenState extends State<ModulosScreen>
   ProgressoUsuario? _progresso;
   String _unidadeSelecionada = 'Números';
   bool _carregando = true;
-  bool _mostrarChat = false;
-  ModuloBNCC? _moduloSelecionado;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -100,12 +99,10 @@ class _ModulosScreenState extends State<ModulosScreen>
         child: SafeArea(
           child: _carregando
               ? _buildLoadingScreen()
-              : _mostrarChat && _moduloSelecionado != null
-                  ? _buildChatView()
-                  : FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: _buildMobileLayout(),
-                    ),
+              : FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: _buildMobileLayout(),
+                ),
         ),
       ),
     );
@@ -486,111 +483,50 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildChatView() {
-    if (_moduloSelecionado == null) return const SizedBox.shrink();
+  void _iniciarModulo(ModuloBNCC modulo) {
+    // Criar prompt personalizado baseado no módulo
+    final prompt = _criarPromptParaModulo(modulo);
 
-    return Column(
-      children: [
-        // Header do chat com botão de voltar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.darkSurfaceColor,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-            ),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: _voltarParaModulos,
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _moduloSelecionado!.titulo,
-                      style: AppTheme.headingMedium.copyWith(
-                        fontSize: 16,
-                        color: AppTheme.darkTextPrimaryColor,
-                      ),
-                    ),
-                    Text(
-                      '$_unidadeSelecionada - ${_moduloSelecionado!.anoEscolar}',
-                      style: AppTheme.bodySmall.copyWith(
-                        fontSize: 12,
-                        color: AppTheme.darkTextSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    // Navegar para o ChatScreen com o prompt preconfigurado
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          mode: ChatMode.module,
+          modulo: modulo,
+          progresso: _progresso,
+          isOfflineMode: widget.isOfflineMode,
+          promptPreconfigurado: prompt,
         ),
-
-        // Conteúdo do chat
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline,
-                  size: 64,
-                  color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Chat do Módulo',
-                  style: AppTheme.headingMedium.copyWith(
-                    fontSize: 20,
-                    color: AppTheme.darkTextPrimaryColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Aqui seria implementado o chat interativo\npara o módulo "${_moduloSelecionado!.titulo}"',
-                  textAlign: TextAlign.center,
-                  style: AppTheme.bodySmall.copyWith(
-                    fontSize: 14,
-                    color: AppTheme.darkTextSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ModernButton(
-                  text: 'Voltar aos Módulos',
-                  onPressed: _voltarParaModulos,
-                  isPrimary: true,
-                  icon: Icons.arrow_back,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  void _iniciarModulo(ModuloBNCC modulo) {
-    setState(() {
-      _moduloSelecionado = modulo;
-      _mostrarChat = true;
-    });
-  }
+  String _criarPromptParaModulo(ModuloBNCC modulo) {
+    return '''
+Você é um tutor de matemática especializado na BNCC, especificamente no módulo "${modulo.titulo}" 
+do ${modulo.anoEscolar}, unidade temática "${modulo.unidadeTematica}".
 
-  void _voltarParaModulos() {
-    setState(() {
-      _mostrarChat = false;
-      _moduloSelecionado = null;
-    });
+**Descrição do módulo:** ${modulo.descricao}
+
+**Sua função:**
+- Seja um tutor paciente e encorajador
+- Use linguagem adequada para alunos de ${modulo.anoEscolar}
+- Forneça explicações claras e exemplos práticos
+- Foque nos conceitos específicos deste módulo
+- Ajude o aluno a entender os exercícios e problemas relacionados
+
+**Instruções importantes:**
+- Sempre use formatação Markdown para organizar suas respostas
+- Use LaTeX para fórmulas matemáticas quando necessário
+- Seja específico sobre os conteúdos da BNCC para este módulo
+- Incentive o aluno com mensagens positivas
+- Adapte a complexidade das explicações ao nível do aluno
+
+**Contexto adicional:**
+- Este módulo faz parte da unidade temática: $_unidadeSelecionada
+- O aluno está estudando conteúdos de ${modulo.anoEscolar}
+- Foque em tornar o aprendizado prazeroso e acessível
+''';
   }
 }

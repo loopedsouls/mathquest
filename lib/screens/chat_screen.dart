@@ -462,6 +462,7 @@ class ChatScreen extends StatefulWidget {
   final ProgressoUsuario? progresso;
   final bool isOfflineMode;
   final Conversa? conversaInicial;
+  final String? promptPreconfigurado;
 
   const ChatScreen({
     super.key,
@@ -470,6 +471,7 @@ class ChatScreen extends StatefulWidget {
     this.progresso,
     this.isOfflineMode = false,
     this.conversaInicial,
+    this.promptPreconfigurado,
   });
 
   @override
@@ -803,10 +805,26 @@ Use emojis e formatação Markdown.
   }
 
   String _buildContextPrompt(String userMessage) {
+    // Se há um prompt preconfigurado, use-o
+    if (widget.promptPreconfigurado != null) {
+      return '''
+${widget.promptPreconfigurado}
+
+Conversa anterior:
+${_messages.where((m) => !m.isUser).take(3).map((m) => "Tutor: ${m.text}").join("\n")}
+${_messages.where((m) => m.isUser).take(3).map((m) => "Usuário: ${m.text}").join("\n")}
+
+Pergunta atual do aluno: "$userMessage"
+
+Responda de forma educativa, clara e apropriada.
+Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX.
+''';
+    }
+
     switch (widget.mode) {
       case ChatMode.module:
         return '''
-Você é um tutor de matemática especializado na BNCC, especificamente no módulo "${widget.modulo!.titulo}" 
+Você é um tutor de matemática especializado na BNCC, especificamente no módulo "${widget.modulo!.titulo}"
 do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
 
 Descrição do módulo: ${widget.modulo!.descricao}
@@ -825,7 +843,7 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
 
       default:
         return '''
-Você é um assistente de matemática educativo e amigável. 
+Você é um assistente de matemática educativo e amigável.
 
 **IMPORTANTE**: Use formatação Markdown e LaTeX para deixar suas respostas organizadas e legíveis.
 

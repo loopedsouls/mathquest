@@ -2223,25 +2223,49 @@ Use emojis e formatação Markdown para deixar mais atrativo!
   }
 
   Widget _buildTypingIndicator() {
+    final isTablet = MediaQuery.of(context).size.width >= 768;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Avatar da IA
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            width: isTablet ? 32 : 28,
+            height: isTablet ? 32 : 28,
             decoration: BoxDecoration(
-              color: AppTheme.darkSurfaceColor,
-              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+              ),
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              children: [
-                _buildAnimatedDot(0),
-                const SizedBox(width: 4),
-                _buildAnimatedDot(1),
-                const SizedBox(width: 4),
-                _buildAnimatedDot(2),
-              ],
+            child: Icon(
+              Icons.psychology_rounded,
+              color: Colors.white,
+              size: isTablet ? 16 : 14,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Bolha de mensagem com os pontos animados
+          Flexible(
+            child: Container(
+              padding: EdgeInsets.all(isTablet ? 16 : 12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurfaceColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildAnimatedDot(0),
+                  const SizedBox(width: 6),
+                  _buildAnimatedDot(1),
+                  const SizedBox(width: 6),
+                  _buildAnimatedDot(2),
+                ],
+              ),
             ),
           ),
         ],
@@ -2259,11 +2283,11 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         final opacity = (sin(phase) + 1) / 2; // Vai de 0 a 1
 
         return Container(
-          width: 8,
-          height: 8,
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             color:
-                AppTheme.primaryColor.withValues(alpha: 0.3 + (opacity * 0.7)),
+                AppTheme.primaryColor.withValues(alpha: 0.4 + (opacity * 0.6)),
             shape: BoxShape.circle,
           ),
         );

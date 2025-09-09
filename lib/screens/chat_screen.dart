@@ -493,7 +493,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
   bool _showConversationsList =
-      true; // Novo estado para controlar se mostra lista de conversas ou chat
+      false; // Novo estado para controlar se mostra lista de conversas ou chat - false para modo módulo
 
   // Configurações de IA
   bool _useGemini = true;
@@ -514,6 +514,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _aiQueueService = AIQueueService();
     _initializeTypingAnimation();
     _initializeTutor();
+
+    // Define se deve mostrar lista de conversas baseado no modo
+    _showConversationsList = widget.mode != ChatMode.module;
 
     // Listener para atualizar o estado do botão de enviar
     _textController.addListener(() {

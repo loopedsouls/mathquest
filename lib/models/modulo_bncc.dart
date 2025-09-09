@@ -73,72 +73,29 @@ class ModulosBNCCData {
     'Números': [
       ModuloBNCC(
         unidadeTematica: 'Números',
-        subcategoria: 'Números Naturais',
-        subSubcategoria: 'Conceitos fundamentais de números naturais',
+        subcategoria: 'Números Naturais e Inteiros',
+        subSubcategoria: 'Números Naturais e Inteiros',
         anoEscolar: '6º ano',
-        titulo: 'Números Naturais - Conceitos Fundamentais',
+        titulo: 'Números Naturais e Inteiros',
         descricao:
-            'Conceitos fundamentais de números naturais, propriedades e operações básicas.',
+            'Conceitos fundamentais de números naturais e inteiros, operações básicas, múltiplos, divisores, números primos e decomposição em fatores primos.',
         habilidades: [
           'EF06MA01',
           'EF06MA02',
-        ],
-        objetivos: [
-          'Compreender números naturais',
-          'Identificar propriedades dos números naturais',
-          'Realizar operações básicas'
-        ],
-        codigoBNCC: 'EF06MA',
-      ),
-      ModuloBNCC(
-        unidadeTematica: 'Números',
-        subcategoria: 'Números Naturais',
-        subSubcategoria: 'Números Inteiros',
-        anoEscolar: '6º ano',
-        titulo: 'Números Inteiros',
-        descricao: 'Introdução aos números inteiros, positivos e negativos.',
-        habilidades: [
           'EF06MA03',
-        ],
-        objetivos: [
-          'Compreender números inteiros',
-          'Representar números na reta numérica',
-          'Comparar números inteiros'
-        ],
-        codigoBNCC: 'EF06MA',
-      ),
-      ModuloBNCC(
-        unidadeTematica: 'Números',
-        subcategoria: 'Números Naturais',
-        subSubcategoria: 'Múltiplos',
-        anoEscolar: '6º ano',
-        titulo: 'Múltiplos e Divisores',
-        descricao: 'Conceito de múltiplos e divisores, MMC e MDC.',
-        habilidades: [
           'EF06MA04',
           'EF06MA05',
-        ],
-        objetivos: [
-          'Identificar múltiplos de um número',
-          'Encontrar divisores de um número',
-          'Calcular MMC e MDC'
-        ],
-        codigoBNCC: 'EF06MA',
-      ),
-      ModuloBNCC(
-        unidadeTematica: 'Números',
-        subcategoria: 'Números Naturais',
-        subSubcategoria: 'Divisores',
-        anoEscolar: '6º ano',
-        titulo: 'Divisores e Fatores',
-        descricao:
-            'Conceito de divisores, fatores primos e decomposição em fatores primos.',
-        habilidades: [
           'EF06MA06',
           'EF06MA07',
         ],
         objetivos: [
-          'Identificar divisores de um número',
+          'Compreender números naturais e inteiros',
+          'Identificar propriedades dos números naturais',
+          'Realizar operações básicas',
+          'Representar números na reta numérica',
+          'Comparar números inteiros',
+          'Identificar múltiplos e divisores de um número',
+          'Calcular MMC e MDC',
           'Reconhecer números primos',
           'Decompor números em fatores primos'
         ],

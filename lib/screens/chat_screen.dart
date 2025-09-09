@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +14,7 @@ import '../services/ia_service.dart';
 import '../services/conversa_service.dart';
 import '../services/ai_queue_service.dart';
 import '../../widgets/modern_components.dart';
+import 'package:file_picker/file_picker.dart';
 
 class ConversasSalvasScreen extends StatefulWidget {
   const ConversasSalvasScreen({super.key});
@@ -1474,30 +1477,94 @@ Use emojis e formatação Markdown para deixar mais atrativo!
     }
   }
 
-  void _adicionarArquivo() {
-    // TODO: Implementar seleção e upload de arquivos
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Funcionalidade de anexar arquivos será implementada em breve!',
-                style: TextStyle(color: Colors.white),
+  void _adicionarArquivo() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(withData: true);
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
+          SnackBar(
+            content: Text('Arquivo selecionado: ${file.name}'),
+            backgroundColor: AppTheme.primaryColor,
+          ),
+        );
+        try {
+          final file = result.files.first;
+          
+          // Verificar se os bytes estão disponíveis
+          if (file.bytes == null) {
+            ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
+              SnackBar(
+                content: Text('Erro: Não foi possível ler o arquivo ${file.name}'),
+                backgroundColor: AppTheme.errorColor,
               ),
+            );
+            return;
+          }
+          
+          // Ler o conteúdo do arquivo localmente
+          final fileBytes = file.bytes!;
+          String fileContent = '';
+          
+          // Tentar decodificar como texto se for um arquivo de texto comum
+          if (file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
+            fileContent = String.fromCharCodes(fileBytes);
+          } else if (file.name.endsWith('.pdf')) {
+            // Para PDFs, você pode usar uma biblioteca como pdf_text ou similar para extrair texto
+            // Por enquanto, apenas indicar que é um PDF
+            fileContent = '[Conteúdo do PDF: ${file.name}] - Extração de texto não implementada localmente';
+          } else if (file.name.endsWith('.png') || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg')) {
+            // Para imagens, codificar em base64 para enviar à IA
+            fileContent = 'data:image/${file.name.split('.').last};base64,${base64Encode(fileBytes)}';
+          } else {
+            fileContent = '[Arquivo binário: ${file.name}] - Tipo não suportado para processamento local';
+          }
+          
+          // Adicionar mensagem no chat sobre o arquivo
+          _addMessage(ChatMessage(
+            text: 'Arquivo anexado: ${file.name}\nConteúdo: $fileContent',
+            isUser: true,
+            timestamp: DateTime.now(),
+          ));
+          
+          // Enviar para a IA processar o conteúdo do arquivo
+          if (_tutorInitialized) {
+            final promptComArquivo = '''
+      Você recebeu um arquivo anexado pelo usuário. Aqui está o conteúdo:
+
+      $fileContent
+
+      Analise este conteúdo e forneça uma resposta útil relacionada ao contexto de matemática e educação.
+      Se for uma imagem, descreva o que vê e como se relaciona com matemática.
+      Se for texto, resuma ou explique o conteúdo.
+      ''';
+            
+            await _sendMessage(promptComArquivo);
+          }
+          
+          ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
+            SnackBar(
+              content: Text('Arquivo "${file.name}" processado localmente!'),
+              backgroundColor: AppTheme.successColor,
             ),
-          ],
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao processar arquivo: $e'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(mounted as BuildContext).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao selecionar arquivo: $e'),
+          backgroundColor: AppTheme.errorColor,
         ),
-        backgroundColor: AppTheme.primaryColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+      );
+    }
   }
 
   // UI

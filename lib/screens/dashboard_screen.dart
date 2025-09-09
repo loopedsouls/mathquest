@@ -3,7 +3,6 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../models/conquista.dart';
 import '../services/progresso_service.dart';
-import '../models/progresso_usuario.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -127,11 +126,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
               AppTheme.darkBackgroundColor,
-              AppTheme.darkSurfaceColor,
+              AppTheme.darkSurfaceColor.withValues(alpha: 0.3),
+              AppTheme.darkBackgroundColor,
             ],
           ),
         ),
@@ -140,33 +140,22 @@ class _DashboardScreenState extends State<DashboardScreen>
               ? _buildLoadingScreen()
               : Column(
                   children: [
+                    _buildGameHeader(),
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Card de Progresso Geral
-                            _buildProgressoGeralCard(),
-                            const SizedBox(height: 24),
-
-                            // Card de Sequência
                             _buildStreakCard(),
+                            const SizedBox(height: 16),
+                            _buildXPProgressCard(),
+                            const SizedBox(height: 16),
+                            _buildStatsRow(),
+                            const SizedBox(height: 16),
+                            _buildAchievementCard(),
+                            const SizedBox(height: 16),
+                            _buildDailyGoalsCard(),
                             const SizedBox(height: 24),
-
-                            // Card de Conquistas
-                            _buildConquistasCard(),
-                            const SizedBox(height: 24),
-
-                            // Card de Estatísticas
-                            _buildEstatisticasCard(),
-                            const SizedBox(height: 24),
-
-                            // Cards de funcionalidades futuras
-                            _buildFuncionalidadesCard(),
                           ],
                         ),
                       ),
@@ -197,156 +186,158 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildFuncionalidadesCard() {
-    return ModernCard(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.rocket_launch,
-                  color: AppTheme.primaryColor,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Ferramentas',
-                  style: AppTheme.headingMedium.copyWith(
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildFuncionalidadeButton(
-                    'Recomendações',
-                    'Veja sugestões personalizadas',
-                    Icons.lightbulb,
-                    _mostrarRecomendacoes,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildFuncionalidadeButton(
-                    'Relatório Detalhado',
-                    'Análise completa do progresso',
-                    Icons.analytics,
-                    _mostrarRelatorioDetalhado,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFuncionalidadeButton(
-      String titulo, String descricao, IconData icone, VoidCallback onPressed) {
-    return ModernCard(
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+  // Gamified header like Duolingo
+  Widget _buildGameHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          // User avatar with level ring
+          Stack(
+            alignment: Alignment.center,
             children: [
-              Icon(icone, color: AppTheme.primaryColor, size: 24),
-              const SizedBox(height: 8),
-              Text(
-                titulo,
-                style: AppTheme.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryColor,
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                  ),
                 ),
-                textAlign: TextAlign.center,
+                child: CircularProgressIndicator(
+                  value: (_dadosProgresso['xp_total'] ?? 0) / (_dadosProgresso['xp_proximo_nivel'] ?? 1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 3,
+                ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                descricao,
-                style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.darkTextSecondaryColor,
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor,
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
-                textAlign: TextAlign.center,
+                child: Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(width: 16),
+          // User info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nível ${_dadosProgresso['nivel_atual'] ?? 0}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${_dadosProgresso['xp_total'] ?? 0} XP',
+                  style: TextStyle(
+                    color: AppTheme.accentColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Settings button
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.settings,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProgressoGeralCard() {
+  // Streak card with flame effect
+  Widget _buildStreakCard() {
+    final streakDays = _dadosProgresso['sequencia_dias'] ?? 0;
     return ModernCard(
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.orange.withValues(alpha: 0.1),
+              Colors.red.withValues(alpha: 0.1),
+            ],
+          ),
+        ),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.trending_up,
-                  color: AppTheme.primaryColor,
-                  size: 28,
+            // Flame icon with animation effect
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Colors.orange, Colors.red],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Seu Progresso',
-                  style: AppTheme.headingMedium.copyWith(
-                    color: AppTheme.primaryColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withValues(alpha: 0.5),
+                    blurRadius: 10,
+                    spreadRadius: 2,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: const Icon(
+                Icons.local_fire_department,
+                color: Colors.white,
+                size: 30,
+              ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildProgressMetric(
-                    'Nível',
-                    _dadosProgresso['nivel_atual'].toString(),
-                    Icons.grade,
-                    AppTheme.primaryColor,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$streakDays dias seguidos! 🔥',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildProgressMetric(
-                    'XP Total',
-                    _dadosProgresso['xp_total'].toString(),
-                    Icons.flash_on,
-                    AppTheme.secondaryColor,
+                  const SizedBox(height: 4),
+                  Text(
+                    streakDays > 0 
+                        ? 'Continue assim para manter sua sequência!'
+                        : 'Comece uma nova sequência hoje!',
+                    style: TextStyle(
+                      color: AppTheme.darkTextSecondaryColor,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildProgressMetric(
-                    'Sequência',
-                    '${_dadosProgresso['sequencia_dias']} dias',
-                    Icons.local_fire_department,
-                    AppTheme.successColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: _dadosProgresso['xp_total'] /
-                  _dadosProgresso['xp_proximo_nivel'],
-              backgroundColor: AppTheme.darkBorderColor,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${_dadosProgresso['xp_total']} / ${_dadosProgresso['xp_proximo_nivel']} XP para o próximo nível',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.darkTextSecondaryColor,
+                ],
               ),
             ),
           ],
@@ -355,37 +346,161 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildProgressMetric(
-      String label, String value, IconData icon, Color color) {
-    return Column(
+  // XP Progress card with level system
+  Widget _buildXPProgressCard() {
+    final currentXP = _dadosProgresso['xp_total'] ?? 0;
+    final nextLevelXP = _dadosProgresso['xp_proximo_nivel'] ?? 1;
+    final progress = currentXP / nextLevelXP;
+    
+    return ModernCard(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Progresso XP',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Nível ${_dadosProgresso['nivel_atual'] ?? 0}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // XP Progress Bar
+            Container(
+              height: 12,
+              decoration: BoxDecoration(
+                color: AppTheme.darkBorderColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress.clamp(0.0, 1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$currentXP / $nextLevelXP XP',
+              style: TextStyle(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Stats row with icons
+  Widget _buildStatsRow() {
+    return Row(
       children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
+        Expanded(
+          child: _buildStatCard(
+            '${_dadosProgresso['exercicios_completados'] ?? 0}',
+            'Exercícios',
+            Icons.quiz,
+            AppTheme.successColor,
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            '${_dadosProgresso['tempo_estudo_total'] ?? 0}h',
+            'Tempo',
+            Icons.schedule,
+            AppTheme.accentColor,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            '${(_dadosProgresso['pontuacao_media'] ?? 0).round()}%',
+            'Precisão',
+            Icons.track_changes,
+            AppTheme.primaryColor,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildConquistasCard() {
-    final conquistasDesbloqueadas =
-        _conquistas.where((c) => c.desbloqueada).toList();
-    final conquistasBloqueadas =
-        _conquistas.where((c) => !c.desbloqueada).toList();
+  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
+    return ModernCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  // Achievement card with badges
+  Widget _buildAchievementCard() {
+    final unlockedAchievements = _conquistas.where((c) => c.desbloqueada).length;
+    
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -396,197 +511,50 @@ class _DashboardScreenState extends State<DashboardScreen>
               children: [
                 Icon(
                   Icons.emoji_events,
-                  color: AppTheme.primaryColor,
-                  size: 28,
+                  color: Colors.amber,
+                  size: 24,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Text(
                   'Conquistas',
-                  style: AppTheme.headingMedium.copyWith(
-                    color: AppTheme.primaryColor,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Estatísticas rápidas
-            Row(
-              children: [
-                Expanded(
-                  child: _buildConquistaStat(
-                    '${conquistasDesbloqueadas.length}',
-                    'Desbloqueadas',
-                    AppTheme.successColor,
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                Expanded(
-                  child: _buildConquistaStat(
-                    '${conquistasBloqueadas.length}',
-                    'Bloqueadas',
-                    AppTheme.darkTextSecondaryColor,
-                  ),
-                ),
-                Expanded(
-                  child: _buildConquistaStat(
-                    '${_conquistas.length}',
-                    'Total',
-                    AppTheme.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Lista de conquistas recentes
-            if (conquistasDesbloqueadas.isNotEmpty) ...[
-              Text(
-                'Conquistas Recentes',
-                style: AppTheme.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.darkTextPrimaryColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...conquistasDesbloqueadas.take(3).map((conquista) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          conquista.emoji,
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                conquista.titulo,
-                                style: AppTheme.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.darkTextPrimaryColor,
-                                ),
-                              ),
-                              Text(
-                                conquista.descricao,
-                                style: AppTheme.bodySmall.copyWith(
-                                  color: AppTheme.darkTextSecondaryColor,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '+${conquista.pontosBonus}',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                  child: Text(
+                    '$unlockedAchievements/${_conquistas.length}',
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
-                  )),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConquistaStat(String value, String label, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEstatisticasCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.analytics,
-                  color: AppTheme.primaryColor,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Estatísticas de Estudo',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildEstatisticaItem(
-                    'Exercícios',
-                    _dadosProgresso['exercicios_completados'].toString(),
-                    Icons.check_circle,
-                    AppTheme.successColor,
-                  ),
-                ),
-                Expanded(
-                  child: _buildEstatisticaItem(
-                    'Pontuação Média',
-                    '${_dadosProgresso['pontuacao_media']}%',
-                    Icons.trending_up,
-                    AppTheme.primaryColor,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildEstatisticaItem(
-                    'Tempo de Estudo',
-                    '${_dadosProgresso['tempo_estudo_total']}h',
-                    Icons.schedule,
-                    AppTheme.secondaryColor,
-                  ),
-                ),
-                Expanded(
-                  child: _buildEstatisticaItem(
-                    'Tópicos Dominados',
-                    '${_dadosProgresso['topicos_dominados']}/${_dadosProgresso['topicos_total']}',
-                    Icons.school,
-                    AppTheme.accentColor,
-                  ),
-                ),
-              ],
+            SizedBox(
+              height: 60,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _conquistas.length,
+                itemBuilder: (context, index) {
+                  final conquista = _conquistas[index];
+                  return Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    child: _buildAchievementBadge(conquista),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -594,163 +562,34 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildEstatisticaItem(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildAchievementBadge(Conquista conquista) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.circle,
+        color: conquista.desbloqueada 
+            ? Colors.amber.withValues(alpha: 0.2)
+            : AppTheme.darkBorderColor.withValues(alpha: 0.3),
+        border: Border.all(
+          color: conquista.desbloqueada ? Colors.amber : AppTheme.darkBorderColor,
+          width: 2,
+        ),
       ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+      child: Center(
+        child: Text(
+          conquista.emoji,
+          style: TextStyle(
+            fontSize: conquista.desbloqueada ? 24 : 16,
+            color: conquista.desbloqueada ? null : AppTheme.darkTextSecondaryColor,
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  void _mostrarRecomendacoes() async {
-    final recomendacoes = await ProgressoService.obterRecomendacoes();
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          '💡 Recomendações',
-          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
-        ),
-        content: recomendacoes.isEmpty
-            ? Text(
-                'Parabéns! Você está em dia com seus estudos.',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: recomendacoes
-                    .map((rec) => ListTile(
-                          leading: Icon(
-                            rec['tipo'] == 'proximo_modulo'
-                                ? Icons.arrow_forward_rounded
-                                : Icons.refresh_rounded,
-                            color: AppTheme.primaryColor,
-                          ),
-                          title: Text(
-                            rec['titulo']!,
-                            style:
-                                TextStyle(color: AppTheme.darkTextPrimaryColor),
-                          ),
-                          subtitle: Text(
-                            rec['descricao']!,
-                            style: TextStyle(
-                                color: AppTheme.darkTextSecondaryColor),
-                          ),
-                        ))
-                    .toList(),
-              ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _mostrarRelatorioDetalhado() async {
-    final relatorio = await ProgressoService.obterRelatorioGeral();
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          '📊 Relatório Detalhado',
-          style: TextStyle(color: AppTheme.darkTextPrimaryColor),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Nível: ${(relatorio['nivel_usuario'] as NivelUsuario).nome}',
-                style: TextStyle(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Progresso Geral: ${(relatorio['progresso_geral'] * 100).round()}%',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Módulos: ${relatorio['modulos_completos']}/${relatorio['total_modulos']}',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Taxa de Acerto: ${(relatorio['taxa_acerto_geral'] * 100).round()}%',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              Text(
-                'Pontos Totais: ${relatorio['pontos_total']}',
-                style: TextStyle(color: AppTheme.darkTextSecondaryColor),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Progresso por Unidade:',
-                style: TextStyle(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...(relatorio['progresso_por_unidade'] as Map<String, double>)
-                  .entries
-                  .map((entry) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Text(
-                          '${entry.key}: ${(entry.value * 100).round()}%',
-                          style:
-                              TextStyle(color: AppTheme.darkTextSecondaryColor),
-                        ),
-                      )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStreakCard() {
+  // Daily goals card
+  Widget _buildDailyGoalsCard() {
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -760,62 +599,98 @@ class _DashboardScreenState extends State<DashboardScreen>
             Row(
               children: [
                 Icon(
-                  Icons.local_fire_department_rounded,
-                  color: AppTheme.accentColor,
-                  size: 28,
+                  Icons.today,
+                  color: AppTheme.primaryColor,
+                  size: 24,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Text(
-                  'Sequência de Estudo',
-                  style: AppTheme.headingMedium.copyWith(
-                    color: AppTheme.accentColor,
+                  'Metas Diárias',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.accentColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.local_fire_department,
-                    color: AppTheme.accentColor,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_dadosProgresso['sequencia_dias']} dias',
-                        style: AppTheme.headingLarge.copyWith(
-                          color: AppTheme.accentColor,
-                        ),
-                      ),
-                      Text(
-                        'Sequência atual',
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            _buildDailyGoal('Exercícios', 3, 5, Icons.quiz),
+            const SizedBox(height: 12),
+            _buildDailyGoal('Minutos de estudo', 15, 30, Icons.schedule),
+            const SizedBox(height: 12),
+            _buildDailyGoal('XP ganho', 100, 200, Icons.star),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDailyGoal(String title, int current, int target, IconData icon) {
+    final progress = (current / target).clamp(0.0, 1.0);
+    final isCompleted = current >= target;
+    
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: isCompleted ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    '$current/$target',
+                    style: TextStyle(
+                      color: isCompleted ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: AppTheme.darkBorderColor,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: progress,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isCompleted ? AppTheme.successColor : AppTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isCompleted) ...[
+          const SizedBox(width: 8),
+          Icon(
+            Icons.check_circle,
+            color: AppTheme.successColor,
+            size: 20,
+          ),
+        ],
+      ],
     );
   }
 }

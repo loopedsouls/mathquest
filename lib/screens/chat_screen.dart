@@ -863,7 +863,7 @@ Escolha uma das opções abaixo para continuar seus estudos!
       ),
     ];
 
-    final mensagemComBotoes = '''
+    const mensagemComBotoes = '''
 ## 🎯 **Escolha uma opção para continuar:**
 
 Use os botões abaixo para navegar pelo módulo:
@@ -2158,8 +2158,18 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                       )
                     : null,
               ),
-              child: LatexMarkdownWidget(
-                data: message.text,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LatexMarkdownWidget(
+                    data: message.text,
+                  ),
+                  // Renderiza botões se presentes
+                  if (message.buttons != null && message.buttons!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ...message.buttons!.map((button) => _buildActionButton(button, isTablet)).toList(),
+                  ],
+                ],
               ),
             ),
           ),
@@ -2182,6 +2192,81 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         ],
       ),
     );
+  }
+
+  Widget _buildActionButton(ChatButton button, bool isTablet) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => _handleButtonAction(button.action),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.accentColor,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Row(
+          children: [
+            Text(
+              button.icon,
+              style: TextStyle(fontSize: isTablet ? 20 : 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    button.text,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ) ?? const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (button.description != null && button.description!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      button.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ) ?? TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.8),
+              size: isTablet ? 16 : 14,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleButtonAction(String action) {
+    // Processa a ação do botão como se fosse uma mensagem do usuário
+    setState(() {
+      _messages.add(ChatMessage(
+        text: action,
+        isUser: true,
+        timestamp: DateTime.now(),
+      ));
+    });
+    
+    _processarCliqueBotao(action);
   }
 
   Widget _buildFilterChip(String valor, String label, bool isTablet) {

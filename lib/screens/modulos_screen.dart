@@ -304,19 +304,53 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildAssuntoCard(String assunto) {
-    // Buscar módulos relacionados ao assunto
-    final modulosRelacionados = ModulosBNCCData.obterTodosModulos()
-        .where((modulo) =>
-            modulo.titulo
-                .toLowerCase()
-                .contains(assunto.toLowerCase().split(' ')[0]) ||
-            modulo.descricao
-                .toLowerCase()
-                .contains(assunto.toLowerCase().split(' ')[0]))
-        .toList();
+    // Primeiro tentar mapeamento direto
+    final moduloMapeado = _mapearAssuntoParaModulo(assunto);
 
-    final modulo =
-        modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
+    ModuloBNCC? modulo;
+    if (moduloMapeado != null) {
+      modulo = moduloMapeado;
+    } else {
+      // Fallback: Buscar módulos relacionados com melhor correspondência
+      final modulosRelacionados =
+          ModulosBNCCData.obterTodosModulos().where((modulo) {
+        final assuntoLower = assunto.toLowerCase();
+        final tituloLower = modulo.titulo.toLowerCase();
+        final descricaoLower = modulo.descricao.toLowerCase();
+
+        // Verificar correspondência exata primeiro
+        if (tituloLower.contains(assuntoLower) ||
+            tituloLower.contains(assuntoLower.replaceAll(' ', ''))) {
+          return true;
+        }
+
+        // Verificar se alguma palavra do assunto está no título
+        final palavrasAssunto = assuntoLower.split(' ');
+        for (final palavra in palavrasAssunto) {
+          if (palavra.length > 3 && tituloLower.contains(palavra)) {
+            return true;
+          }
+        }
+
+        // Verificar na descrição
+        for (final palavra in palavrasAssunto) {
+          if (palavra.length > 3 && descricaoLower.contains(palavra)) {
+            return true;
+          }
+        }
+
+        return false;
+      }).toList();
+
+      modulo =
+          modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
+    }
+
+    // Debug: imprimir assuntos sem módulos correspondentes
+    if (modulo == null && debugUnlockAllModules) {
+      print('⚠️ Assunto sem módulo correspondente: "$assunto"');
+      print('   Módulos encontrados: 0');
+    }
 
     // Obter os subtópicos do assunto
     final subtemas = Matematica.cursos[_cursoSelecionado]?[assunto] ?? [];
@@ -339,7 +373,7 @@ class _ModulosScreenState extends State<ModulosScreen>
     return ModernCard(
       hasGlow: isDesbloqueado,
       child: InkWell(
-        onTap: isDesbloqueado ? () => _iniciarAssunto(assunto, modulo) : null,
+        onTap: isDesbloqueado ? () => _iniciarAssunto(assunto, modulo!) : null,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -518,6 +552,77 @@ class _ModulosScreenState extends State<ModulosScreen>
       _moduloSelecionado = modulo;
       _mostrarChat = true;
     });
+  }
+
+  ModuloBNCC? _mapearAssuntoParaModulo(String assunto) {
+    // Mapeamento direto entre assuntos dos cursos e módulos BNCC
+    final mapeamento = {
+      'Frações': 'Números Racionais',
+      'Divisibilidade': 'Números Naturais e Inteiros',
+      'Equações do 1º grau com uma variável': 'Equações do 1º Grau',
+      'Equações do 1º grau com duas variáveis': 'Sistemas de Equações',
+      'Inequações do 1º grau': 'Equações do 1º Grau',
+      'Potenciação': 'Potenciação e Radiciação',
+      'Radiciação': 'Potenciação e Radiciação',
+      'Razões': 'Números Racionais',
+      'Proporções': 'Números Racionais',
+      'Algarismos romanos': 'Números Naturais e Inteiros',
+      'Grandezas proporcionais': 'Números Racionais',
+      'Regra de três': 'Números Racionais',
+      'Dízimas periódicas': 'Números Racionais',
+      'Porcentagem': 'Números Racionais',
+      'Números decimais': 'Números Racionais',
+      'Médias': 'Números Racionais',
+      'Números racionais': 'Números Racionais',
+      'Tabelas': 'Números Naturais e Inteiros',
+      'Operações com números racionais decimais': 'Números Racionais',
+      'Ângulos': 'Figuras Geométricas',
+      'Triângulos': 'Figuras Geométricas',
+      'Quadriláteros': 'Figuras Geométricas',
+      'Polígonos': 'Figuras Geométricas',
+      'Círculos': 'Círculo e Circunferência',
+      'Áreas': 'Área de Figuras Planas',
+      'Perímetros': 'Área de Figuras Planas',
+      'Volumes': 'Volume de Sólidos',
+      'Unidades de medida': 'Unidades de Medida',
+      'Transformações geométricas': 'Transformações Geométricas',
+      'Simetria': 'Transformações Geométricas',
+      'Congruência': 'Transformações Geométricas',
+      'Semelhança': 'Transformações Geométricas',
+      'Trigonometria básica': 'Teorema de Pitágoras',
+      'Razões trigonométricas': 'Teorema de Pitágoras',
+      'Funções': 'Funções e Equações do 2º Grau',
+      'Equações do 2º grau': 'Funções e Equações do 2º Grau',
+      'Inequações do 2º grau': 'Funções e Equações do 2º Grau',
+      'Funções quadráticas': 'Funções e Equações do 2º Grau',
+      'Sequências': 'Sequências e Regularidades',
+      'Progressões': 'Sequências e Regularidades',
+      'Matrizes': 'Números Reais',
+      'Determinantes': 'Números Reais',
+      'Sistemas lineares': 'Sistemas de Equações',
+      'Vetores': 'Números Reais',
+      'Geometria analítica': 'Funções e Equações do 2º Grau',
+      'Cônicas': 'Funções e Equações do 2º Grau',
+      'Limites': 'Números Reais',
+      'Derivadas': 'Números Reais',
+      'Integrais': 'Números Reais',
+      'Equações diferenciais': 'Números Reais',
+    };
+
+    final tituloMapeado = mapeamento[assunto];
+    if (tituloMapeado != null) {
+      // Buscar módulo com o título mapeado
+      final modulos = ModulosBNCCData.obterTodosModulos();
+      try {
+        return modulos.firstWhere(
+          (modulo) => modulo.titulo == tituloMapeado,
+        );
+      } catch (e) {
+        return null;
+      }
+    }
+
+    return null;
   }
 
   Widget _buildChatView() {

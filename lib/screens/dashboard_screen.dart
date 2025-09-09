@@ -206,7 +206,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
                 child: CircularProgressIndicator(
-                  value: (_dadosProgresso['xp_total'] ?? 0) / (_dadosProgresso['xp_proximo_nivel'] ?? 1),
+                  value: (_dadosProgresso['xp_total'] ?? 0) /
+                      (_dadosProgresso['xp_proximo_nivel'] ?? 1),
                   backgroundColor: Colors.white.withValues(alpha: 0.3),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   strokeWidth: 3,
@@ -220,7 +221,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   color: AppTheme.primaryColor,
                   border: Border.all(color: Colors.white, width: 2),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.person,
                   color: Colors.white,
                   size: 24,
@@ -329,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    streakDays > 0 
+                    streakDays > 0
                         ? 'Continue assim para manter sua sequência!'
                         : 'Comece uma nova sequência hoje!',
                     style: TextStyle(
@@ -351,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     final currentXP = _dadosProgresso['xp_total'] ?? 0;
     final nextLevelXP = _dadosProgresso['xp_proximo_nivel'] ?? 1;
     final progress = currentXP / nextLevelXP;
-    
+
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -361,16 +362,17 @@ class _DashboardScreenState extends State<DashboardScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Progresso XP',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor,
                     borderRadius: BorderRadius.circular(12),
@@ -461,7 +463,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String value, String label, IconData icon, Color color) {
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -499,8 +502,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // Achievement card with badges
   Widget _buildAchievementCard() {
-    final unlockedAchievements = _conquistas.where((c) => c.desbloqueada).length;
-    
+    final unlockedAchievements =
+        _conquistas.where((c) => c.desbloqueada).length;
+
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -509,15 +513,15 @@ class _DashboardScreenState extends State<DashboardScreen>
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.emoji_events,
                   color: Colors.amber,
                   size: 24,
                 ),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   'Conquistas',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -525,7 +529,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.amber.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -568,11 +573,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       height: 60,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: conquista.desbloqueada 
+        color: conquista.desbloqueada
             ? Colors.amber.withValues(alpha: 0.2)
             : AppTheme.darkBorderColor.withValues(alpha: 0.3),
         border: Border.all(
-          color: conquista.desbloqueada ? Colors.amber : AppTheme.darkBorderColor,
+          color:
+              conquista.desbloqueada ? Colors.amber : AppTheme.darkBorderColor,
           width: 2,
         ),
       ),
@@ -581,7 +587,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           conquista.emoji,
           style: TextStyle(
             fontSize: conquista.desbloqueada ? 24 : 16,
-            color: conquista.desbloqueada ? null : AppTheme.darkTextSecondaryColor,
+            color:
+                conquista.desbloqueada ? null : AppTheme.darkTextSecondaryColor,
           ),
         ),
       ),
@@ -604,9 +611,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   size: 24,
                 ),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   'Metas Diárias',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -629,12 +636,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildDailyGoal(String title, int current, int target, IconData icon) {
     final progress = (current / target).clamp(0.0, 1.0);
     final isCompleted = current >= target;
-    
+
     return Row(
       children: [
         Icon(
           icon,
-          color: isCompleted ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+          color: isCompleted
+              ? AppTheme.successColor
+              : AppTheme.darkTextSecondaryColor,
           size: 20,
         ),
         const SizedBox(width: 12),
@@ -655,7 +664,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     '$current/$target',
                     style: TextStyle(
-                      color: isCompleted ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+                      color: isCompleted
+                          ? AppTheme.successColor
+                          : AppTheme.darkTextSecondaryColor,
                       fontSize: 12,
                     ),
                   ),
@@ -673,7 +684,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   widthFactor: progress,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isCompleted ? AppTheme.successColor : AppTheme.primaryColor,
+                      color: isCompleted
+                          ? AppTheme.successColor
+                          : AppTheme.primaryColor,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),

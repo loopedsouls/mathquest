@@ -579,6 +579,11 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
             icon: const Icon(Icons.add_rounded),
             tooltip: 'Nova conversa',
           ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close_rounded),
+            tooltip: 'Fechar',
+          ),
         ],
       ),
     );

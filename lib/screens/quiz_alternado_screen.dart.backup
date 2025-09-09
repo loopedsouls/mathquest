@@ -77,14 +77,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   Offset _direction = const Offset(1, 0); // Direita
   bool _gameRunning = false;
   late AnimationController _snakeController;
-  final int _initialSnakeLength = 10;
-  int _currentSnakeLength = 10;
-
+  int _initialSnakeLength = 10;
   // Configurações visuais
   late String ano;
   late String topico;
   late String dificuldade;
-  @override
   void initState() {
     super.initState();
     // Inicializar variáveis
@@ -172,16 +169,13 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final newHead = head + _direction;
 
     // Verificar colisão com as bordas (simples)
-    if (newHead.dx < 0 ||
-        newHead.dx >= 20 ||
-        newHead.dy < 0 ||
-        newHead.dy >= 20) {
+    if (newHead.dx < 0 || newHead.dx >= 20 || newHead.dy < 0 || newHead.dy >= 20) {
       // Bater na parede - apenas muda direção aleatoriamente
       final directions = [
-        const Offset(1, 0), // direita
-        const Offset(-1, 0), // esquerda
-        const Offset(0, 1), // baixo
-        const Offset(0, -1), // cima
+        const Offset(1, 0),   // direita
+        const Offset(-1, 0),  // esquerda
+        const Offset(0, 1),   // baixo
+        const Offset(0, -1),  // cima
       ];
       _direction = directions[(DateTime.now().millisecondsSinceEpoch % 4)];
       return;
@@ -261,7 +255,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _perguntasPreCarregadas.clear();
     _preCarregamentoAtivo = false;
 
-    // Não inicia o quiz automaticamente - espera pelo botão Start da tela inicial
+    // Não inicia o quiz automaticamente - espera pelo botão Start
   }
 
   String _getTipoAtual() {
@@ -921,22 +915,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     );
   }
 
-  Widget _buildActionButtons(bool isTablet) {
-    return ModernButton(
-      text: perguntaIndex < totalPerguntas - 1
-          ? 'Próxima Pergunta'
-          : 'Finalizar Quiz',
-      onPressed: respostaSelecionada != null && respostaSelecionada!.isNotEmpty
-          ? _proximaPergunta
-          : null,
-      isPrimary: true,
-      icon: perguntaIndex < totalPerguntas - 1
-          ? Icons.arrow_forward
-          : Icons.check,
-      isFullWidth: true,
-    );
-  }
-
   Widget _buildTelaInicial() {
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
@@ -962,10 +940,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                   height: 120,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        AppTheme.primaryColor,
-                        AppTheme.primaryLightColor
-                      ],
+                      colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
@@ -1009,7 +984,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                 // Botão Start
                 ModernButton(
                   text: 'Começar Quiz',
-                  onPressed: _iniciarQuiz,
+                  onPressed: _iniciarCarregamento,
                   isPrimary: true,
                   icon: Icons.play_arrow_rounded,
                   isFullWidth: false,
@@ -1064,7 +1039,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     );
   }
 
-  void _iniciarQuiz() {
+  void _iniciarCarregamento() {
     if (mounted) {
       setState(() {
         _mostrarTelaInicial = false;
@@ -1188,8 +1163,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor
-                                    .withValues(alpha: 0.1),
+                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1256,13 +1230,25 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     );
   }
 
-  @override
-  void dispose() {
+  Widget _buildActionButtons(bool isTablet) {
+    return ModernButton(
+      text: perguntaIndex < totalPerguntas - 1
+          ? 'Próxima Pergunta'
+          : 'Finalizar Quiz',
+      onPressed: respostaSelecionada != null && respostaSelecionada!.isNotEmpty
+          ? _proximaPergunta
+          : null,
+      isPrimary: true,
+      icon: perguntaIndex < totalPerguntas - 1
+          ? Icons.arrow_forward
+          : Icons.check,
+      isFullWidth: true,
+    );
+  }
     _respostaController.removeListener(_onRespostaChanged);
     _animationController.dispose();
     _progressController.dispose();
     _cardAnimationController.dispose();
-    _snakeController.dispose();
     _respostaController.dispose();
     super.dispose();
   }
@@ -1594,79 +1580,5 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         ],
       ),
     );
-  }
-}
-
-// Classe para desenhar o jogo da cobrinha
-class SnakePainter extends CustomPainter {
-  final List<Offset> snakeSegments;
-  final Offset foodPosition;
-  final double cellSize;
-
-  SnakePainter({
-    required this.snakeSegments,
-    required this.foodPosition,
-    required this.cellSize,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-
-    // Desenhar grade de fundo
-    paint.color = Colors.grey.withValues(alpha: 0.1);
-    for (int i = 0; i < 20; i++) {
-      for (int j = 0; j < 20; j++) {
-        canvas.drawRect(
-          Rect.fromLTWH(i * cellSize, j * cellSize, cellSize, cellSize),
-          paint,
-        );
-      }
-    }
-
-    // Desenhar cobra
-    paint.color = Colors.green;
-    for (final segment in snakeSegments) {
-      canvas.drawRect(
-        Rect.fromLTWH(
-          segment.dx * cellSize,
-          segment.dy * cellSize,
-          cellSize - 1,
-          cellSize - 1,
-        ),
-        paint,
-      );
-    }
-
-    // Desenhar cabeça da cobra (diferente)
-    if (snakeSegments.isNotEmpty) {
-      paint.color = Colors.greenAccent;
-      final head = snakeSegments.first;
-      canvas.drawRect(
-        Rect.fromLTWH(
-          head.dx * cellSize,
-          head.dy * cellSize,
-          cellSize - 1,
-          cellSize - 1,
-        ),
-        paint,
-      );
-    }
-
-    // Desenhar comida
-    paint.color = Colors.red;
-    canvas.drawCircle(
-      Offset(
-        foodPosition.dx * cellSize + cellSize / 2,
-        foodPosition.dy * cellSize + cellSize / 2,
-      ),
-      cellSize / 2 - 1,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
   }
 }

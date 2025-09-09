@@ -832,7 +832,8 @@ Escolha uma das opções abaixo para continuar seus estudos!
   // Método para adicionar botões de ação após a mensagem de boas-vindas
   void _adicionarBotoesAcao() {
     final botaoAula = widget.progresso != null && widget.modulo != null
-        ? widget.progresso!.obterProximaAula(widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar)
+        ? widget.progresso!.obterProximaAula(
+            widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar)
         : 1;
 
     final mensagemBotoes = '''
@@ -1816,12 +1817,16 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                   ),
                 ),
                 // Mostra progresso das aulas se estiver no modo módulo
-                if (widget.mode == ChatMode.module && widget.modulo != null && widget.progresso != null && _totalAulas > 0) ...[
+                if (widget.mode == ChatMode.module &&
+                    widget.modulo != null &&
+                    widget.progresso != null &&
+                    _totalAulas > 0) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -2086,6 +2091,9 @@ Use emojis e formatação Markdown para deixar mais atrativo!
   }
 
   Widget _buildMessageBubble(ChatMessage message, bool isTablet) {
+    // Mensagens do sistema (botões de ação) têm visual diferenciado
+    final isSystemMessage = message.aiProvider == 'system';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -2099,12 +2107,19 @@ Use emojis e formatação Markdown para deixar mais atrativo!
               height: isTablet ? 32 : 28,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
+                  colors: isSystemMessage
+                      ? [
+                          AppTheme.accentColor,
+                          AppTheme.accentColor.withValues(alpha: 0.7)
+                        ]
+                      : [AppTheme.primaryColor, AppTheme.primaryLightColor],
                 ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.psychology_rounded,
+                isSystemMessage
+                    ? Icons.touch_app_rounded
+                    : Icons.psychology_rounded,
                 color: Colors.white,
                 size: isTablet ? 16 : 14,
               ),
@@ -2117,8 +2132,16 @@ Use emojis e formatação Markdown para deixar mais atrativo!
               decoration: BoxDecoration(
                 color: message.isUser
                     ? AppTheme.primaryColor
-                    : AppTheme.darkSurfaceColor,
+                    : isSystemMessage
+                        ? AppTheme.accentColor.withValues(alpha: 0.1)
+                        : AppTheme.darkSurfaceColor,
                 borderRadius: BorderRadius.circular(16),
+                border: isSystemMessage
+                    ? Border.all(
+                        color: AppTheme.accentColor.withValues(alpha: 0.3),
+                        width: 1,
+                      )
+                    : null,
               ),
               child: LatexMarkdownWidget(
                 data: message.text,

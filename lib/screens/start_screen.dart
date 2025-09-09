@@ -126,7 +126,8 @@ class _StartScreenState extends State<StartScreen>
         'nivel': 'fácil',
         'pergunta': 'Quanto é 1/2 + 1/4?',
         'resposta_correta': '3/4',
-        'explicacao': 'Para somar frações com denominadores diferentes, primeiro encontramos o mínimo múltiplo comum (MMC) dos denominadores. MMC de 2 e 4 é 4. Convertemos 1/2 para 2/4 e somamos: 2/4 + 1/4 = 3/4.',
+        'explicacao':
+            'Para somar frações com denominadores diferentes, primeiro encontramos o mínimo múltiplo comum (MMC) dos denominadores. MMC de 2 e 4 é 4. Convertemos 1/2 para 2/4 e somamos: 2/4 + 1/4 = 3/4.',
         'opcoes': ['3/4', '1/2', '1/4', '2/4']
       },
       // Quiz Verdadeiro/Falso - Geometria
@@ -136,7 +137,8 @@ class _StartScreenState extends State<StartScreen>
         'nivel': 'fácil',
         'pergunta': 'Um quadrado tem quatro lados iguais.',
         'resposta_correta': 'verdadeiro',
-        'explicacao': 'Por definição, um quadrado é um polígono com quatro lados de comprimento igual e quatro ângulos retos.',
+        'explicacao':
+            'Por definição, um quadrado é um polígono com quatro lados de comprimento igual e quatro ângulos retos.',
         'opcoes': ['verdadeiro', 'falso']
       },
       // Quiz Completar Frase - Porcentagem
@@ -146,7 +148,8 @@ class _StartScreenState extends State<StartScreen>
         'nivel': 'médio',
         'pergunta': '20% de 150 é igual a _____.',
         'resposta_correta': '30',
-        'explicacao': 'Para calcular 20% de 150: (20/100) × 150 = 0,2 × 150 = 30.',
+        'explicacao':
+            'Para calcular 20% de 150: (20/100) × 150 = 0,2 × 150 = 30.',
         'opcoes': []
       },
     ];
@@ -360,7 +363,7 @@ class _StartScreenState extends State<StartScreen>
           dificuldade: 'médio',
         );
       case 3:
-        return ChatScreen(mode: ChatMode.general);
+        return const ChatScreen(mode: ChatMode.general);
       case 4:
         return const ConfiguracaoScreen();
       default:
@@ -381,45 +384,21 @@ class _StartScreenState extends State<StartScreen>
               children: [
                 _buildNavigationRail(),
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppTheme.darkBackgroundColor,
-                          AppTheme.darkSurfaceColor,
-                        ],
-                      ),
-                    ),
-                    child: SafeArea(
-                      child: _isLoading
-                          ? _buildLoadingScreen()
-                          : _getCurrentScreen(isTablet, isDesktop),
-                    ),
+                  child: SafeArea(
+                    child: _isLoading
+                        ? _buildLoadingScreen()
+                        : _getCurrentScreen(isTablet, isDesktop),
                   ),
                 ),
               ],
             )
-          : Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.darkBackgroundColor,
-                    AppTheme.darkSurfaceColor,
-                  ],
-                ),
-              ),                child: SafeArea(
-                  child: _isLoading
-                      ? _buildLoadingScreen()
-                      : _getCurrentScreen(isTablet, isDesktop),
-                ),
+          : SafeArea(
+              child: _isLoading
+                  ? _buildLoadingScreen()
+                  : _getCurrentScreen(isTablet, isDesktop),
             ),
-      bottomNavigationBar: !isDesktop && !_isLoading
-          ? _buildBottomNavigationBar()
-          : null,
+      bottomNavigationBar:
+          !isDesktop && !_isLoading ? _buildBottomNavigationBar() : null,
       floatingActionButton:
           _isLoading ? null : _buildFloatingActionButton(isTablet, isDesktop),
       floatingActionButtonLocation: isDesktop
@@ -429,40 +408,43 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildNavigationRail() {
-    return NavigationRail(
-      backgroundColor: AppTheme.darkSurfaceColor,
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: _onNavigationTap,
-      labelType: NavigationRailLabelType.all,
-      selectedIconTheme: IconThemeData(
-        color: AppTheme.primaryColor,
-        size: 28,
-      ),
-      unselectedIconTheme: IconThemeData(
-        color: AppTheme.darkTextSecondaryColor,
-        size: 24,
-      ),
-      selectedLabelTextStyle: TextStyle(
-        color: AppTheme.primaryColor,
-        fontWeight: FontWeight.w600,
-      ),
-      unselectedLabelTextStyle: TextStyle(
-        color: AppTheme.darkTextSecondaryColor,
-      ),
-      destinations: _navigationItems
-          .map((item) => NavigationRailDestination(
-                icon: Icon(item.icon),
-                selectedIcon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      width: 80, // Largura fixa e compacta
+      child: NavigationRail(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onNavigationTap,
+        labelType: NavigationRailLabelType.all,
+        selectedIconTheme: IconThemeData(
+          color: AppTheme.primaryColor,
+          size: 28,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: AppTheme.darkTextSecondaryColor,
+          size: 24,
+        ),
+        selectedLabelTextStyle: TextStyle(
+          color: AppTheme.primaryColor,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          color: AppTheme.darkTextSecondaryColor,
+        ),
+        destinations: _navigationItems
+            .map((item) => NavigationRailDestination(
+                  icon: Icon(item.icon),
+                  selectedIcon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(item.icon),
                   ),
-                  child: Icon(item.icon),
-                ),
-                label: Text(item.label),
-              ))
-          .toList(),
+                  label: Text(item.label),
+                ))
+            .toList(),
+      ),
     );
   }
 
@@ -485,11 +467,11 @@ class _StartScreenState extends State<StartScreen>
         onTap: _onNavigationTap,
         selectedItemColor: AppTheme.primaryColor,
         unselectedItemColor: AppTheme.darkTextSecondaryColor,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
-        unselectedLabelStyle: TextStyle(
+        unselectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w400,
           fontSize: 11,
         ),
@@ -568,8 +550,8 @@ class _StartScreenState extends State<StartScreen>
             position: _slideAnimation,
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 40 : 20,
-                vertical: isTablet ? 60 : 40,
+                horizontal: isDesktop ? 80 : (isTablet ? 40 : 20),
+                vertical: isDesktop ? 80 : (isTablet ? 60 : 40),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -697,7 +679,9 @@ class _StartScreenState extends State<StartScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _isOfflineMode ? Icons.wifi_off_rounded : Icons.wifi_rounded,
+                          _isOfflineMode
+                              ? Icons.wifi_off_rounded
+                              : Icons.wifi_rounded,
                           color: _isOfflineMode
                               ? AppTheme.warningColor
                               : AppTheme.successColor,

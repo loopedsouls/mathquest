@@ -461,10 +461,10 @@ Use emojis e formatação Markdown para deixar mais atrativo!
     // TODO: Implementar seleção e upload de arquivos
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
             Icon(Icons.info_outline, color: Colors.white),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Funcionalidade de anexar arquivos será implementada em breve!',
@@ -737,12 +737,12 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             Row(
               children: [
                 Expanded(
-                  child: Container(
+                  child: SizedBox(
                     height: 36,
                     child: ElevatedButton.icon(
                       onPressed: _gerarQuizModulo,
-                      icon: Icon(Icons.quiz_rounded, size: 16),
-                      label: Text(
+                      icon: const Icon(Icons.quiz_rounded, size: 16),
+                      label: const Text(
                         'Quiz do Módulo',
                         style: TextStyle(fontSize: 12),
                       ),
@@ -762,12 +762,12 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
+                SizedBox(
                   height: 36,
                   width: 36,
                   child: IconButton(
                     onPressed: _adicionarArquivo,
-                    icon: Icon(Icons.attach_file_rounded, size: 18),
+                    icon: const Icon(Icons.attach_file_rounded, size: 18),
                     style: IconButton.styleFrom(
                       backgroundColor:
                           AppTheme.accentColor.withValues(alpha: 0.2),
@@ -794,7 +794,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
               if (!isMobile && widget.mode == ChatMode.module) ...[
                 IconButton(
                   onPressed: _gerarQuizModulo,
-                  icon: Icon(Icons.quiz_rounded),
+                  icon: const Icon(Icons.quiz_rounded),
                   tooltip: 'Quiz do Módulo',
                   style: IconButton.styleFrom(
                     backgroundColor:
@@ -805,7 +805,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                 const SizedBox(width: 4),
                 IconButton(
                   onPressed: _adicionarArquivo,
-                  icon: Icon(Icons.attach_file_rounded),
+                  icon: const Icon(Icons.attach_file_rounded),
                   tooltip: 'Adicionar Arquivo',
                   style: IconButton.styleFrom(
                     backgroundColor:
@@ -843,7 +843,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
+              SizedBox(
                 height: isMobile ? 40 : 48,
                 width: isMobile ? 40 : 48,
                 child: IconButton(

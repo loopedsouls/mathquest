@@ -4,7 +4,6 @@ import '../models/modulo_bncc.dart';
 import '../models/progresso_usuario.dart';
 import '../models/conversa.dart';
 import '../theme/app_theme.dart';
-import '../widgets/modern_components.dart';
 import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
 import '../services/ia_service.dart';
@@ -73,7 +72,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _initializeTypingAnimation();
     _initializeTutor();
 
-    if (widget.mode == ChatMode.sidebar || widget.mode == ChatMode.saved) {
+    // Listener para atualizar o estado do botão de enviar
+    _textController.addListener(() {
+      setState(() {});
+    });
+
+    if (widget.mode == ChatMode.sidebar ||
+        widget.mode == ChatMode.saved ||
+        widget.mode == ChatMode.module) {
       _carregarConversas();
     }
 
@@ -388,6 +394,95 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     }
   }
 
+  void _gerarQuizModulo() async {
+    if (widget.modulo == null) return;
+
+    setState(() => _isLoading = true);
+    _typingAnimationController.repeat();
+
+    try {
+      final quizPrompt = '''
+Você é um tutor de matemática especializado na BNCC. Crie um quiz de 5 perguntas sobre o módulo "${widget.modulo!.titulo}" 
+do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
+
+O quiz deve:
+- Ter perguntas de múltipla escolha com 4 alternativas (A, B, C, D)
+- Ser adequado ao nível escolar especificado
+- Abordar conceitos importantes do módulo
+- Incluir questões práticas e aplicadas
+- Ter dificuldade progressiva
+
+Formate como:
+
+**🎯 Quiz: ${widget.modulo!.titulo}**
+
+**Questão 1:** [pergunta]
+A) [alternativa]
+B) [alternativa] 
+C) [alternativa]
+D) [alternativa]
+
+[Continue para as 5 questões]
+
+**Gabarito:**
+1-A, 2-B, 3-C, 4-D, 5-A (exemplo)
+
+Use emojis e formatação Markdown para deixar mais atrativo!
+''';
+
+      final response = await _aiQueueService.addRequest(
+        conversaId: _getConversationId(),
+        prompt: quizPrompt,
+        userMessage: 'Gerar quiz do módulo',
+        useGemini: _useGemini,
+        modeloOllama: _modeloOllama,
+      );
+
+      _addMessage(ChatMessage(
+        text: response.text,
+        isUser: false,
+        timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
+      ));
+    } catch (e) {
+      _addMessage(ChatMessage(
+        text: 'Desculpe, não foi possível gerar o quiz. Tente novamente. 😅',
+        isUser: false,
+        timestamp: DateTime.now(),
+        aiProvider: _useGemini ? 'gemini' : 'ollama',
+      ));
+    } finally {
+      setState(() => _isLoading = false);
+      _typingAnimationController.stop();
+    }
+  }
+
+  void _adicionarArquivo() {
+    // TODO: Implementar seleção e upload de arquivos
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Funcionalidade de anexar arquivos será implementada em breve!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   // UI
   @override
   Widget build(BuildContext context) {
@@ -407,7 +502,9 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.darkBackgroundColor,
-      drawer: (widget.mode == ChatMode.sidebar && isMobile)
+      drawer: ((widget.mode == ChatMode.sidebar ||
+                  widget.mode == ChatMode.module) &&
+              isMobile)
           ? _buildMobileDrawer()
           : null,
       body: Container(
@@ -422,7 +519,9 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
           ),
         ),
         child: SafeArea(
-          child: widget.mode == ChatMode.sidebar && !isMobile
+          child: (widget.mode == ChatMode.sidebar ||
+                      widget.mode == ChatMode.module) &&
+                  !isMobile
               ? _buildDesktopLayout(isTablet)
               : _buildMobileLayout(isTablet),
         ),
@@ -483,6 +582,15 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
       ),
       child: Row(
         children: [
+          // Botão de drawer para módulos no mobile
+          if (widget.mode == ChatMode.module) ...[
+            IconButton(
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              icon: const Icon(Icons.menu_rounded),
+              tooltip: 'Conversas do Módulo',
+            ),
+            const SizedBox(width: 4),
+          ],
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back_rounded),
@@ -608,8 +716,11 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
   }
 
   Widget _buildInputArea(bool isTablet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      padding: EdgeInsets.all(isTablet ? 20 : 12),
       decoration: BoxDecoration(
         color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
         border: Border(
@@ -619,40 +730,145 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
           ),
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _textController,
-              style: AppTheme.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Digite sua pergunta...',
-                hintStyle: AppTheme.bodyMedium.copyWith(
-                  color: AppTheme.darkTextSecondaryColor,
+          // Botões de ações (quiz e arquivo) - apenas no mobile para módulos
+          if (isMobile && widget.mode == ChatMode.module) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 36,
+                    child: ElevatedButton.icon(
+                      onPressed: _gerarQuizModulo,
+                      icon: Icon(Icons.quiz_rounded, size: 16),
+                      label: Text(
+                        'Quiz do Módulo',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            AppTheme.primaryColor.withValues(alpha: 0.2),
+                        foregroundColor: AppTheme.primaryColor,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          side: BorderSide(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
+                const SizedBox(width: 8),
+                Container(
+                  height: 36,
+                  width: 36,
+                  child: IconButton(
+                    onPressed: _adicionarArquivo,
+                    icon: Icon(Icons.attach_file_rounded, size: 18),
+                    style: IconButton.styleFrom(
+                      backgroundColor:
+                          AppTheme.accentColor.withValues(alpha: 0.2),
+                      foregroundColor: AppTheme.accentColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: BorderSide(
+                          color: AppTheme.accentColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                filled: true,
-                fillColor: AppTheme.darkBackgroundColor,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 16 : 12,
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+
+          // Área de input de texto
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Botões laterais no desktop/tablet
+              if (!isMobile && widget.mode == ChatMode.module) ...[
+                IconButton(
+                  onPressed: _gerarQuizModulo,
+                  icon: Icon(Icons.quiz_rounded),
+                  tooltip: 'Quiz do Módulo',
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        AppTheme.primaryColor.withValues(alpha: 0.2),
+                    foregroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: _adicionarArquivo,
+                  icon: Icon(Icons.attach_file_rounded),
+                  tooltip: 'Adicionar Arquivo',
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        AppTheme.accentColor.withValues(alpha: 0.2),
+                    foregroundColor: AppTheme.accentColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  style: AppTheme.bodyMedium,
+                  maxLines: isMobile ? 3 : 5,
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    hintText: 'Digite sua pergunta...',
+                    hintStyle: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.darkTextSecondaryColor,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(isMobile ? 20 : 25),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: AppTheme.darkBackgroundColor,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 20 : 14,
+                      vertical: isMobile ? 10 : (isTablet ? 16 : 12),
+                    ),
+                  ),
+                  onSubmitted: _sendMessage,
+                  enabled: _tutorInitialized,
                 ),
               ),
-              onSubmitted: _sendMessage,
-              enabled: _tutorInitialized,
-            ),
-          ),
-          const SizedBox(width: 12),
-          ModernButton(
-            text: '',
-            onPressed: _textController.text.trim().isNotEmpty
-                ? () => _sendMessage(_textController.text)
-                : null,
-            isPrimary: true,
-            icon: Icons.send_rounded,
+              const SizedBox(width: 8),
+              Container(
+                height: isMobile ? 40 : 48,
+                width: isMobile ? 40 : 48,
+                child: IconButton(
+                  onPressed: _textController.text.trim().isNotEmpty
+                      ? () => _sendMessage(_textController.text)
+                      : null,
+                  icon: Icon(
+                    Icons.send_rounded,
+                    size: isMobile ? 18 : 20,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: _tutorInitialized &&
+                            _textController.text.trim().isNotEmpty
+                        ? AppTheme.primaryColor
+                        : AppTheme.darkBorderColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppTheme.darkBorderColor,
+                    disabledForegroundColor: AppTheme.darkTextSecondaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -752,16 +968,24 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
 
   // Placeholder implementations - simplificadas
   Widget _buildSidebar(bool isTablet) {
+    // Filtra conversas do módulo se estiver no modo módulo
+    final List<Conversa> conversasExibidas = (widget.mode == ChatMode.module &&
+            widget.modulo != null)
+        ? _conversas.where((c) => c.contexto == widget.modulo!.titulo).toList()
+        : _conversas;
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Conversas',
-                  style: TextStyle(
+                  widget.mode == ChatMode.module
+                      ? 'Conversas do Módulo'
+                      : 'Conversas',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -779,30 +1003,44 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
         Expanded(
           child: _loadingConversas
               ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  itemCount: _conversas.length,
-                  itemBuilder: (context, index) {
-                    final conversa = _conversas[index];
-                    return ListTile(
-                      title: Text(
-                        conversa.titulo,
-                        style: const TextStyle(color: Colors.white),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        conversa.contexto,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
+              : conversasExibidas.isEmpty && widget.mode == ChatMode.module
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Nenhuma conversa salva para este módulo ainda.\n\nInicie uma conversa e ela aparecerá aqui!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      onTap: () => _carregarConversa(conversa),
-                      selected: _conversaAtual?.id == conversa.id,
-                      selectedTileColor:
-                          AppTheme.primaryColor.withValues(alpha: 0.1),
-                    );
-                  },
-                ),
+                    )
+                  : ListView.builder(
+                      itemCount: conversasExibidas.length,
+                      itemBuilder: (context, index) {
+                        final conversa = conversasExibidas[index];
+                        return ListTile(
+                          title: Text(
+                            conversa.titulo,
+                            style: const TextStyle(color: Colors.white),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            conversa.contexto,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          onTap: () => _carregarConversa(conversa),
+                          selected: _conversaAtual?.id == conversa.id,
+                          selectedTileColor:
+                              AppTheme.primaryColor.withValues(alpha: 0.1),
+                        );
+                      },
+                    ),
         ),
       ],
     );

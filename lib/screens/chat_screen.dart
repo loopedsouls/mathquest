@@ -1664,8 +1664,13 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             child: AnimatedBuilder(
               animation: _typingAnimationController,
               builder: (context, child) {
+                // Animação dos três pontinhos
+                final dots = '.'.padRight(
+                  ((_typingAnimationController.value * 3).toInt() % 4),
+                  '.',
+                );
                 return Text(
-                  '${_useGemini ? 'Gemini' : (_selectedAI == 'flutter_gemma' ? 'Flutter Gemma' : 'Ollama')} está pensando...',
+                  dots,
                   style: AppTheme.bodySmall.copyWith(
                     color: AppTheme.primaryColor.withValues(
                       alpha: 0.5 + (_typingAnimationController.value * 0.5),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -759,6 +760,15 @@ Use emojis e formatação Markdown.
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
 
+      // Salvar conversa imediatamente após adicionar mensagem da IA
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
+
       // Adicionar botões de ação se for módulo
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
@@ -799,6 +809,15 @@ Escolha uma das opções abaixo para continuar seus estudos!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salvar conversa imediatamente após adicionar mensagem da IA
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
 
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
@@ -1088,6 +1107,15 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salva a conversa mesmo em caso de erro
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -1350,24 +1378,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
 
       if (conversaModulo.isNotEmpty) {
         final conversa = conversaModulo.first;
-        // Verificar se a conversa tem mensagens da IA (não está vazia)
-        final temMensagensIA = conversa.mensagens.any((msg) => !msg.isUser);
-
-        if (temMensagensIA) {
-          // Se tem mensagens da IA, carregar normalmente
-          _carregarConversa(conversa);
-        } else {
-          // Se não tem mensagens da IA, sobrescrever com boas-vindas
-          if (mounted) {
-            setState(() {
-              _conversaAtual = conversa;
-              _messages.clear();
-              _contextoAtual = conversa.contexto;
-            });
-          }
-          // Enviar mensagem de boas-vindas para conversa existente vazia
-          await _sendWelcomeMessage();
-        }
+        // Se já existe uma conversa para o módulo, carregar ela
+        _carregarConversa(conversa);
       } else {
         // Se não existe conversa, criar uma nova com boas-vindas
         if (mounted) {
@@ -1507,6 +1519,15 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salvar conversa imediatamente após adicionar mensagem da IA
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
     } catch (e) {
       _addMessage(ChatMessage(
         text: 'Desculpe, não foi possível gerar o quiz. Tente novamente. 😅',
@@ -1516,6 +1537,15 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Salvar conversa imediatamente após adicionar mensagem da IA
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -2196,34 +2226,47 @@ Use emojis e formatação Markdown para deixar mais atrativo!
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppTheme.darkSurfaceColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: AnimatedBuilder(
-              animation: _typingAnimationController,
-              builder: (context, child) {
-                // Animação dos três pontinhos
-                final dots = '.'.padRight(
-                  ((_typingAnimationController.value * 3).toInt() % 4),
-                  '.',
-                );
-                return Text(
-                  dots,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.primaryColor.withValues(
-                      alpha: 0.5 + (_typingAnimationController.value * 0.5),
-                    ),
-                  ),
-                );
-              },
+            child: Row(
+              children: [
+                _buildAnimatedDot(0),
+                const SizedBox(width: 4),
+                _buildAnimatedDot(1),
+                const SizedBox(width: 4),
+                _buildAnimatedDot(2),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAnimatedDot(int index) {
+    return AnimatedBuilder(
+      animation: _typingAnimationController,
+      builder: (context, child) {
+        // Calcula a opacidade baseada na posição do índice e no tempo da animação
+        final animationValue = _typingAnimationController.value;
+        final phase = (animationValue * 2 * pi) + (index * pi * 2 / 3);
+        final opacity = (sin(phase) + 1) / 2; // Vai de 0 a 1
+
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.3 + (opacity * 0.7)),
+            shape: BoxShape.circle,
+          ),
+        );
+      },
     );
   }
 

@@ -490,6 +490,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   late AnimationController _typingAnimationController;
   bool _sidebarVisible =
       false; // Novo estado para controlar visibilidade do sidebar
+  bool _showConversationsList =
+      true; // Novo estado para controlar se mostra lista de conversas ou chat
 
   // Configurações de IA
   bool _useGemini = true;
@@ -827,11 +829,25 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
       _messages.clear();
       _contextoAtual = widget.modulo?.titulo ?? 'geral';
       _tituloConversa = 'Nova Conversa';
+      _showConversationsList = false; // Garante que estamos no chat
     });
 
     if (_tutorInitialized) {
       _sendWelcomeMessage();
     }
+  }
+
+  void _voltarParaConversas() {
+    setState(() {
+      _showConversationsList = true;
+    });
+  }
+
+  void _abrirConversaNoChat(Conversa conversa) {
+    _carregarConversa(conversa);
+    setState(() {
+      _showConversationsList = false;
+    });
   }
 
   void _gerarQuizModulo() async {
@@ -926,12 +942,12 @@ Use emojis e formatação Markdown para deixar mais atrativo!
   // UI
   @override
   Widget build(BuildContext context) {
-    switch (widget.mode) {
-      case ChatMode.saved:
-        return _buildSavedConversationsScreen();
-      default:
-        return _buildChatScreen();
+    // Se está mostrando a lista de conversas, mostra a tela de conversas
+    if (_showConversationsList) {
+      return _buildConversationsListScreen();
     }
+    // Caso contrário, mostra o chat
+    return _buildChatScreen();
   }
 
   Widget _buildChatScreen() {
@@ -1064,9 +1080,11 @@ Use emojis e formatação Markdown para deixar mais atrativo!
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.mode == ChatMode.module
-                      ? 'Tutor de Matemática'
-                      : _tituloConversa,
+                  _showConversationsList
+                      ? 'Conversas Salvas'
+                      : (widget.mode == ChatMode.module
+                          ? 'Tutor de Matemática'
+                          : _tituloConversa),
                   style: AppTheme.headingMedium.copyWith(
                     fontSize: isTablet ? 18 : 16,
                   ),
@@ -1074,20 +1092,26 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  widget.mode == ChatMode.module
-                      ? '${widget.modulo!.unidadeTematica} - ${widget.modulo!.anoEscolar}'
-                      : _aiName,
+                  _showConversationsList
+                      ? '${_conversas.length} conversas'
+                      : (widget.mode == ChatMode.module
+                          ? '${widget.modulo!.unidadeTematica} - ${widget.modulo!.anoEscolar}'
+                          : _aiName),
                   style: AppTheme.bodySmall.copyWith(
-                    color: _tutorInitialized
-                        ? AppTheme.successColor
-                        : AppTheme.errorColor,
+                    color: _showConversationsList
+                        ? AppTheme.darkTextSecondaryColor
+                        : (_tutorInitialized
+                            ? AppTheme.successColor
+                            : AppTheme.errorColor),
                     fontSize: isTablet ? 12 : 11,
                   ),
                 ),
               ],
             ),
           ),
-          const QueueStatusIndicator(),
+          if (!_showConversationsList) ...[
+            const QueueStatusIndicator(),
+          ],
         ],
       ),
     );
@@ -1106,6 +1130,11 @@ Use emojis e formatação Markdown para deixar mais atrativo!
       ),
       child: Row(
         children: [
+          IconButton(
+            onPressed: _voltarParaConversas,
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Ver conversas',
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1642,7 +1671,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         ),
       ),
       child: InkWell(
-        onTap: () => _carregarConversa(conversa),
+        onTap: () => _abrirConversaNoChat(conversa),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -1816,54 +1845,182 @@ Use emojis e formatação Markdown para deixar mais atrativo!
     }
   }
 
-  Widget _buildSavedConversationsScreen() {
+  Widget _buildConversationsListScreen() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 768;
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Conversas Salvas'),
-        backgroundColor: AppTheme.darkSurfaceColor,
-      ),
-      body: _loadingConversas
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _conversas.length,
-              itemBuilder: (context, index) {
-                final conversa = _conversas[index];
-                return Card(
-                  color: AppTheme.darkSurfaceColor,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    title: Text(
-                      conversa.titulo,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      '${conversa.contexto} • ${conversa.mensagens.length} mensagens',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    trailing: Text(
-                      '${conversa.ultimaAtualizacao.day}/${conversa.ultimaAtualizacao.month}',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                            mode: ChatMode.general,
-                            conversaInicial: conversa,
-                          ),
-                        ),
-                      );
-                    },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.darkBackgroundColor,
+              AppTheme.darkSurfaceColor,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 24 : 16,
+                  vertical: isTablet ? 16 : 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkSurfaceColor.withValues(alpha: 0.8),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
                   ),
-                );
-              },
-            ),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      tooltip: 'Voltar',
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: isTablet ? 48 : 40,
+                      height: isTablet ? 48 : 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryLightColor
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.history_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Conversas Salvas',
+                            style: AppTheme.headingMedium.copyWith(
+                              fontSize: isTablet ? 18 : 16,
+                            ),
+                          ),
+                          Text(
+                            '${_conversas.length} conversas',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.darkTextSecondaryColor,
+                              fontSize: isTablet ? 12 : 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Botão para nova conversa
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _showConversationsList = false;
+                          _novaConversa();
+                        });
+                      },
+                      icon: const Icon(Icons.add_rounded),
+                      tooltip: 'Nova conversa',
+                      iconSize: 24,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Filtros
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 24 : 16,
+                  vertical: isTablet ? 16 : 12,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Filtrar: ',
+                      style: AppTheme.bodyMedium.copyWith(
+                        fontSize: isTablet ? 14 : 12,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterChip('todos', 'Todas', isTablet),
+                            const SizedBox(width: 8),
+                            _buildFilterChip('geral', 'Chat Geral', isTablet),
+                            const SizedBox(width: 8),
+                            _buildFilterChip('modulos', 'Módulos', isTablet),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Lista de conversas
+              Expanded(
+                child: _loadingConversas
+                    ? const Center(child: CircularProgressIndicator())
+                    : _conversasFiltradas.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  size: isTablet ? 80 : 60,
+                                  color: AppTheme.darkTextSecondaryColor,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Nenhuma conversa encontrada',
+                                  style: AppTheme.headingSmall.copyWith(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Clique em + para iniciar uma nova conversa',
+                                  style: AppTheme.bodyMedium.copyWith(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 24 : 16,
+                              vertical: isTablet ? 16 : 12,
+                            ),
+                            itemCount: _conversasFiltradas.length,
+                            itemBuilder: (context, index) {
+                              final conversa = _conversasFiltradas[index];
+                              return _buildConversaTile(conversa, isTablet);
+                            },
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

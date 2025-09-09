@@ -2262,7 +2262,8 @@ Use emojis e formatação Markdown para deixar mais atrativo!
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3 + (opacity * 0.7)),
+            color:
+                AppTheme.primaryColor.withValues(alpha: 0.3 + (opacity * 0.7)),
             shape: BoxShape.circle,
           ),
         );

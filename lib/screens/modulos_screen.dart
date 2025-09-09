@@ -304,52 +304,58 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildAssuntoCard(String assunto) {
-    // Primeiro tentar mapeamento direto
-    final moduloMapeado = _mapearAssuntoParaModulo(assunto);
-
+    // Em modo debug, sempre criar um módulo virtual se necessário
     ModuloBNCC? modulo;
-    if (moduloMapeado != null) {
-      modulo = moduloMapeado;
+
+    if (debugUnlockAllModules) {
+      // Tentar mapeamento direto primeiro
+      modulo = _mapearAssuntoParaModulo(assunto);
+
+      // Se não encontrou mapeamento, criar um módulo virtual
+      if (modulo == null) {
+        modulo = _criarModuloVirtual(assunto);
+      }
     } else {
-      // Fallback: Buscar módulos relacionados com melhor correspondência
-      final modulosRelacionados =
-          ModulosBNCCData.obterTodosModulos().where((modulo) {
-        final assuntoLower = assunto.toLowerCase();
-        final tituloLower = modulo.titulo.toLowerCase();
-        final descricaoLower = modulo.descricao.toLowerCase();
+      // Lógica normal de produção
+      final moduloMapeado = _mapearAssuntoParaModulo(assunto);
 
-        // Verificar correspondência exata primeiro
-        if (tituloLower.contains(assuntoLower) ||
-            tituloLower.contains(assuntoLower.replaceAll(' ', ''))) {
-          return true;
-        }
+      if (moduloMapeado != null) {
+        modulo = moduloMapeado;
+      } else {
+        // Fallback: Buscar módulos relacionados com melhor correspondência
+        final modulosRelacionados =
+            ModulosBNCCData.obterTodosModulos().where((modulo) {
+          final assuntoLower = assunto.toLowerCase();
+          final tituloLower = modulo.titulo.toLowerCase();
+          final descricaoLower = modulo.descricao.toLowerCase();
 
-        // Verificar se alguma palavra do assunto está no título
-        final palavrasAssunto = assuntoLower.split(' ');
-        for (final palavra in palavrasAssunto) {
-          if (palavra.length > 3 && tituloLower.contains(palavra)) {
+          // Verificar correspondência exata primeiro
+          if (tituloLower.contains(assuntoLower) ||
+              tituloLower.contains(assuntoLower.replaceAll(' ', ''))) {
             return true;
           }
-        }
 
-        // Verificar na descrição
-        for (final palavra in palavrasAssunto) {
-          if (palavra.length > 3 && descricaoLower.contains(palavra)) {
-            return true;
+          // Verificar se alguma palavra do assunto está no título
+          final palavrasAssunto = assuntoLower.split(' ');
+          for (final palavra in palavrasAssunto) {
+            if (palavra.length > 3 && tituloLower.contains(palavra)) {
+              return true;
+            }
           }
-        }
 
-        return false;
-      }).toList();
+          // Verificar na descrição
+          for (final palavra in palavrasAssunto) {
+            if (palavra.length > 3 && descricaoLower.contains(palavra)) {
+              return true;
+            }
+          }
 
-      modulo =
-          modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
-    }
+          return false;
+        }).toList();
 
-    // Debug: imprimir assuntos sem módulos correspondentes
-    if (modulo == null && debugUnlockAllModules) {
-      print('⚠️ Assunto sem módulo correspondente: "$assunto"');
-      print('   Módulos encontrados: 0');
+        modulo =
+            modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
+      }
     }
 
     // Obter os subtópicos do assunto
@@ -363,9 +369,10 @@ class _ModulosScreenState extends State<ModulosScreen>
       return _buildAssuntoCardSimples(assunto, subtemasTexto);
     }
 
-    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
-            ?[modulo.anoEscolar] ??
-        false;
+    final isCompleto = debugUnlockAllModules ||
+        (_progresso!.modulosCompletos[modulo.unidadeTematica]
+                ?[modulo.anoEscolar] ??
+            false);
     final isDesbloqueado = debugUnlockAllModules ||
         _progresso!
             .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
@@ -607,6 +614,38 @@ class _ModulosScreenState extends State<ModulosScreen>
       'Derivadas': 'Números Reais',
       'Integrais': 'Números Reais',
       'Equações diferenciais': 'Números Reais',
+      'Teoria dos Conjuntos': 'Números Naturais e Inteiros',
+      'Geometria plana': 'Figuras Geométricas',
+      'Medidas de superfície': 'Área de Figuras Planas',
+      'Medidas de volume': 'Volume de Sólidos',
+      'Medidas de capacidade': 'Unidades de Medida',
+      'Medidas de massa': 'Unidades de Medida',
+      'Medidas de tempo': 'Unidades de Medida',
+      'Medidas de comprimento': 'Unidades de Medida',
+      'Semelhança de Polígonos': 'Transformações Geométricas',
+      'Geometria espacial': 'Volume de Sólidos',
+      'Geometria analítica - Retas': 'Funções e Equações do 2º Grau',
+      'Geometria analítica - Circunferência': 'Círculo e Circunferência',
+      'Geometria analítica - Cônicas': 'Funções e Equações do 2º Grau',
+      'Análise Combinatória': 'Sequências e Regularidades',
+      'Produtos notáveis': 'Números Racionais',
+      'Binômio de Newton': 'Sequências e Regularidades',
+      'Função do 1º grau ou função afim': 'Funções e Equações do 2º Grau',
+      'Função quadrática': 'Funções e Equações do 2º Grau',
+      'Números complexos': 'Números Reais',
+      'Conjuntos numéricos': 'Números Naturais e Inteiros',
+      'Trigonometria': 'Teorema de Pitágoras',
+      'Equações trigonométricas': 'Teorema de Pitágoras',
+      'Inequações trigonométricas': 'Teorema de Pitágoras',
+      'Funções logarítmica e exponencial': 'Números Reais',
+      'Séries e sequências': 'Sequências e Regularidades',
+      'Função exponencial': 'Números Reais',
+      'Função logarítmica': 'Números Reais',
+      'Função modular': 'Números Reais',
+      'Probabilidade': 'Sequências e Regularidades',
+      'Logaritmos': 'Números Reais',
+      'Tabelas Avançadas': 'Números Naturais e Inteiros',
+      'Matemática Financeira': 'Sequências e Regularidades',
     };
 
     final tituloMapeado = mapeamento[assunto];
@@ -623,6 +662,29 @@ class _ModulosScreenState extends State<ModulosScreen>
     }
 
     return null;
+  }
+
+  ModuloBNCC _criarModuloVirtual(String assunto) {
+    // Criar um módulo virtual para assuntos sem mapeamento BNCC
+    return ModuloBNCC(
+      unidadeTematica: 'Matemática Geral',
+      subcategoria: assunto,
+      subSubcategoria: assunto,
+      anoEscolar: '6º ano', // Ano padrão
+      titulo: assunto,
+      descricao:
+          'Módulo de estudo sobre $assunto. Conteúdo abrangente e estruturado.',
+      habilidades: ['EF06MA01', 'EF06MA02'], // Habilidades genéricas
+      objetivos: [
+        'Compreender os conceitos fundamentais de $assunto',
+        'Aplicar os conhecimentos em situações práticas',
+        'Desenvolver habilidades de resolução de problemas'
+      ],
+      exerciciosNecessarios: 5,
+      taxaAcertoMinima: 0.8,
+      prerequisitos: [],
+      codigoBNCC: 'EF06MA99', // Código genérico
+    );
   }
 
   Widget _buildChatView() {

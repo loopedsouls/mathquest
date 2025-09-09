@@ -554,3 +554,79 @@ class Matematica {
 
   static buscarModulos(String s) {}
 }
+
+class Nivel {
+  final String icone;
+  final String nome;
+
+  const Nivel({
+    required this.icone,
+    required this.nome,
+  });
+}
+
+class Modulo {
+  final String titulo;
+  final String descricao;
+  final Avaliacao avaliacao;
+
+  const Modulo({
+    required this.titulo,
+    required this.descricao,
+    required this.avaliacao,
+  });
+}
+
+class Avaliacao {
+  final int exerciciosNecessarios;
+
+  const Avaliacao({
+    required this.exerciciosNecessarios,
+  });
+}
+
+class TrilhaAprendizado {
+  final String id;
+  final int cor;
+  final String icone;
+  final String titulo;
+  final String descricao;
+  final int ordem;
+  final List<Modulo> modulos;
+  final Duration duracaoEstimada;
+
+  const TrilhaAprendizado({
+    required this.id,
+    required this.cor,
+    required this.icone,
+    required this.titulo,
+    required this.descricao,
+    required this.ordem,
+    required this.modulos,
+    required this.duracaoEstimada,
+  });
+}
+
+class CursoMatematica {
+  final int cor;
+  final String icone;
+  final String titulo;
+  final String descricao;
+  final Nivel nivel;
+  final List<String> competenciasDesenvolvidas;
+  final Map<String, TrilhaAprendizado> trilhas;
+  final Duration duracaoEstimada;
+  final int totalModulos;
+
+  const CursoMatematica({
+    required this.cor,
+    required this.icone,
+    required this.titulo,
+    required this.descricao,
+    required this.nivel,
+    required this.competenciasDesenvolvidas,
+    required this.trilhas,
+    required this.duracaoEstimada,
+    required this.totalModulos,
+  });
+}

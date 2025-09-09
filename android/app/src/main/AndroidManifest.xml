@@ -38,18 +38,18 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            
+        <!-- Suporte OpenGL para Flutter Gemma (GPU acceleration) -->
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false"/>
+        <uses-native-library 
+            android:name="libOpenCL-car.so" 
+            android:required="false"/>
+        <uses-native-library 
+            android:name="libOpenCL-pixel.so" 
+            android:required="false"/>
     </application>
-    
-    <!-- Suporte OpenGL para Flutter Gemma (GPU acceleration) -->
-    <uses-native-library
-        android:name="libOpenCL.so"
-        android:required="false"/>
-    <uses-native-library 
-        android:name="libOpenCL-car.so" 
-        android:required="false"/>
-    <uses-native-library 
-        android:name="libOpenCL-pixel.so" 
-        android:required="false"/>
         
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

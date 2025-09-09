@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../models/progresso_usuario.dart';
 import '../models/modulo_bncc.dart';
+import '../models/matematica.dart';
 import '../services/progresso_service.dart';
 import '../screens/chat_screen.dart';
 
@@ -36,6 +37,7 @@ class _ModulosScreenState extends State<ModulosScreen>
   // Estado para controlar visualização
   bool _mostrarChat = false;
   ModuloBNCC? _moduloSelecionado;
+  String? _assuntoSelecionado;
 
   @override
   void initState() {
@@ -160,7 +162,7 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildUnidadesSeletor() {
-    final unidades = ModulosBNCCData.obterUnidadesTematicas();
+    final unidades = ['fundamental', 'medio', 'superior'];
 
     return Container(
       height: 60,
@@ -268,51 +270,250 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   String _getUnidadeIcon(String unidade) {
     switch (unidade) {
-      case 'Números':
-        return '🔢';
-      case 'Álgebra':
-        return '📐';
-      case 'Geometria':
-        return '📏';
-      case 'Grandezas e Medidas':
-        return '📊';
-      case 'Probabilidade e Estatística':
-        return '📈';
+      case 'fundamental':
+        return '🏫';
+      case 'medio':
+        return '🎓';
+      case 'superior':
+        return '🎓';
       default:
         return '📚';
     }
   }
 
   Widget _buildModulosGrid() {
-    final modulos = ModulosBNCCData.obterModulosPorUnidade(_unidadeSelecionada);
-
-    // Agrupa módulos por ano escolar para melhor organização
-    final modulosPorAno = <String, List<ModuloBNCC>>{};
-    for (final modulo in modulos) {
-      modulosPorAno.putIfAbsent(modulo.anoEscolar, () => []).add(modulo);
-    }
-
-    // Ordena os anos
-    final anosOrdenados = modulosPorAno.keys.toList()
-      ..sort((a, b) {
-        final numA = int.tryParse(a.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
-        final numB = int.tryParse(b.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
-        return numA.compareTo(numB);
-      });
+    final assuntos = Matematica.topicos[_unidadeSelecionada]?.keys.toList() ?? [];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.separated(
-        itemCount: anosOrdenados.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 24),
+        itemCount: assuntos.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
-          final ano = anosOrdenados[index];
-          final modulosDoAno = modulosPorAno[ano]!;
-
-          return _buildAnoSection(ano, modulosDoAno);
+          final assunto = assuntos[index];
+          return _buildAssuntoCard(assunto);
         },
       ),
     );
+  }
+
+  Widget _buildAssuntoCard(String assunto) {
+    // Buscar módulos relacionados ao assunto
+    final modulosRelacionados = ModulosBNCCData.obterTodosModulos()
+        .where((modulo) =>
+            modulo.titulo
+                .toLowerCase()
+                .contains(assunto.toLowerCase().split(' ')[0]) ||
+            modulo.descricao
+                .toLowerCase()
+                .contains(assunto.toLowerCase().split(' ')[0]))
+        .toList();
+
+    final modulo =
+        modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
+
+    if (_progresso == null || modulo == null) {
+      return _buildAssuntoCardSimples(assunto);
+    }
+
+    final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
+            ?[modulo.anoEscolar] ??
+        false;
+    final isDesbloqueado = debugUnlockAllModules ||
+        _progresso!
+            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar);
+
+    return ModernCard(
+      hasGlow: isDesbloqueado,
+      child: InkWell(
+        onTap: isDesbloqueado ? () => _iniciarAssunto(assunto, modulo) : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Ícone de status
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isCompleto
+                        ? [
+                            AppTheme.successColor,
+                            AppTheme.successColor.withValues(alpha: 0.7)
+                          ]
+                        : isDesbloqueado
+                            ? [
+                                AppTheme.primaryColor,
+                                AppTheme.primaryLightColor
+                              ]
+                            : [
+                                AppTheme.darkBorderColor,
+                                AppTheme.darkBorderColor
+                              ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isCompleto
+                      ? Icons.emoji_events_rounded
+                      : isDesbloqueado
+                          ? Icons.play_circle_filled_rounded
+                          : Icons.lock_rounded,
+                  color: isDesbloqueado
+                      ? Colors.white
+                      : AppTheme.darkTextSecondaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Conteúdo principal
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      assunto,
+                      style: AppTheme.headingMedium.copyWith(
+                        fontSize: 16,
+                        color: isDesbloqueado
+                            ? AppTheme.darkTextPrimaryColor
+                            : AppTheme.darkTextSecondaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Nível: ${_getNomeNivel(_unidadeSelecionada)}',
+                      style: AppTheme.bodySmall.copyWith(
+                        fontSize: 12,
+                        color: AppTheme.darkTextSecondaryColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Status badge
+              if (isDesbloqueado) ...[
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isCompleto
+                        ? AppTheme.successColor.withValues(alpha: 0.2)
+                        : AppTheme.primaryColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isCompleto
+                          ? AppTheme.successColor
+                          : AppTheme.primaryColor,
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    isCompleto ? '✓ Completo' : 'Disponível',
+                    style: TextStyle(
+                      color: isCompleto
+                          ? AppTheme.successColor
+                          : AppTheme.primaryColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppTheme.darkTextSecondaryColor,
+                  size: 20,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssuntoCardSimples(String assunto) {
+    return ModernCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.book_rounded,
+                color: AppTheme.darkTextSecondaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    assunto,
+                    style: AppTheme.headingMedium.copyWith(
+                      fontSize: 16,
+                      color: AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Nível: ${_getNomeNivel(_unidadeSelecionada)}',
+                    style: AppTheme.bodySmall.copyWith(
+                      fontSize: 12,
+                      color: AppTheme.darkTextSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppTheme.darkTextSecondaryColor,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getNomeNivel(String nivel) {
+    switch (nivel) {
+      case 'fundamental':
+        return 'Ensino Fundamental';
+      case 'medio':
+        return 'Ensino Médio';
+      case 'superior':
+        return 'Ensino Superior';
+      default:
+        return nivel;
+    }
+  }
+
+  void _iniciarAssunto(String assunto, ModuloBNCC modulo) {
+    setState(() {
+      _assuntoSelecionado = assunto;
+      _moduloSelecionado = modulo;
+      _mostrarChat = true;
+    });
   }
 
   Widget _buildAnoSection(String ano, List<ModuloBNCC> modulos) {
@@ -674,11 +875,22 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   String _criarPromptParaModulo(ModuloBNCC modulo) {
+    // Obter os subtópicos do assunto selecionado
+    final subtemas = (_assuntoSelecionado != null && Matematica.topicos[_unidadeSelecionada] != null)
+        ? Matematica.topicos[_unidadeSelecionada]![_assuntoSelecionado!] ?? []
+        : [];
+
+    final subtemasTexto = subtemas.isNotEmpty
+        ? '\n**Subtópicos a serem ensinados:**\n${subtemas.map((subtema) => '- $subtema').join('\n')}'
+        : '';
+
     return '''
 Você é um tutor de matemática especializado na BNCC, especificamente no módulo "${modulo.titulo}" 
 do ${modulo.anoEscolar}, unidade temática "${modulo.unidadeTematica}".
 
 **Descrição do módulo:** ${modulo.descricao}
+
+**Assunto selecionado:** ${_assuntoSelecionado ?? 'Nenhum assunto específico'}$subtemasTexto
 
 **Sua função:**
 - Seja um tutor paciente e encorajador

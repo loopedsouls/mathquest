@@ -57,10 +57,6 @@ class ResponsiveWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Definir breakpoints responsivos
-        final isTablet = constraints.maxWidth >= 768;
-        final isDesktop = constraints.maxWidth >= 1024;
-
         return Container(
           width: double.infinity,
           height: double.infinity,
@@ -75,13 +71,7 @@ class ResponsiveWrapper extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isDesktop ? 80 : (isTablet ? 40 : 16),
-                vertical: isDesktop ? 40 : (isTablet ? 24 : 8),
-              ),
-              child: child,
-            ),
+            child: child,
           ),
         );
       },

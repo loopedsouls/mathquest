@@ -40,7 +40,6 @@ class _StartScreenState extends State<StartScreen>
   late Animation<Offset> _slideAnimation;
 
   // Informações sobre a IA configurada
-  String _aiName = 'IA';
   bool _aiAvailable = false;
 
   // Navegação
@@ -174,13 +173,10 @@ class _StartScreenState extends State<StartScreen>
         }
 
         if (isConfigured && isAvailable) {
-          _aiName = 'Gemini';
           _aiAvailable = true;
         } else if (isConfigured && !isAvailable) {
-          _aiName = 'Gemini (Offline)';
           _aiAvailable = false;
         } else {
-          _aiName = 'Gemini (Não configurado)';
           _aiAvailable = false;
         }
       } else {
@@ -189,10 +185,8 @@ class _StartScreenState extends State<StartScreen>
         isAvailable = await ollamaService.isServiceAvailable();
 
         if (isAvailable) {
-          _aiName = 'Ollama ($modeloOllama)';
           _aiAvailable = true;
         } else {
-          _aiName = 'Ollama (Offline)';
           _aiAvailable = false;
         }
       }
@@ -203,7 +197,6 @@ class _StartScreenState extends State<StartScreen>
     } catch (e) {
       setState(() {
         _isOfflineMode = true;
-        _aiName = 'IA (Erro)';
         _aiAvailable = false;
       });
     }
@@ -258,89 +251,6 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
-  void _goToAIChat() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ChatScreen(
-          mode: ChatMode.sidebar,
-          isOfflineMode: false,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingActionButton(bool isTablet, bool isDesktop) {
-    final size = isTablet ? 64.0 : 56.0;
-    final iconSize = isTablet ? 28.0 : 24.0;
-
-    return Tooltip(
-      message: _aiAvailable
-          ? 'Chat com $_aiName'
-          : 'IA não disponível - Configure nas configurações',
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _aiAvailable
-                ? [AppTheme.primaryColor, AppTheme.primaryLightColor]
-                : [AppTheme.darkBorderColor, AppTheme.darkBorderColor],
-          ),
-          shape: BoxShape.circle,
-          boxShadow: _aiAvailable
-              ? [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(size / 2),
-            onTap: _aiAvailable ? _goToAIChat : null,
-            child: SizedBox(
-              width: size,
-              height: size,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.smart_toy_rounded,
-                    color: _aiAvailable
-                        ? Colors.white
-                        : AppTheme.darkTextSecondaryColor,
-                    size: iconSize,
-                  ),
-                  if (isTablet) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      _aiAvailable ? _aiName : 'IA',
-                      style: TextStyle(
-                        color: _aiAvailable
-                            ? Colors.white
-                            : AppTheme.darkTextSecondaryColor,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _onNavigationTap(int index) {
     setState(() {
       _selectedIndex = index;
@@ -384,11 +294,9 @@ class _StartScreenState extends State<StartScreen>
               children: [
                 _buildNavigationRail(),
                 Expanded(
-                  child: SafeArea(
-                    child: _isLoading
-                        ? _buildLoadingScreen()
-                        : _getCurrentScreen(isTablet, isDesktop),
-                  ),
+                  child: _isLoading
+                      ? _buildLoadingScreen()
+                      : _getCurrentScreen(isTablet, isDesktop),
                 ),
               ],
             )
@@ -399,11 +307,6 @@ class _StartScreenState extends State<StartScreen>
             ),
       bottomNavigationBar:
           !isDesktop && !_isLoading ? _buildBottomNavigationBar() : null,
-      floatingActionButton:
-          _isLoading ? null : _buildFloatingActionButton(isTablet, isDesktop),
-      floatingActionButtonLocation: isDesktop
-          ? FloatingActionButtonLocation.endFloat
-          : FloatingActionButtonLocation.endDocked,
     );
   }
 
@@ -545,165 +448,171 @@ class _StartScreenState extends State<StartScreen>
       animation: _animationController,
       builder: (context, child) {
         return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isDesktop ? 80 : (isTablet ? 40 : 20),
-                vertical: isDesktop ? 80 : (isTablet ? 60 : 40),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Card unificado com título e boas-vindas
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppTheme.primaryColor.withValues(alpha: 0.15),
-                          AppTheme.secondaryColor.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'MathQuest',
-                          style: AppTheme.displaySmall.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: isTablet ? 32 : 28,
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SizedBox(
+                height: double.infinity,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 24 : (isTablet ? 16 : 12),
+                    vertical: isDesktop ? 24 : (isTablet ? 20 : 16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Card unificado com título e boas-vindas
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppTheme.primaryColor.withValues(alpha: 0.15),
+                              AppTheme.secondaryColor.withValues(alpha: 0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                            width: 1,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.waving_hand_rounded,
-                              color: AppTheme.primaryColor,
-                              size: isTablet ? 20 : 18,
-                            ),
-                            const SizedBox(width: 8),
                             Text(
-                              'Bem-vindo!',
-                              style: AppTheme.bodyLarge.copyWith(
-                                color: AppTheme.darkTextPrimaryColor,
-                                fontWeight: FontWeight.w600,
+                              'MathQuest',
+                              style: AppTheme.displaySmall.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isTablet ? 32 : 28,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.waving_hand_rounded,
+                                  color: AppTheme.primaryColor,
+                                  size: isTablet ? 20 : 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Bem-vindo!',
+                                  style: AppTheme.bodyLarge.copyWith(
+                                    color: AppTheme.darkTextPrimaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _isOfflineMode
+                                  ? 'Modo offline ativo\nExercícios básicos disponíveis'
+                                  : 'Sistema de IA conectado\nExperiência completa disponível',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                                height: 1.4,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _isOfflineMode
-                              ? 'Modo offline ativo\nExercícios básicos disponíveis'
-                              : 'Sistema de IA conectado\nExperiência completa disponível',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.darkTextSecondaryColor,
-                            height: 1.4,
-                          ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // Menu principal estilo Visual Novel - expandido
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final buttonHeight = isTablet ? 60.0 : 50.0;
+                            final spacing = isTablet ? 16.0 : 12.0;
+
+                            return SizedBox(
+                              height: double.infinity,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildMobileVisualNovelButton(
+                                      title: 'Iniciar',
+                                      onPressed: _goToModulos,
+                                      height: buttonHeight,
+                                      isTablet: isTablet,
+                                    ),
+                                    SizedBox(height: spacing),
+                                    _buildMobileVisualNovelButton(
+                                      title: 'Modo Quiz',
+                                      onPressed: _startQuizAlternado,
+                                      height: buttonHeight,
+                                      isTablet: isTablet,
+                                    ),
+                                    SizedBox(height: spacing),
+                                    _buildMobileVisualNovelButton(
+                                      title: 'Configurações',
+                                      onPressed: _goToConfig,
+                                      height: buttonHeight,
+                                      isTablet: isTablet,
+                                    ),
+                                    SizedBox(height: spacing),
+                                    _buildMobileVisualNovelButton(
+                                      title: 'Relatórios',
+                                      onPressed: _goToRelatorios,
+                                      height: buttonHeight,
+                                      isTablet: isTablet,
+                                    ),
+                                    SizedBox(height: spacing),
+                                    _buildMobileVisualNovelButton(
+                                      title: 'Ajuda',
+                                      onPressed: _goToAjuda,
+                                      height: buttonHeight,
+                                      isTablet: isTablet,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  const SizedBox(height: 30),
-
-                  // Menu principal estilo Visual Novel - expandido
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final buttonHeight = isTablet ? 60.0 : 50.0;
-                        final spacing = isTablet ? 16.0 : 12.0;
-
-                        return SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildMobileVisualNovelButton(
-                                title: 'Iniciar',
-                                onPressed: _goToModulos,
-                                height: buttonHeight,
-                                isTablet: isTablet,
+                      // Status indicator na parte inferior
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isOfflineMode
+                                  ? Icons.wifi_off_rounded
+                                  : Icons.wifi_rounded,
+                              color: _isOfflineMode
+                                  ? AppTheme.warningColor
+                                  : AppTheme.successColor,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isOfflineMode ? 'Offline' : 'Online',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: _isOfflineMode
+                                    ? AppTheme.warningColor
+                                    : AppTheme.successColor,
                               ),
-                              SizedBox(height: spacing),
-                              _buildMobileVisualNovelButton(
-                                title: 'Modo Quiz',
-                                onPressed: _startQuizAlternado,
-                                height: buttonHeight,
-                                isTablet: isTablet,
-                              ),
-                              SizedBox(height: spacing),
-                              _buildMobileVisualNovelButton(
-                                title: 'Configurações',
-                                onPressed: _goToConfig,
-                                height: buttonHeight,
-                                isTablet: isTablet,
-                              ),
-                              SizedBox(height: spacing),
-                              _buildMobileVisualNovelButton(
-                                title: 'Relatórios',
-                                onPressed: _goToRelatorios,
-                                height: buttonHeight,
-                                isTablet: isTablet,
-                              ),
-                              SizedBox(height: spacing),
-                              _buildMobileVisualNovelButton(
-                                title: 'Ajuda',
-                                onPressed: _goToAjuda,
-                                height: buttonHeight,
-                                isTablet: isTablet,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Status indicator na parte inferior
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _isOfflineMode
-                              ? Icons.wifi_off_rounded
-                              : Icons.wifi_rounded,
-                          color: _isOfflineMode
-                              ? AppTheme.warningColor
-                              : AppTheme.successColor,
-                          size: 16,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isOfflineMode ? 'Offline' : 'Online',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: _isOfflineMode
-                                ? AppTheme.warningColor
-                                : AppTheme.successColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        );
+            ));
       },
     );
   }

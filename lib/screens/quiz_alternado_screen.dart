@@ -74,11 +74,15 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _initializeAnimations();
     _loadPreferences();
     _initializeQuiz();
-    _respostaController.addListener(() {
+    _respostaController.addListener(_onRespostaChanged);
+  }
+
+  void _onRespostaChanged() {
+    if (mounted) {
       setState(() {
         respostaSelecionada = _respostaController.text.trim();
       });
-    });
+    }
   }
 
   void _initializeAnimations() {
@@ -114,12 +118,14 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
 
-    setState(() {
-      _useGemini = selectedAI == 'gemini';
-      _modeloOllama = modeloOllama;
-      topico = widget.topico ?? 'números e operações';
-      dificuldade = widget.dificuldade ?? 'fácil';
-    });
+    if (mounted) {
+      setState(() {
+        _useGemini = selectedAI == 'gemini';
+        _modeloOllama = modeloOllama;
+        topico = widget.topico ?? 'números e operações';
+        dificuldade = widget.dificuldade ?? 'fácil';
+      });
+    }
   }
 
   Future<void> _initializeQuiz() async {
@@ -127,9 +133,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final apiKey = prefs.getString('gemini_api_key');
 
     if (_useGemini && (apiKey == null || apiKey.isEmpty)) {
-      setState(() {
-        carregando = false;
-      });
+      if (mounted) {
+        setState(() {
+          carregando = false;
+        });
+      }
       _showErrorDialog('API Key do Gemini não configurada');
       return;
     }
@@ -156,12 +164,14 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       return;
     }
 
-    setState(() {
-      carregando = true;
-      perguntaAtual = null;
-      respostaSelecionada = null;
-      _respostaController.clear();
-    });
+    if (mounted) {
+      setState(() {
+        carregando = true;
+        perguntaAtual = null;
+        respostaSelecionada = null;
+        _respostaController.clear();
+      });
+    }
 
     try {
       // Escolhe tipo aleatório para esta pergunta
@@ -190,9 +200,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       await _gerarPerguntaOffline();
     }
 
-    setState(() {
-      carregando = false;
-    });
+    if (mounted) {
+      setState(() {
+        carregando = false;
+      });
+    }
 
     _animationController.reset();
     _animationController.forward();
@@ -201,10 +213,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   void _processarPerguntaCache(Map<String, dynamic> pergunta) {
-    setState(() {
-      perguntaAtual = pergunta;
-      _perguntaDoCache = pergunta['fonte_ia'] == null;
-    });
+    if (mounted) {
+      setState(() {
+        perguntaAtual = pergunta;
+        _perguntaDoCache = pergunta['fonte_ia'] == null;
+      });
+    }
 
     debugPrint('Pergunta processada. Do cache: $_perguntaDoCache');
     debugPrint('Conteúdo: ${pergunta['pergunta']}');
@@ -249,10 +263,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         };
     }
 
-    setState(() {
-      perguntaAtual = pergunta;
-      _perguntaDoCache = false;
-    });
+    if (mounted) {
+      setState(() {
+        perguntaAtual = pergunta;
+        _perguntaDoCache = false;
+      });
+    }
   }
 
   Widget _buildMultiplaEscolha() {
@@ -270,9 +286,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
           child: ModernButton(
             text: '$letra) $opcao',
             onPressed: () {
-              setState(() {
-                respostaSelecionada = letra;
-              });
+              if (mounted) {
+                setState(() {
+                  respostaSelecionada = letra;
+                });
+              }
             },
             isPrimary: isSelected,
             isFullWidth: true,
@@ -290,9 +308,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
           child: ModernButton(
             text: 'Verdadeiro',
             onPressed: () {
-              setState(() {
-                respostaSelecionada = 'Verdadeiro';
-              });
+              if (mounted) {
+                setState(() {
+                  respostaSelecionada = 'Verdadeiro';
+                });
+              }
             },
             isPrimary: respostaSelecionada == 'Verdadeiro',
             icon: respostaSelecionada == 'Verdadeiro'
@@ -305,9 +325,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
           child: ModernButton(
             text: 'Falso',
             onPressed: () {
-              setState(() {
-                respostaSelecionada = 'Falso';
-              });
+              if (mounted) {
+                setState(() {
+                  respostaSelecionada = 'Falso';
+                });
+              }
             },
             isPrimary: respostaSelecionada == 'Falso',
             icon: respostaSelecionada == 'Falso'
@@ -373,9 +395,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       'explicacao': perguntaAtual!['explicacao'] ?? '',
     });
 
-    setState(() {
-      perguntaIndex++;
-    });
+    if (mounted) {
+      setState(() {
+        perguntaIndex++;
+      });
+    }
 
     // Atualiza progresso
     _progressController.animateTo(perguntaIndex / totalPerguntas);
@@ -387,10 +411,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     // Reset das animações e próxima pergunta
     _cardAnimationController.reset();
-    setState(() {
-      respostaSelecionada = null;
-      _respostaController.clear();
-    });
+    if (mounted) {
+      setState(() {
+        respostaSelecionada = null;
+        _respostaController.clear();
+      });
+    }
 
     // Próxima pergunta
     await _gerarPergunta();
@@ -431,9 +457,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   void _finalizarQuiz() {
-    setState(() {
-      quizFinalizado = true;
-    });
+    if (mounted) {
+      setState(() {
+        quizFinalizado = true;
+      });
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -705,6 +733,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
   @override
   void dispose() {
+    _respostaController.removeListener(_onRespostaChanged);
     _animationController.dispose();
     _progressController.dispose();
     _cardAnimationController.dispose();
@@ -746,14 +775,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                 child: Row(
                   children: [
                     IconButton(
-                      onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                      onPressed: () => Navigator.of(context)
+                          .popUntil((route) => route.isFirst),
                       icon: Icon(
                         Icons.home_rounded,
                         color: AppTheme.primaryColor,
                         size: isTablet ? 28 : 24,
                       ),
                       style: IconButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                        backgroundColor:
+                            AppTheme.primaryColor.withValues(alpha: 0.08),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

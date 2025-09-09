@@ -48,8 +48,8 @@ class _StartScreenState extends State<StartScreen>
 
   final List<NavigationItem> _navigationItems = [
     NavigationItem(
-      icon: Icons.assessment_rounded,
-      label: 'Progresso',
+      icon: Icons.home_rounded,
+      label: 'Início',
     ),
     NavigationItem(
       icon: Icons.play_arrow_rounded,
@@ -60,8 +60,8 @@ class _StartScreenState extends State<StartScreen>
       label: 'Quiz',
     ),
     NavigationItem(
-      icon: Icons.chat_rounded,
-      label: 'Chat',
+      icon: Icons.assessment_rounded,
+      label: 'Relatórios',
     ),
     NavigationItem(
       icon: Icons.settings_rounded,
@@ -342,29 +342,23 @@ class _StartScreenState extends State<StartScreen>
     setState(() {
       _selectedIndex = index;
     });
-  }
 
-  Widget _getCurrentScreen(bool isTablet, bool isDesktop) {
-    switch (_selectedIndex) {
+    switch (index) {
       case 0:
-        return const RelatoriosScreen();
+        // Início - já estamos na tela inicial
+        break;
       case 1:
-        return ModulosScreen(
-          isOfflineMode: _isOfflineMode,
-          exerciciosOffline: _exerciciosOffline,
-        );
+        _goToModulos();
+        break;
       case 2:
-        return QuizAlternadoScreen(
-          isOfflineMode: _isOfflineMode,
-          topico: 'números e operações',
-          dificuldade: 'médio',
-        );
+        _startQuizAlternado();
+        break;
       case 3:
-        return ChatScreen(mode: ChatMode.general);
+        _goToRelatorios();
+        break;
       case 4:
-        return const ConfiguracaoScreen();
-      default:
-        return _buildMainContent(isTablet, isDesktop);
+        _goToConfig();
+        break;
     }
   }
 
@@ -395,7 +389,7 @@ class _StartScreenState extends State<StartScreen>
                     child: SafeArea(
                       child: _isLoading
                           ? _buildLoadingScreen()
-                          : _getCurrentScreen(isTablet, isDesktop),
+                          : _buildMainContent(isTablet, isDesktop),
                     ),
                   ),
                 ),
@@ -411,11 +405,12 @@ class _StartScreenState extends State<StartScreen>
                     AppTheme.darkSurfaceColor,
                   ],
                 ),
-              ),                child: SafeArea(
-                  child: _isLoading
-                      ? _buildLoadingScreen()
-                      : _getCurrentScreen(isTablet, isDesktop),
-                ),
+              ),
+              child: SafeArea(
+                child: _isLoading
+                    ? _buildLoadingScreen()
+                    : _buildMainContent(isTablet, isDesktop),
+              ),
             ),
       bottomNavigationBar: !isDesktop && !_isLoading
           ? _buildBottomNavigationBar()

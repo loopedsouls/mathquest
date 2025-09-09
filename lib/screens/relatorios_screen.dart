@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../services/relatorio_service.dart';
-import '../widgets/relatorio_charts.dart';
-import '../widgets/modern_components.dart';
-import '../services/explicacao_service.dart';
 import '../models/conquista.dart';
-import '../services/gamificacao_service.dart';
 
 class RelatoriosScreen extends StatefulWidget {
   const RelatoriosScreen({super.key});
@@ -15,74 +10,127 @@ class RelatoriosScreen extends StatefulWidget {
 }
 
 class _RelatoriosScreenState extends State<RelatoriosScreen>
-    with TickerProviderStateMixin {
-  // Dados para Conquistas
-  List<Conquista> conquistasDesbloqueadas = [];
-  List<Conquista> conquistasBloqueadas = [];
-  Map<String, dynamic> estatisticasConquistas = {};
-
-  // Dados para Histórico de Explicações
-  List<Map<String, dynamic>> _explicacoesPorUnidade = [];
-  List<Map<String, dynamic>> _explicacoesPorTopico = [];
-  List<Map<String, dynamic>> _pontosFracos = [];
-  Map<String, dynamic> _estatisticasExplicacoes = {};
-
-  // Filtros
-  String? _unidadeFiltro;
-  String? _topicoFiltro;
-  String _searchTerm = '';
-
-  // Dados para Relatórios Gerais
-  Map<String, dynamic>? _relatorioCompleto;
+    with SingleTickerProviderStateMixin {
+  Map<String, dynamic> _dadosProgresso = {};
+  List<Conquista> _conquistas = [];
+  Map<String, dynamic> _estatisticas = {};
 
   bool _carregando = true;
   late TabController _tabController;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
-    _carregarTodosDados();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    _carregarDados();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  Future<void> _carregarTodosDados() async {
+  Future<void> _carregarDados() async {
     setState(() => _carregando = true);
 
     try {
-      // Carrega dados de conquistas
-      final desbloqueadas =
-          await GamificacaoService.obterConquistasDesbloqueadas();
-      final bloqueadas = await GamificacaoService.obterConquistasBloqueadas();
-      final statsConquistas = await GamificacaoService.obterEstatisticas();
+      // Simula dados de progresso
+      _dadosProgresso = {
+        'nivel_atual': 15,
+        'xp_total': 2340,
+        'xp_proximo_nivel': 2500,
+        'exercicios_completados': 128,
+        'sequencia_dias': 7,
+        'tempo_estudo_total': 45, // horas
+        'pontuacao_media': 85.5,
+        'topicos_dominados': 12,
+        'topicos_total': 18,
+      };
 
-      // Carrega dados de explicações
-      final estatisticasExp =
-          await ExplicacaoService.obterEstatisticasPorTema();
-      final pontosFracos = await ExplicacaoService.obterPontosFracos();
+      // Simula conquistas
+      _conquistas = [
+        Conquista(
+          id: '1',
+          titulo: 'Primeiro Passo',
+          descricao: 'Complete seu primeiro exercício',
+          emoji: '⭐',
+          tipo: TipoConquista.moduloCompleto,
+          criterios: {'completar_primeiro_exercicio': true},
+          pontosBonus: 50,
+          dataConquista: DateTime.now().subtract(const Duration(days: 7)),
+          desbloqueada: true,
+        ),
+        Conquista(
+          id: '2',
+          titulo: 'Dedicado',
+          descricao: 'Estude por 7 dias consecutivos',
+          emoji: '🔥',
+          tipo: TipoConquista.streakExercicios,
+          criterios: {'dias_consecutivos': 7},
+          pontosBonus: 100,
+          dataConquista: DateTime.now(),
+          desbloqueada: true,
+        ),
+        Conquista(
+          id: '3',
+          titulo: 'Matemático',
+          descricao: 'Domine 10 tópicos diferentes',
+          emoji: '🎓',
+          tipo: TipoConquista.unidadeCompleta,
+          criterios: {'topicos_dominados': 10},
+          pontosBonus: 200,
+          dataConquista: DateTime.now().subtract(const Duration(days: 2)),
+          desbloqueada: true,
+        ),
+        Conquista(
+          id: '4',
+          titulo: 'Perfeccionista',
+          descricao: 'Obtenha 100% em 20 exercícios',
+          emoji: '🏆',
+          tipo: TipoConquista.perfeccionista,
+          criterios: {'exercicios_100_porcento': 20},
+          pontosBonus: 300,
+          desbloqueada: false,
+        ),
+      ];
 
-      // Carrega relatório completo
-      final relatorio = await RelatorioService.gerarRelatorioCompleto();
+      _estatisticas = {
+        'exercicios_por_semana': [15, 12, 18, 22, 16, 19, 25],
+        'topicos_progresso': {
+          'Números': 90,
+          'Operações': 75,
+          'Frações': 60,
+          'Geometria': 45,
+          'Medidas': 30,
+        },
+        'desempenho_mensal': [78, 82, 85, 88, 91, 85],
+      };
 
-      setState(() {
-        conquistasDesbloqueadas = desbloqueadas;
-        conquistasBloqueadas = bloqueadas;
-        estatisticasConquistas = statsConquistas;
-        _estatisticasExplicacoes = estatisticasExp;
-        _pontosFracos = pontosFracos;
-        _relatorioCompleto = relatorio;
-        _carregando = false;
-      });
+      setState(() => _carregando = false);
+      _animationController.forward();
     } catch (e) {
       setState(() => _carregando = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar dados: $e')),
+          SnackBar(
+            content: Text('Erro ao carregar dados: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
         );
       }
     }
@@ -144,9 +192,9 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
     );
   }
 
-  // ===== MÉTODOS PARA CONQUISTAS =====
-
   Widget _buildConquistasDesbloqueadas() {
+    final conquistasDesbloqueadas = _conquistas.where((c) => c.desbloqueada).toList();
+
     if (conquistasDesbloqueadas.isEmpty) {
       return Center(
         child: Column(
@@ -160,16 +208,19 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
             const SizedBox(height: 16),
             Text(
               'Nenhuma conquista desbloqueada ainda',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Continue resolvendo exercícios para desbloquear suas primeiras conquistas!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+              'Continue estudando para desbloquear suas primeiras conquistas!',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -177,316 +228,149 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
       );
     }
 
-    // Agrupa conquistas por tipo
-    final conquistasPorTipo = <TipoConquista, List<Conquista>>{};
-    for (final conquista in conquistasDesbloqueadas) {
-      conquistasPorTipo.putIfAbsent(conquista.tipo, () => []).add(conquista);
-    }
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: conquistasPorTipo.length,
+      itemCount: conquistasDesbloqueadas.length,
       itemBuilder: (context, index) {
-        final tipo = conquistasPorTipo.keys.elementAt(index);
-        final conquistas = conquistasPorTipo[tipo]!;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (index > 0) const SizedBox(height: 24),
-            Text(
-              _obterTituloTipo(tipo),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+        final conquista = conquistasDesbloqueadas[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: Text(
+              conquista.emoji,
+              style: const TextStyle(fontSize: 32),
             ),
-            const SizedBox(height: 12),
-            ...conquistas
-                .map((conquista) => _buildConquistaCard(conquista, true)),
-          ],
+            title: Text(
+              conquista.titulo,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Text(conquista.descricao),
+            trailing: Text(
+              '+${conquista.pontosBonus} XP',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
   Widget _buildConquistasBloqueadas() {
+    final conquistasBloqueadas = _conquistas.where((c) => !c.desbloqueada).toList();
+
     if (conquistasBloqueadas.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.celebration,
+              Icons.lock_outline,
               size: 80,
-              color: AppTheme.primaryColor,
+              color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
-              'Parabéns!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Você desbloqueou todas as conquistas disponíveis!',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+              'Todas as conquistas foram desbloqueadas!',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
       );
     }
 
-    // Agrupa conquistas por tipo
-    final conquistasPorTipo = <TipoConquista, List<Conquista>>{};
-    for (final conquista in conquistasBloqueadas) {
-      conquistasPorTipo.putIfAbsent(conquista.tipo, () => []).add(conquista);
-    }
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: conquistasPorTipo.length,
+      itemCount: conquistasBloqueadas.length,
       itemBuilder: (context, index) {
-        final tipo = conquistasPorTipo.keys.elementAt(index);
-        final conquistas = conquistasPorTipo[tipo]!;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (index > 0) const SizedBox(height: 24),
-            Text(
-              _obterTituloTipo(tipo),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.bold,
-                  ),
+        final conquista = conquistasBloqueadas[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          color: Colors.grey[50],
+          child: ListTile(
+            leading: Icon(
+              Icons.lock,
+              color: Colors.grey[400],
+              size: 32,
             ),
-            const SizedBox(height: 12),
-            ...conquistas
-                .map((conquista) => _buildConquistaCard(conquista, false)),
-          ],
+            title: Text(
+              conquista.titulo,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Text(
+              conquista.descricao,
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildConquistaCard(Conquista conquista, bool desbloqueada) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: desbloqueada ? AppTheme.primaryColor : Colors.grey[400],
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Icon(
-            _obterIconeConquista(conquista),
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-        title: Text(
-          conquista.titulo,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: desbloqueada ? null : Colors.grey[600],
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              conquista.descricao,
-              style: TextStyle(
-                color: desbloqueada ? null : Colors.grey[500],
-              ),
+  Widget _buildEstatisticasConquistas() {
+    final conquistasDesbloqueadas = _conquistas.where((c) => c.desbloqueada).toList();
+    final totalConquistas = _conquistas.length;
+    final porcentagem = totalConquistas > 0 ? (conquistasDesbloqueadas.length / totalConquistas) * 100 : 0;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Estatísticas de Conquistas',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            if (desbloqueada && conquista.dataConquista != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Desbloqueada em ${_formatarData(conquista.dataConquista!)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Desbloqueadas',
+                  conquistasDesbloqueadas.length.toString(),
+                  Icons.emoji_events,
+                  AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatCard(
+                  'Totais',
+                  totalConquistas.toString(),
+                  Icons.stars,
+                  AppTheme.secondaryColor,
                 ),
               ),
             ],
-          ],
-        ),
-        trailing: desbloqueada
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '+${conquista.pontosBonus}',
-                    style: TextStyle(
-                      color: AppTheme.accentColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'pontos',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.accentColor,
-                    ),
-                  ),
-                ],
-              )
-            : Icon(
-                Icons.lock,
-                color: Colors.grey[400],
-              ),
+          ),
+          const SizedBox(height: 16),
+          _buildStatCard(
+            'Progresso',
+            '${porcentagem.round()}%',
+            Icons.trending_up,
+            AppTheme.successColor,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEstatisticasConquistas() {
-    if (estatisticasConquistas.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final conquistasDesbloqueadasCount =
-        estatisticasConquistas['conquistas_desbloqueadas'] ?? 0;
-    final conquistasTotais = estatisticasConquistas['conquistas_totais'] ?? 1;
-    final porcentagem =
-        (estatisticasConquistas['porcentagem_conquistas'] ?? 0.0) * 100;
-    final streakAtual = estatisticasConquistas['streak_atual'] ?? 0;
-    final melhorStreak = estatisticasConquistas['melhor_streak'] ?? 0;
-    final pontosBonus = estatisticasConquistas['pontos_bonus'] ?? 0;
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Progresso geral
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.emoji_events, color: AppTheme.primaryColor),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Progresso Geral',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '$conquistasDesbloqueadasCount de $conquistasTotais conquistas',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    Text(
-                      '${porcentagem.toStringAsFixed(1)}%',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: porcentagem / 100,
-                  backgroundColor: Colors.grey[300],
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Cards de estatísticas
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Streak Atual',
-                streakAtual.toString(),
-                Icons.local_fire_department,
-                Colors.orange,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildStatCard(
-                'Melhor Streak',
-                melhorStreak.toString(),
-                Icons.whatshot,
-                Colors.red,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        _buildStatCard(
-          'Pontos Bônus',
-          pontosBonus.toString(),
-          Icons.stars,
-          AppTheme.accentColor,
-        ),
-
-        const SizedBox(height: 24),
-
-        // Dicas para desbloquear mais conquistas
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.lightbulb, color: AppTheme.accentColor),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Dicas para Mais Conquistas',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildDica('🔥',
-                    'Mantenha sequências de acertos para conquistas de streak'),
-                _buildDica(
-                    '⚡', 'Responda rapidamente para conquistas de velocidade'),
-                _buildDica('🎯',
-                    'Complete módulos com 100% de acerto para ser perfeccionista'),
-                _buildDica('📚',
-                    'Complete unidades inteiras para conquistas especiais'),
-                _buildDica('🏆', 'Acumule pontos para conquistas de pontuação'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(
-      String titulo, String valor, IconData icone, Color cor) {
+  Widget _buildStatCard(String titulo, String valor, IconData icone, Color cor) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -496,15 +380,19 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
             const SizedBox(height: 8),
             Text(
               valor,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: cor,
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: cor,
+              ),
             ),
+            const SizedBox(height: 4),
             Text(
               titulo,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -512,160 +400,63 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
     );
   }
 
-  Widget _buildDica(String emoji, String texto) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              texto,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===== MÉTODOS PARA HISTÓRICO DE EXPLICAÇÕES =====
-
   Widget _buildHistoricoExplicacoes() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildEstatisticasExplicacoesCard(),
-          const SizedBox(height: 20),
-          _buildUnidadesCard(),
-          const SizedBox(height: 20),
-          _buildTopicosCard(),
-          if (_unidadeFiltro != null || _topicoFiltro != null) ...[
-            const SizedBox(height: 20),
-            _buildExplicacoesCard(),
-          ],
-          const SizedBox(height: 20),
-          _buildBuscarCard(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEstatisticasExplicacoesCard() {
-    final errosRecentes = _estatisticasExplicacoes['erros_ultimos_7_dias'] ?? 0;
-    final totalExplicacoes = _estatisticasExplicacoes['total_explicacoes'] ?? 0;
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.analytics, color: AppTheme.primaryColor),
-              const SizedBox(width: 8),
-              const Text(
-                'Estatísticas Gerais',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Icon(
+            Icons.history,
+            size: 80,
+            color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  'Total de Explicações',
-                  totalExplicacoes.toString(),
-                  Icons.library_books,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatItem(
-                  'Erros Recentes (7 dias)',
-                  errosRecentes.toString(),
-                  Icons.error_outline,
-                  errosRecentes > 5 ? Colors.red : Colors.orange,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBuscarCard() {
-    return ModernCard(
-      child: Column(
-        children: [
-          TextField(
-            decoration: const InputDecoration(
-              hintText: 'Buscar por pergunta, explicação ou tópico...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+          Text(
+            'Histórico de Explicações',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
-            onSubmitted: _buscarExplicacoes,
           ),
-          const SizedBox(height: 16),
-          if (_searchTerm.isNotEmpty) ...[
-            Text(
-              'Resultados para: "$_searchTerm"',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+          const SizedBox(height: 8),
+          Text(
+            'Em desenvolvimento',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
             ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildPontosFracos() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ModernCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.trending_down, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text(
-                      'Seus Pontos Fracos',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Tópicos onde você mais cometeu erros:',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                if (_pontosFracos.isEmpty)
-                  const Center(
-                    child: Text(
-                      'Parabéns! Você não tem pontos fracos significativos.',
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  )
-                else
-                  ..._pontosFracos.map((ponto) => _buildPontoFracoItem(ponto)),
-              ],
+          Icon(
+            Icons.trending_down,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Análise de Pontos Fracos',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Em desenvolvimento',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
             ),
           ),
         ],
@@ -674,610 +465,171 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
   }
 
   Widget _buildRelatorioGeral() {
-    if (_relatorioCompleto == null) {
-      return const Center(child: Text('Erro ao carregar dados'));
-    }
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildVisaoGeral(),
-          const SizedBox(height: 16),
-          _buildAnalisePorUnidade(),
-          const SizedBox(height: 16),
-          _buildRecomendacoes(),
-        ],
-      ),
-    );
-  }
-
-  // ===== MÉTODOS AUXILIARES =====
-
-  Future<void> _carregarExplicacoesPorUnidade(String unidade) async {
-    try {
-      final explicacoes = await ExplicacaoService.obterHistoricoPorUnidade(
-        unidade: unidade,
-      );
-
-      setState(() {
-        _explicacoesPorUnidade = explicacoes;
-        _unidadeFiltro = unidade;
-      });
-    } catch (e) {
-      _mostrarErro('Erro ao carregar explicações: $e');
-    }
-  }
-
-  Future<void> _carregarExplicacoesPorTopico(String topico) async {
-    try {
-      final explicacoes = await ExplicacaoService.obterHistoricoPorTopico(
-        topico: topico,
-      );
-
-      setState(() {
-        _explicacoesPorTopico = explicacoes;
-        _topicoFiltro = topico;
-      });
-    } catch (e) {
-      _mostrarErro('Erro ao carregar explicações: $e');
-    }
-  }
-
-  Future<void> _buscarExplicacoes(String termo) async {
-    if (termo.isEmpty) return;
-
-    try {
-      final resultados =
-          await ExplicacaoService.buscarExplicacoes(termo: termo);
-
-      setState(() {
-        _explicacoesPorUnidade = resultados;
-        _searchTerm = termo;
-      });
-    } catch (e) {
-      _mostrarErro('Erro na busca: $e');
-    }
-  }
-
-  void _mostrarErro(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensagem),
-        backgroundColor: Colors.red[600],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
-      String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
           Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUnidadesCard() {
-    final errosPorUnidade =
-        _estatisticasExplicacoes['erros_por_unidade'] as List<dynamic>? ?? [];
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Erros por Unidade Temática',
-            style: TextStyle(
-              fontSize: 16,
+            'Relatório Geral',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
-          if (errosPorUnidade.isEmpty)
-            const Text('Nenhum erro registrado ainda.')
-          else
-            ...errosPorUnidade.map((item) => _buildUnidadeItem(item)).toList(),
+          const SizedBox(height: 24),
+          _buildProgressCard(),
+          const SizedBox(height: 24),
+          _buildPerformanceCard(),
         ],
       ),
     );
   }
 
-  Widget _buildTopicosCard() {
-    final errosPorTopico =
-        _estatisticasExplicacoes['erros_por_topico'] as List<dynamic>? ?? [];
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Erros por Tópico Específico',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (errosPorTopico.isEmpty)
-            const Text('Nenhum erro registrado ainda.')
-          else
-            ...errosPorTopico
-                .take(10)
-                .map((item) => _buildTopicoItem(item))
-                .toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUnidadeItem(Map<String, dynamic> item) {
-    final unidade = item['unidade'] as String;
-    final totalErros = item['total_erros'] as int;
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-        child: Text(
-          totalErros.toString(),
-          style: TextStyle(
-            color: AppTheme.primaryColor,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      title: Text(unidade),
-      subtitle: Text('$totalErros erros registrados'),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _carregarExplicacoesPorUnidade(unidade),
-    );
-  }
-
-  Widget _buildTopicoItem(Map<String, dynamic> item) {
-    final topico = item['topico_especifico'] as String;
-    final totalErros = item['total_erros'] as int;
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.orange.withValues(alpha: 0.1),
-        child: Text(
-          totalErros.toString(),
-          style: const TextStyle(
-            color: Colors.orange,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      title: Text(topico),
-      subtitle: Text('$totalErros erros registrados'),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () => _carregarExplicacoesPorTopico(topico),
-    );
-  }
-
-  Widget _buildPontoFracoItem(Map<String, dynamic> ponto) {
-    final topico = ponto['topico_especifico'] as String;
-    final totalErros = ponto['total_erros'] as int;
-    final ultimoErro = DateTime.parse(ponto['ultimo_erro'] as String);
-    final unidade = ponto['unidade'] as String;
-    final ano = ponto['ano'] as String;
-
-    final formatDate =
-        '${ultimoErro.day.toString().padLeft(2, '0')}/${ultimoErro.month.toString().padLeft(2, '0')}/${ultimoErro.year}';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.red.withValues(alpha: 0.1),
-          child: Text(
-            totalErros.toString(),
-            style: const TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(
-          topico,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$unidade - $ano'),
-            Text(
-              'Último erro: $formatDate',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        trailing: Icon(
-          totalErros >= 5 ? Icons.priority_high : Icons.warning,
-          color: totalErros >= 5 ? Colors.red : Colors.orange,
-        ),
-        onTap: () => _carregarExplicacoesPorTopico(topico),
-      ),
-    );
-  }
-
-  Widget _buildExplicacoesCard() {
-    final explicacoes =
-        _unidadeFiltro != null ? _explicacoesPorUnidade : _explicacoesPorTopico;
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.history, color: AppTheme.primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                _searchTerm.isNotEmpty
-                    ? 'Resultados da Busca'
-                    : 'Histórico de Explicações',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              if (_unidadeFiltro != null ||
-                  _topicoFiltro != null ||
-                  _searchTerm.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () => setState(() {
-                    _unidadeFiltro = null;
-                    _topicoFiltro = null;
-                    _searchTerm = '';
-                    _explicacoesPorUnidade.clear();
-                    _explicacoesPorTopico.clear();
-                  }),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (explicacoes.isEmpty)
-            const Text('Nenhuma explicação encontrada.')
-          else
-            ...explicacoes
-                .map((explicacao) => _buildExplicacaoItem(explicacao)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExplicacaoItem(Map<String, dynamic> explicacao) {
-    final pergunta = explicacao['pergunta'] as String;
-    final respostaUsuario = explicacao['resposta_usuario'] as String;
-    final respostaCorreta = explicacao['resposta_correta'] as String;
-    final explicacaoTexto = explicacao['explicacao'] as String;
-    final dataErro = DateTime.parse(explicacao['data_erro'] as String);
-    final topico = explicacao['topico_especifico'] as String;
-
-    final formatDate =
-        '${dataErro.day.toString().padLeft(2, '0')}/${dataErro.month.toString().padLeft(2, '0')}/${dataErro.year} ${dataErro.hour.toString().padLeft(2, '0')}:${dataErro.minute.toString().padLeft(2, '0')}';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        leading: Icon(Icons.quiz, color: AppTheme.primaryColor),
-        title: Text(
-          pergunta.length > 50 ? '${pergunta.substring(0, 50)}...' : pergunta,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tópico: $topico'),
-            Text(
-              formatDate,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Pergunta:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(pergunta),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: Colors.red.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Sua resposta:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
-                              ),
-                            ),
-                            Text(respostaUsuario),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: Colors.green.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Resposta correta:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                            Text(respostaCorreta),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.lightbulb,
-                              color: AppTheme.primaryColor, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Explicação:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(explicacaoTexto),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Métodos para relatório geral - simplificados
-  Widget _buildVisaoGeral() {
-    if (_relatorioCompleto == null) return const SizedBox();
-
-    final progressoGeral = _relatorioCompleto!['progresso_geral'] ?? {};
-    final estatisticasExercicios =
-        _relatorioCompleto!['estatisticas_exercicios'] ?? {};
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: MetricCard(
-                title: 'Progresso Geral',
-                value: '${progressoGeral['percentual'] ?? 0}%',
-                subtitle:
-                    '${progressoGeral['modulos_completos'] ?? 0} de ${progressoGeral['total_modulos'] ?? 20} módulos',
-                icon: Icons.analytics,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: MetricCard(
-                title: 'Exercícios',
-                value: '${estatisticasExercicios['total'] ?? 0}',
-                subtitle: '${estatisticasExercicios['acertos'] ?? 0} acertos',
-                icon: Icons.quiz,
-                color: AppTheme.accentColor,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnalisePorUnidade() {
-    if (_relatorioCompleto == null) return const SizedBox();
-
-    final analisePorUnidade =
-        _relatorioCompleto!['analise_por_unidade'] as Map<String, dynamic>? ??
-            {};
-
-    return Column(
-      children: analisePorUnidade.entries.map((entry) {
-        final unidade = entry.key;
-        final dados = entry.value as Map<String, dynamic>;
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: _buildIconeUnidade(unidade),
-            title: Text(unidade),
-            subtitle: Text('${dados['progresso_percentual'] ?? 0}% completo'),
-            trailing: Text('${dados['pontos_conquistados'] ?? 0} pts'),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildRecomendacoes() {
-    if (_relatorioCompleto == null) return const SizedBox();
-
-    final recomendacoes =
-        _relatorioCompleto!['recomendacoes'] as List<dynamic>? ?? [];
-
+  Widget _buildProgressCard() {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Progresso Geral',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.lightbulb, color: AppTheme.accentColor),
-                const SizedBox(width: 8),
-                const Text(
-                  'Recomendações',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: _buildProgressItem(
+                    'Nível',
+                    _dadosProgresso['nivel_atual'].toString(),
+                    Icons.grade,
+                  ),
+                ),
+                Expanded(
+                  child: _buildProgressItem(
+                    'XP Total',
+                    _dadosProgresso['xp_total'].toString(),
+                    Icons.flash_on,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            ...recomendacoes.map((rec) => ListTile(
-                  leading: const Icon(Icons.arrow_right),
-                  title: Text(rec['titulo'] ?? ''),
-                  subtitle: Text(rec['descricao'] ?? ''),
-                )),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildProgressItem(
+                    'Exercícios',
+                    _dadosProgresso['exercicios_completados'].toString(),
+                    Icons.check_circle,
+                  ),
+                ),
+                Expanded(
+                  child: _buildProgressItem(
+                    'Sequência',
+                    '${_dadosProgresso['sequencia_dias']} dias',
+                    Icons.local_fire_department,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildIconeUnidade(String unidade) {
-    IconData icone;
-    Color cor;
-
-    switch (unidade) {
-      case 'Números':
-        icone = Icons.calculate;
-        cor = Colors.blue;
-        break;
-      case 'Álgebra':
-        icone = Icons.functions;
-        cor = Colors.purple;
-        break;
-      case 'Geometria':
-        icone = Icons.category;
-        cor = Colors.green;
-        break;
-      case 'Grandezas e Medidas':
-        icone = Icons.straighten;
-        cor = Colors.orange;
-        break;
-      case 'Probabilidade e Estatística':
-        icone = Icons.bar_chart;
-        cor = Colors.red;
-        break;
-      default:
-        icone = Icons.school;
-        cor = AppTheme.primaryColor;
-    }
-
-    return Icon(icone, color: cor);
+  Widget _buildProgressItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: AppTheme.primaryColor, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryColor,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
   }
 
-  String _obterTituloTipo(TipoConquista tipo) {
-    switch (tipo) {
-      case TipoConquista.moduloCompleto:
-        return 'Módulos Completos';
-      case TipoConquista.unidadeCompleta:
-        return 'Unidades Completas';
-      case TipoConquista.nivelAlcancado:
-        return 'Níveis Alcançados';
-      case TipoConquista.streakExercicios:
-        return 'Sequências de Acertos';
-      case TipoConquista.pontuacaoTotal:
-        return 'Pontuação Total';
-      case TipoConquista.tempoRecord:
-        return 'Recordes de Tempo';
-      case TipoConquista.perfeccionista:
-        return 'Perfeccionista';
-      case TipoConquista.persistente:
-        return 'Persistência';
-    }
+  Widget _buildPerformanceCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Desempenho',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPerformanceItem(
+                    'Pontuação Média',
+                    '${_dadosProgresso['pontuacao_media']}%',
+                    Icons.trending_up,
+                    AppTheme.successColor,
+                  ),
+                ),
+                Expanded(
+                  child: _buildPerformanceItem(
+                    'Tópicos Dominados',
+                    '${_dadosProgresso['topicos_dominados']}/${_dadosProgresso['topicos_total']}',
+                    Icons.school,
+                    AppTheme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  IconData _obterIconeConquista(Conquista conquista) {
-    switch (conquista.tipo) {
-      case TipoConquista.moduloCompleto:
-        return Icons.check_circle;
-      case TipoConquista.unidadeCompleta:
-        return Icons.library_books;
-      case TipoConquista.nivelAlcancado:
-        return Icons.trending_up;
-      case TipoConquista.streakExercicios:
-        return Icons.local_fire_department;
-      case TipoConquista.pontuacaoTotal:
-        return Icons.stars;
-      case TipoConquista.tempoRecord:
-        return Icons.speed;
-      case TipoConquista.perfeccionista:
-        return Icons.emoji_events;
-      case TipoConquista.persistente:
-        return Icons.calendar_today;
-    }
-  }
-
-  String _formatarData(DateTime data) {
-    return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
+  Widget _buildPerformanceItem(String label, String value, IconData icon, Color color) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey[600],
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 }

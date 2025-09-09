@@ -41,6 +41,9 @@ dependencies:
   flutter_markdown: ^0.7.3
   flutter_math_fork: ^0.7.2
   
+  # Para IA local no Android
+  flutter_gemma: ^0.10.4
+  
   # Para gráficos de progresso
   fl_chart: ^0.65.0
   

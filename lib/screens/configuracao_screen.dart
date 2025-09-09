@@ -140,10 +140,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   Future<void> _salvarConfiguracoes() async {
     final apiKey = apiKeyController.text.trim();
-    if (apiKey.isEmpty) return;
+    if (apiKey.isEmpty && _selectedAI == 'gemini') return;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('gemini_api_key', apiKey);
+    if (_selectedAI == 'gemini') {
+      await prefs.setString('gemini_api_key', apiKey);
+    }
     await prefs.setString('selected_ai', _selectedAI);
     await prefs.setString('modelo_ollama', _modeloOllama);
 
@@ -169,12 +171,18 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         status = isAvailable
             ? '✅ Conexão com Gemini funcionando!'
             : '❌ Erro na conexão com Gemini.';
-      } else {
+      } else if (_selectedAI == 'ollama') {
         final ollamaService = OllamaService(defaultModel: _modeloOllama);
         final isAvailable = await ollamaService.isServiceAvailable();
         status = isAvailable
             ? '✅ Conexão com Ollama funcionando!'
             : '❌ Erro na conexão com Ollama.';
+      } else if (_selectedAI == 'flutter_gemma') {
+        final flutterGemmaService = FlutterGemmaService();
+        final isAvailable = await flutterGemmaService.isServiceAvailable();
+        status = isAvailable
+            ? '✅ Flutter Gemma funcionando!'
+            : '❌ Erro no Flutter Gemma.';
       }
     } catch (e) {
       status = '❌ Erro ao testar conexão: $e';
@@ -348,123 +356,185 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ),
           ),
           SizedBox(height: isTablet ? 20 : 16),
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => setState(() => _selectedAI = 'gemini'),
-                  borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                  child: Container(
-                    padding: EdgeInsets.all(isTablet ? 20 : 16),
-                    decoration: BoxDecoration(
-                      color: _selectedAI == 'gemini'
-                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
-                          : AppTheme.darkSurfaceColor,
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _selectedAI = 'gemini'),
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                      border: Border.all(
-                        color: _selectedAI == 'gemini'
-                            ? AppTheme.primaryColor
-                            : AppTheme.darkBorderColor,
-                        width: _selectedAI == 'gemini' ? 2 : 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: isTablet ? 60 : 50,
-                          height: isTablet ? 60 : 50,
-                          decoration: BoxDecoration(
+                      child: Container(
+                        padding: EdgeInsets.all(isTablet ? 20 : 16),
+                        decoration: BoxDecoration(
+                          color: _selectedAI == 'gemini'
+                              ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                              : AppTheme.darkSurfaceColor,
+                          borderRadius:
+                              BorderRadius.circular(isTablet ? 16 : 12),
+                          border: Border.all(
                             color: _selectedAI == 'gemini'
                                 ? AppTheme.primaryColor
                                 : AppTheme.darkBorderColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.auto_awesome_rounded,
-                            color: Colors.white,
-                            size: isTablet ? 28 : 24,
+                            width: _selectedAI == 'gemini' ? 2 : 1,
                           ),
                         ),
-                        SizedBox(height: isTablet ? 12 : 8),
-                        Text(
-                          'Google Gemini',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: _selectedAI == 'gemini'
-                                ? AppTheme.primaryColor
-                                : AppTheme.darkTextPrimaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: isTablet ? 60 : 50,
+                              height: isTablet ? 60 : 50,
+                              decoration: BoxDecoration(
+                                color: _selectedAI == 'gemini'
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.darkBorderColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.auto_awesome_rounded,
+                                color: Colors.white,
+                                size: isTablet ? 28 : 24,
+                              ),
+                            ),
+                            SizedBox(height: isTablet ? 12 : 8),
+                            Text(
+                              'Google Gemini',
+                              style: AppTheme.bodyLarge.copyWith(
+                                color: _selectedAI == 'gemini'
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.darkTextPrimaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: isTablet ? 4 : 2),
+                            Text(
+                              'Serviço em nuvem',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: isTablet ? 4 : 2),
-                        Text(
-                          'Serviço em nuvem',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.darkTextSecondaryColor,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              SizedBox(width: isTablet ? 16 : 12),
-              Expanded(
-                child: InkWell(
-                  onTap: () {
-                    setState(() => _selectedAI = 'ollama');
-                    _fetchOllamaModels();
-                  },
-                  borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                  child: Container(
-                    padding: EdgeInsets.all(isTablet ? 20 : 16),
-                    decoration: BoxDecoration(
-                      color: _selectedAI == 'ollama'
-                          ? AppTheme.secondaryColor.withValues(alpha: 0.2)
-                          : AppTheme.darkSurfaceColor,
+                  SizedBox(width: isTablet ? 16 : 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        setState(() => _selectedAI = 'ollama');
+                        _fetchOllamaModels();
+                      },
                       borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                      border: Border.all(
-                        color: _selectedAI == 'ollama'
-                            ? AppTheme.secondaryColor
-                            : AppTheme.darkBorderColor,
-                        width: _selectedAI == 'ollama' ? 2 : 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: isTablet ? 60 : 50,
-                          height: isTablet ? 60 : 50,
-                          decoration: BoxDecoration(
+                      child: Container(
+                        padding: EdgeInsets.all(isTablet ? 20 : 16),
+                        decoration: BoxDecoration(
+                          color: _selectedAI == 'ollama'
+                              ? AppTheme.secondaryColor.withValues(alpha: 0.2)
+                              : AppTheme.darkSurfaceColor,
+                          borderRadius:
+                              BorderRadius.circular(isTablet ? 16 : 12),
+                          border: Border.all(
                             color: _selectedAI == 'ollama'
                                 ? AppTheme.secondaryColor
                                 : AppTheme.darkBorderColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.computer_rounded,
-                            color: Colors.white,
-                            size: isTablet ? 28 : 24,
+                            width: _selectedAI == 'ollama' ? 2 : 1,
                           ),
                         ),
-                        SizedBox(height: isTablet ? 12 : 8),
-                        Text(
-                          'Ollama',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: _selectedAI == 'ollama'
-                                ? AppTheme.secondaryColor
-                                : AppTheme.darkTextPrimaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: isTablet ? 60 : 50,
+                              height: isTablet ? 60 : 50,
+                              decoration: BoxDecoration(
+                                color: _selectedAI == 'ollama'
+                                    ? AppTheme.secondaryColor
+                                    : AppTheme.darkBorderColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.computer_rounded,
+                                color: Colors.white,
+                                size: isTablet ? 28 : 24,
+                              ),
+                            ),
+                            SizedBox(height: isTablet ? 12 : 8),
+                            Text(
+                              'Ollama',
+                              style: AppTheme.bodyLarge.copyWith(
+                                color: _selectedAI == 'ollama'
+                                    ? AppTheme.secondaryColor
+                                    : AppTheme.darkTextPrimaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: isTablet ? 4 : 2),
+                            Text(
+                              'Execução local',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: isTablet ? 4 : 2),
-                        Text(
-                          'Execução local',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.darkTextSecondaryColor,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isTablet ? 16 : 12),
+              InkWell(
+                onTap: () => setState(() => _selectedAI = 'flutter_gemma'),
+                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                child: Container(
+                  padding: EdgeInsets.all(isTablet ? 20 : 16),
+                  decoration: BoxDecoration(
+                    color: _selectedAI == 'flutter_gemma'
+                        ? AppTheme.accentColor.withValues(alpha: 0.2)
+                        : AppTheme.darkSurfaceColor,
+                    borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                    border: Border.all(
+                      color: _selectedAI == 'flutter_gemma'
+                          ? AppTheme.accentColor
+                          : AppTheme.darkBorderColor,
+                      width: _selectedAI == 'flutter_gemma' ? 2 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: isTablet ? 60 : 50,
+                        height: isTablet ? 60 : 50,
+                        decoration: BoxDecoration(
+                          color: _selectedAI == 'flutter_gemma'
+                              ? AppTheme.accentColor
+                              : AppTheme.darkBorderColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.smartphone_rounded,
+                          color: Colors.white,
+                          size: isTablet ? 28 : 24,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 12 : 8),
+                      Text(
+                        'Flutter Gemma',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: _selectedAI == 'flutter_gemma'
+                              ? AppTheme.accentColor
+                              : AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 4 : 2),
+                      Text(
+                        'IA local no Android',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

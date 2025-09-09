@@ -2,7 +2,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-
+import 'package:flutter_gemma/flutter_gemma.dart';
 
 class OllamaService implements AIService {
   final String baseUrl;
@@ -113,6 +113,7 @@ abstract class AIService {
   Future<String> generate(String prompt);
   Future<bool> isServiceAvailable();
 }
+
 class MathTutorService {
   final AIService aiService;
 
@@ -258,6 +259,89 @@ class GeminiService implements AIService {
       return response.text ?? 'Não foi possível gerar uma resposta.';
     } catch (e) {
       throw Exception('Erro ao gerar resposta com Gemini: $e');
+    }
+  }
+}
+
+class FlutterGemmaService implements AIService {
+  InferenceModel? _inferenceModel;
+  Chat? _chat;
+  bool _isInitialized = false;
+
+  @override
+  Future<String> generate(String prompt) async {
+    try {
+      if (!_isInitialized) {
+        await _initializeModel();
+      }
+
+      if (_chat == null) {
+        // Criar uma nova sessão de chat
+        _chat = await _inferenceModel!.createChat(
+          temperature: 0.8,
+          randomSeed: 1,
+          topK: 1,
+        );
+      }
+
+      // Adicionar a mensagem do usuário
+      await _chat!.addQueryChunk(Message.text(text: prompt, isUser: true));
+
+      // Gerar resposta
+      final response = await _chat!.generateChatResponse();
+      
+      if (response is TextResponse) {
+        return response.token;
+      }
+      
+      return 'Não foi possível gerar uma resposta.';
+    } catch (e) {
+      throw Exception('Erro ao gerar resposta com Flutter Gemma: $e');
+    }
+  }
+
+  @override
+  Future<bool> isServiceAvailable() async {
+    try {
+      // Verificar se há modelos disponíveis no dispositivo
+      final gemma = FlutterGemmaPlugin.instance;
+      final modelManager = gemma.modelManager;
+      
+      // Tentar criar um modelo básico para testar disponibilidade
+      await _initializeModel();
+      return _isInitialized;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _initializeModel() async {
+    try {
+      final gemma = FlutterGemmaPlugin.instance;
+      
+      // Criar o modelo com configurações padrão
+      _inferenceModel = await gemma.createModel(
+        modelType: ModelType.gemmaIt,
+        preferredBackend: PreferredBackend.cpu, // Usar CPU para compatibilidade
+        maxTokens: 512,
+      );
+      
+      _isInitialized = true;
+    } catch (e) {
+      _isInitialized = false;
+      throw Exception('Erro ao inicializar modelo Flutter Gemma: $e');
+    }
+  }
+
+  Future<void> dispose() async {
+    try {
+      await _chat?.close();
+      await _inferenceModel?.close();
+      _chat = null;
+      _inferenceModel = null;
+      _isInitialized = false;
+    } catch (e) {
+      // Ignorar erros de cleanup
     }
   }
 }

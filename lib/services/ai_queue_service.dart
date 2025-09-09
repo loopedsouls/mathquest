@@ -147,8 +147,11 @@ class AIQueueService extends ChangeNotifier {
           text: response,
           isUser: false,
           timestamp: DateTime.now(),
-          aiProvider:
-              _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
+          aiProvider: _tutorService!.aiService is GeminiService
+              ? 'gemini'
+              : (_tutorService!.aiService is FlutterGemmaService
+                  ? 'flutter_gemma'
+                  : 'ollama'),
         );
 
         request.status = GenerationStatus.completed;
@@ -164,8 +167,11 @@ class AIQueueService extends ChangeNotifier {
                 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
             isUser: false,
             timestamp: DateTime.now(),
-            aiProvider:
-                _tutorService!.aiService is GeminiService ? 'gemini' : 'ollama',
+            aiProvider: _tutorService!.aiService is GeminiService
+                ? 'gemini'
+                : (_tutorService!.aiService is FlutterGemmaService
+                    ? 'flutter_gemma'
+                    : 'ollama'),
           );
 
           request.completer.complete(errorMessage);

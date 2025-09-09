@@ -496,6 +496,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // Configurações de IA
   bool _useGemini = true;
   String _modeloOllama = 'gemma3:1b';
+  String _selectedAI =
+      'gemini'; // Novo campo para armazenar o tipo de IA selecionado
   String _aiName = 'IA';
 
   // Conversas
@@ -556,12 +558,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       final apiKey = prefs.getString('gemini_api_key');
       final modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
+      _selectedAI = selectedAI; // Armazenar o tipo de IA selecionado
       _useGemini = selectedAI == 'gemini';
       _modeloOllama = modeloOllama;
 
       // Define o nome da IA baseado na configuração
       if (_useGemini) {
         _aiName = 'Gemini';
+      } else if (selectedAI == 'flutter_gemma') {
+        _aiName = 'Flutter Gemma';
       } else {
         _aiName = 'Ollama ($_modeloOllama)';
       }
@@ -587,6 +592,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       AIService aiService;
       if (_useGemini) {
         aiService = GeminiService(apiKey: apiKey!);
+      } else if (selectedAI == 'flutter_gemma') {
+        aiService = FlutterGemmaService();
       } else {
         aiService = OllamaService(defaultModel: _modeloOllama);
       }
@@ -652,7 +659,9 @@ Use emojis e formatação Markdown.
         text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -660,7 +669,9 @@ Use emojis e formatação Markdown.
             'Olá! Estou aqui para ajudar com matemática. Como posso ajudar você hoje? 😊',
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     }
   }
@@ -727,7 +738,9 @@ Use emojis e formatação Markdown.
         text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } catch (e) {
       _addMessage(ChatMessage(
@@ -735,7 +748,9 @@ Use emojis e formatação Markdown.
             'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } finally {
       setState(() {
@@ -898,14 +913,18 @@ Use emojis e formatação Markdown para deixar mais atrativo!
         text: response.text,
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } catch (e) {
       _addMessage(ChatMessage(
         text: 'Desculpe, não foi possível gerar o quiz. Tente novamente. 😅',
         isUser: false,
         timestamp: DateTime.now(),
-        aiProvider: _useGemini ? 'gemini' : 'ollama',
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
     } finally {
       setState(() => _isLoading = false);
@@ -1388,7 +1407,7 @@ Use emojis e formatação Markdown para deixar mais atrativo!
               animation: _typingAnimationController,
               builder: (context, child) {
                 return Text(
-                  '${_useGemini ? 'Gemini' : 'Ollama'} está pensando...',
+                  '${_useGemini ? 'Gemini' : (_selectedAI == 'flutter_gemma' ? 'Flutter Gemma' : 'Ollama')} está pensando...',
                   style: AppTheme.bodySmall.copyWith(
                     color: AppTheme.primaryColor.withValues(
                       alpha: 0.5 + (_typingAnimationController.value * 0.5),

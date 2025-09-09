@@ -760,15 +760,6 @@ Use emojis e formatação Markdown.
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
 
-      // Salvar conversa imediatamente após adicionar mensagem da IA
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
-
       // Adicionar botões de ação se for módulo
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
@@ -809,15 +800,6 @@ Escolha uma das opções abaixo para continuar seus estudos!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salvar conversa imediatamente após adicionar mensagem da IA
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
 
       if (widget.mode == ChatMode.module) {
         _adicionarBotoesAcao();
@@ -1525,15 +1507,6 @@ Use emojis e formatação Markdown para deixar mais atrativo!
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
-
-      // Salvar conversa imediatamente após adicionar mensagem da IA
-      if (_conversaAtual != null) {
-        final conversaAtualizada = _conversaAtual!.copyWith(
-          mensagens: List.from(_messages),
-          ultimaAtualizacao: DateTime.now(),
-        );
-        await ConversaService.salvarConversa(conversaAtualizada);
-      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

@@ -12,10 +12,10 @@ import '../services/conversa_service.dart';
 import '../services/ai_queue_service.dart';
 
 enum ChatMode {
-  general,      // Chat geral de IA
-  module,       // Chat específico do módulo
-  sidebar,      // Chat com sidebar
-  saved,        // Listagem de conversas salvas
+  general, // Chat geral de IA
+  module, // Chat específico do módulo
+  sidebar, // Chat com sidebar
+  saved, // Listagem de conversas salvas
 }
 
 class ChatScreen extends StatefulWidget {
@@ -38,8 +38,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen>
-    with TickerProviderStateMixin {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // Chat
   final List<ChatMessage> _messages = [];
   final TextEditingController _textController = TextEditingController();
@@ -49,12 +48,12 @@ class _ChatScreenState extends State<ChatScreen>
   // Serviços
   late MathTutorService _tutorService;
   late AIQueueService _aiQueueService;
-  
+
   // Estado
   bool _isLoading = false;
   bool _tutorInitialized = false;
   late AnimationController _typingAnimationController;
-  
+
   // Configurações de IA
   bool _useGemini = true;
   String _modeloOllama = 'gemma3:1b';
@@ -73,15 +72,15 @@ class _ChatScreenState extends State<ChatScreen>
     _aiQueueService = AIQueueService();
     _initializeTypingAnimation();
     _initializeTutor();
-    
+
     if (widget.mode == ChatMode.sidebar || widget.mode == ChatMode.saved) {
       _carregarConversas();
     }
-    
+
     if (widget.modulo != null) {
       _contextoAtual = widget.modulo!.titulo;
     }
-    
+
     if (widget.conversaInicial != null) {
       _carregarConversa(widget.conversaInicial!);
     }
@@ -146,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen>
 
       _tutorService = MathTutorService(aiService: aiService);
       _aiQueueService.initialize(_tutorService);
-      
+
       setState(() {
         _tutorInitialized = true;
       });
@@ -173,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen>
 
   Future<void> _sendWelcomeMessage() async {
     String welcomePrompt;
-    
+
     switch (widget.mode) {
       case ChatMode.module:
         welcomePrompt = '''
@@ -209,7 +208,8 @@ Use emojis e formatação Markdown.
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text: 'Olá! Estou aqui para ajudar com matemática. Como posso ajudar você hoje? 😊',
+        text:
+            'Olá! Estou aqui para ajudar com matemática. Como posso ajudar você hoje? 😊',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',
@@ -221,7 +221,7 @@ Use emojis e formatação Markdown.
     if (_conversaAtual != null) {
       return _conversaAtual!.id;
     }
-    
+
     switch (widget.mode) {
       case ChatMode.module:
         return 'module_${widget.modulo!.titulo}';
@@ -283,7 +283,8 @@ Use emojis e formatação Markdown.
       ));
     } catch (e) {
       _addMessage(ChatMessage(
-        text: 'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
+        text:
+            'Desculpe, tive um probleminha para responder. Pode perguntar novamente? 😅',
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini ? 'gemini' : 'ollama',
@@ -406,7 +407,9 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.darkBackgroundColor,
-      drawer: (widget.mode == ChatMode.sidebar && isMobile) ? _buildMobileDrawer() : null,
+      drawer: (widget.mode == ChatMode.sidebar && isMobile)
+          ? _buildMobileDrawer()
+          : null,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -496,7 +499,9 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
               shape: BoxShape.circle,
             ),
             child: Icon(
-              widget.mode == ChatMode.module ? Icons.psychology_rounded : Icons.smart_toy_rounded,
+              widget.mode == ChatMode.module
+                  ? Icons.psychology_rounded
+                  : Icons.smart_toy_rounded,
               color: Colors.white,
               size: isTablet ? 24 : 20,
             ),
@@ -507,7 +512,9 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.mode == ChatMode.module ? 'Tutor de Matemática' : _tituloConversa,
+                  widget.mode == ChatMode.module
+                      ? 'Tutor de Matemática'
+                      : _tituloConversa,
                   style: AppTheme.headingMedium.copyWith(
                     fontSize: isTablet ? 18 : 16,
                   ),
@@ -515,11 +522,13 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  widget.mode == ChatMode.module 
+                  widget.mode == ChatMode.module
                       ? '${widget.modulo!.unidadeTematica} - ${widget.modulo!.anoEscolar}'
                       : _aiName,
                   style: AppTheme.bodySmall.copyWith(
-                    color: _tutorInitialized ? AppTheme.successColor : AppTheme.errorColor,
+                    color: _tutorInitialized
+                        ? AppTheme.successColor
+                        : AppTheme.errorColor,
                     fontSize: isTablet ? 12 : 11,
                   ),
                 ),
@@ -679,7 +688,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!message.isUser) ...[
@@ -704,8 +714,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
             child: Container(
               padding: EdgeInsets.all(isTablet ? 16 : 12),
               decoration: BoxDecoration(
-                color: message.isUser 
-                    ? AppTheme.primaryColor 
+                color: message.isUser
+                    ? AppTheme.primaryColor
                     : AppTheme.darkSurfaceColor,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -783,7 +793,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
                       ),
                       onTap: () => _carregarConversa(conversa),
                       selected: _conversaAtual?.id == conversa.id,
-                      selectedTileColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      selectedTileColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.1),
                     );
                   },
                 ),
@@ -814,7 +825,8 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
                 final conversa = _conversas[index];
                 return Card(
                   color: AppTheme.darkSurfaceColor,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(
                       conversa.titulo,

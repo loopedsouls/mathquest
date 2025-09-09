@@ -166,7 +166,8 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
                   color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: _animation.value),
+                    color: AppTheme.primaryColor
+                        .withValues(alpha: _animation.value),
                     width: 1,
                   ),
                 ),
@@ -176,7 +177,8 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
                     Icon(
                       Icons.psychology,
                       size: 16,
-                      color: AppTheme.primaryColor.withValues(alpha: _animation.value),
+                      color: AppTheme.primaryColor
+                          .withValues(alpha: _animation.value),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -184,7 +186,8 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
                           ? 'IA gerando...'
                           : 'Na fila: ${_queueService.queue.length}',
                       style: TextStyle(
-                        color: AppTheme.primaryColor.withValues(alpha: _animation.value),
+                        color: AppTheme.primaryColor
+                            .withValues(alpha: _animation.value),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

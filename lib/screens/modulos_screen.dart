@@ -312,9 +312,7 @@ class _ModulosScreenState extends State<ModulosScreen>
       modulo = _mapearAssuntoParaModulo(assunto);
 
       // Se não encontrou mapeamento, criar um módulo virtual
-      if (modulo == null) {
-        modulo = _criarModuloVirtual(assunto);
-      }
+      modulo ??= _criarModuloVirtual(assunto);
     } else {
       // Lógica normal de produção
       final moduloMapeado = _mapearAssuntoParaModulo(assunto);

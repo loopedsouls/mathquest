@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/preload_service.dart';
 import '../screens/start_screen.dart';
-import '../screens/preload_screen.dart';
 
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
@@ -14,9 +13,6 @@ class AppInitializer extends StatefulWidget {
 class _AppInitializerState extends State<AppInitializer> {
   bool _checkingPreload = true;
   bool _shouldPreload = false;
-  String _selectedAI = 'gemini';
-  String? _apiKey;
-  String? _ollamaModel;
 
   @override
   void initState() {
@@ -27,10 +23,7 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _checkPreloadStatus() async {
     try {
       // Carrega configurações
-      final prefs = await SharedPreferences.getInstance();
-      _selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-      _apiKey = prefs.getString('gemini_api_key');
-      _ollamaModel = prefs.getString('modelo_ollama') ?? 'llama2';
+      await SharedPreferences.getInstance();
 
       // Verifica se deve fazer precarregamento
       final shouldPreload = await PreloadService.shouldPreload();
@@ -52,14 +45,6 @@ class _AppInitializerState extends State<AppInitializer> {
     }
   }
 
-  void _onPreloadComplete() {
-    if (mounted) {
-      setState(() {
-        _shouldPreload = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_checkingPreload) {
@@ -74,12 +59,6 @@ class _AppInitializerState extends State<AppInitializer> {
 
     if (_shouldPreload) {
       // Mostra a tela de precarregamento com mini-jogo
-      return PreloadScreen(
-        selectedAI: _selectedAI,
-        apiKey: _apiKey,
-        ollamaModel: _ollamaModel,
-        onComplete: _onPreloadComplete,
-      );
     }
 
     // Mostra a tela principal

@@ -6,7 +6,6 @@ import '../services/preload_service.dart';
 import '../services/cache_ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import 'preload_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});
@@ -1133,20 +1132,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
           // Botão para iniciar precarregamento manual
           if (_preloadEnabled) ...[
-            SizedBox(height: spacing),
-            SizedBox(
-              width: double.infinity,
-              child: ModernButton(
-                text: 'Iniciar Precarregamento Agora',
-                onPressed: _startManualPreload,
-                isPrimary: false,
-                icon: Icons.auto_awesome_rounded,
-              ),
-            ),
-          ],
-
-          // Botão para limpar cache (só aparece se há créditos)
-          if (_currentCredits > 0) ...[
             SizedBox(height: spacing * 0.75),
             SizedBox(
               width: double.infinity,
@@ -1240,32 +1225,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  void _startManualPreload() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PreloadScreen(
-          selectedAI: _selectedAI,
-          apiKey: _selectedAI == 'gemini' ? apiKeyController.text.trim() : null,
-          ollamaModel: _selectedAI == 'ollama' ? _modeloOllama : null,
-          onComplete: () async {
-            Navigator.of(context).pop();
-            // Recarrega os créditos após o precarregamento
-            final credits = await PreloadService.getCredits();
-
-            if (kDebugMode) {
-              print(
-                  '🔧 Callback precarregamento - Créditos recarregados: $credits');
-            }
-
-            setState(() {
-              _currentCredits = credits;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
+  
   Widget _buildActionButtons(bool isMobile, bool isTablet, bool isDesktop) {
     final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/matematica_nova.dart';
 import '../theme/app_theme.dart';
-import '../models/matematica.dart';
 
 class CursoStatsWidget extends StatelessWidget {
   final CursoMatematica curso;
@@ -381,7 +381,7 @@ class TrilhaRoadmapWidget extends StatelessWidget {
             final index = entry.key;
             final trilha = entry.value;
             final isAtiva = trilha.id == trilhaAtiva;
-            final isCompleta = false; // Implementar lógica real
+            const isCompleta = false; // Implementar lógica real
             final isProxima = index == 0; // Implementar lógica real
 
             return _buildTrilhaRoadmapItem(

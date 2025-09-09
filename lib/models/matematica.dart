@@ -545,4 +545,12 @@ class Matematica {
       ],
     },
   };
+
+  static obterTodosCursos() {}
+
+  static obterEstatisticas() {}
+
+  static obterTrilhasDoCurso(String s) {}
+
+  static buscarModulos(String s) {}
 }

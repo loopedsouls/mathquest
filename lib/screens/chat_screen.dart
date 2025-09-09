@@ -537,6 +537,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     if (widget.conversaInicial != null) {
       _carregarConversa(widget.conversaInicial!);
+    } else if (widget.mode == ChatMode.general) {
+      // Para o modo geral, iniciar automaticamente uma nova conversa
+      _novaConversa();
     }
   }
 
@@ -876,14 +879,6 @@ Use emojis quando apropriado e sempre formate sua resposta em Markdown com LaTeX
     }
   }
 
-  void _voltarParaConversas() {
-    if (mounted) {
-      setState(() {
-        _showConversationsList = true;
-      });
-    }
-  }
-
   void _abrirConversaNoChat(Conversa conversa) {
     _carregarConversa(conversa);
     if (mounted) {
@@ -1181,11 +1176,6 @@ Use emojis e formatação Markdown para deixar mais atrativo!
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: _voltarParaConversas,
-            icon: const Icon(Icons.history_rounded),
-            tooltip: 'Ver conversas',
-          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

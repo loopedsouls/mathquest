@@ -47,8 +47,8 @@ class _StartScreenState extends State<StartScreen>
 
   final List<NavigationItem> _navigationItems = [
     NavigationItem(
-      icon: Icons.assessment_rounded,
-      label: 'Progresso',
+      icon: Icons.dashboard,
+      label: 'Dashboard',
     ),
     NavigationItem(
       icon: Icons.play_arrow_rounded,
@@ -461,65 +461,74 @@ class _StartScreenState extends State<StartScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Card unificado com título e boas-vindas
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppTheme.primaryColor.withValues(alpha: 0.15),
-                              AppTheme.secondaryColor.withValues(alpha: 0.1),
+                      // Header + Card unificado com título e boas-vindas
+                      ResponsiveHeader(
+                        title: 'MathQuest',
+                        subtitle: _isOfflineMode
+                            ? 'Modo offline ativo • Exercícios básicos disponíveis'
+                            : 'Sistema de IA conectado • Experiência completa disponível',
+                        showBackButton: false,
+                      ),
+                      const SizedBox(height: 12),
+                      ModernCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppTheme.primaryColor,
+                                          AppTheme.primaryLightColor
+                                        ],
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.waving_hand_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Bem-vindo!',
+                                          style: AppTheme.bodyLarge.copyWith(
+                                            color:
+                                                AppTheme.darkTextPrimaryColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          _isOfflineMode
+                                              ? 'Continue seus estudos sem conexão.'
+                                              : 'Aproveite toda a experiência com IA habilitada.',
+                                          style: AppTheme.bodySmall.copyWith(
+                                            color:
+                                                AppTheme.darkTextSecondaryColor,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'MathQuest',
-                              style: AppTheme.displaySmall.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: isTablet ? 32 : 28,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.waving_hand_rounded,
-                                  color: AppTheme.primaryColor,
-                                  size: isTablet ? 20 : 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Bem-vindo!',
-                                  style: AppTheme.bodyLarge.copyWith(
-                                    color: AppTheme.darkTextPrimaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _isOfflineMode
-                                  ? 'Modo offline ativo\nExercícios básicos disponíveis'
-                                  : 'Sistema de IA conectado\nExperiência completa disponível',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: AppTheme.darkTextSecondaryColor,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
 
@@ -539,39 +548,39 @@ class _StartScreenState extends State<StartScreen>
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    _buildMobileVisualNovelButton(
-                                      title: 'Iniciar',
+                                    ModernButton(
+                                      text: 'Iniciar',
                                       onPressed: _goToModulos,
+                                      isPrimary: true,
                                       height: buttonHeight,
-                                      isTablet: isTablet,
                                     ),
                                     SizedBox(height: spacing),
-                                    _buildMobileVisualNovelButton(
-                                      title: 'Modo Quiz',
+                                    ModernButton(
+                                      text: 'Modo Quiz',
                                       onPressed: _startQuizAlternado,
+                                      isPrimary: false,
                                       height: buttonHeight,
-                                      isTablet: isTablet,
                                     ),
                                     SizedBox(height: spacing),
-                                    _buildMobileVisualNovelButton(
-                                      title: 'Configurações',
+                                    ModernButton(
+                                      text: 'Configurações',
                                       onPressed: _goToConfig,
+                                      isPrimary: false,
                                       height: buttonHeight,
-                                      isTablet: isTablet,
                                     ),
                                     SizedBox(height: spacing),
-                                    _buildMobileVisualNovelButton(
-                                      title: 'Relatórios',
+                                    ModernButton(
+                                      text: 'Relatórios',
                                       onPressed: _goToRelatorios,
+                                      isPrimary: false,
                                       height: buttonHeight,
-                                      isTablet: isTablet,
                                     ),
                                     SizedBox(height: spacing),
-                                    _buildMobileVisualNovelButton(
-                                      title: 'Ajuda',
+                                    ModernButton(
+                                      text: 'Ajuda',
                                       onPressed: _goToAjuda,
+                                      isPrimary: false,
                                       height: buttonHeight,
-                                      isTablet: isTablet,
                                     ),
                                   ],
                                 ),
@@ -617,48 +626,5 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 
-  Widget _buildMobileVisualNovelButton({
-    required String title,
-    required VoidCallback onPressed,
-    required double height,
-    required bool isTablet,
-  }) {
-    return SizedBox(
-      height: height,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppTheme.primaryColor.withValues(alpha: 0.1),
-                  AppTheme.secondaryColor.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                title,
-                style: AppTheme.headingSmall.copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: isTablet ? 20 : 18,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // ...existing code... (mobile buttons replaced by ModernButton)
 }

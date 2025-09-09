@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/modern_components.dart';
 import '../models/conquista.dart';
 import '../services/progresso_service.dart';
 import '../models/progresso_usuario.dart';
@@ -122,44 +123,82 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: _carregando
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Card de Progresso Geral
-                  _buildProgressoGeralCard(),
-                  const SizedBox(height: 24),
+      backgroundColor: AppTheme.darkBackgroundColor,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.darkBackgroundColor,
+              AppTheme.darkSurfaceColor,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: _carregando
+              ? _buildLoadingScreen()
+              : Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Card de Progresso Geral
+                            _buildProgressoGeralCard(),
+                            const SizedBox(height: 24),
 
-                  // Card de Sequência
-                  _buildStreakCard(),
-                  const SizedBox(height: 24),
+                            // Card de Sequência
+                            _buildStreakCard(),
+                            const SizedBox(height: 24),
 
-                  // Card de Conquistas
-                  _buildConquistasCard(),
-                  const SizedBox(height: 24),
+                            // Card de Conquistas
+                            _buildConquistasCard(),
+                            const SizedBox(height: 24),
 
-                  // Card de Estatísticas
-                  _buildEstatisticasCard(),
-                  const SizedBox(height: 24),
+                            // Card de Estatísticas
+                            _buildEstatisticasCard(),
+                            const SizedBox(height: 24),
 
-                  // Cards de funcionalidades futuras
-                  _buildFuncionalidadesCard(),
-                ],
-              ),
+                            // Cards de funcionalidades futuras
+                            _buildFuncionalidadesCard(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppTheme.primaryColor),
+          const SizedBox(height: 20),
+          Text(
+            'Carregando seu progresso...',
+            style: TextStyle(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: 16,
             ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildFuncionalidadesCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -175,10 +214,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(width: 12),
                 Text(
                   'Ferramentas',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
               ],
             ),
@@ -212,49 +250,41 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildFuncionalidadeButton(
       String titulo, String descricao, IconData icone, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        padding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    return ModernCard(
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(icone, color: AppTheme.primaryColor, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                titulo,
+                style: AppTheme.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                descricao,
+                style: AppTheme.bodySmall.copyWith(
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          Icon(icone, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            titulo,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            descricao,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildProgressoGeralCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -270,10 +300,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(width: 12),
                 Text(
                   'Seu Progresso',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
               ],
             ),
@@ -310,15 +339,14 @@ class _DashboardScreenState extends State<DashboardScreen>
             LinearProgressIndicator(
               value: _dadosProgresso['xp_total'] /
                   _dadosProgresso['xp_proximo_nivel'],
-              backgroundColor: Colors.grey[200],
+              backgroundColor: AppTheme.darkBorderColor,
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
             const SizedBox(height: 8),
             Text(
               '${_dadosProgresso['xp_total']} / ${_dadosProgresso['xp_proximo_nivel']} XP para o próximo nível',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.darkTextSecondaryColor,
               ),
             ),
           ],
@@ -358,11 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     final conquistasBloqueadas =
         _conquistas.where((c) => !c.desbloqueada).toList();
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -378,10 +402,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(width: 12),
                 Text(
                   'Conquistas',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
               ],
             ),
@@ -401,7 +424,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   child: _buildConquistaStat(
                     '${conquistasBloqueadas.length}',
                     'Bloqueadas',
-                    Colors.grey,
+                    AppTheme.darkTextSecondaryColor,
                   ),
                 ),
                 Expanded(
@@ -419,10 +442,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             if (conquistasDesbloqueadas.isNotEmpty) ...[
               Text(
                 'Conquistas Recentes',
-                style: TextStyle(
-                  fontSize: 16,
+                style: AppTheme.bodyLarge.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+                  color: AppTheme.darkTextPrimaryColor,
                 ),
               ),
               const SizedBox(height: 12),
@@ -441,16 +463,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                             children: [
                               Text(
                                 conquista.titulo,
-                                style: const TextStyle(
+                                style: AppTheme.bodyMedium.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                                  color: AppTheme.darkTextPrimaryColor,
                                 ),
                               ),
                               Text(
                                 conquista.descricao,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: AppTheme.darkTextSecondaryColor,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -460,10 +481,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                         Text(
                           '+${conquista.pontosBonus}',
-                          style: TextStyle(
+                          style: AppTheme.bodySmall.copyWith(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -731,11 +751,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildStreakCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -751,10 +767,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const SizedBox(width: 12),
                 Text(
                   'Sequência de Estudo',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.accentColor,
-                      ),
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.accentColor,
+                  ),
                 ),
               ],
             ),
@@ -783,17 +798,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                     children: [
                       Text(
                         '${_dadosProgresso['sequencia_dias']} dias',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                        style: AppTheme.headingLarge.copyWith(
                           color: AppTheme.accentColor,
                         ),
                       ),
                       Text(
                         'Sequência atual',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
                         ),
                       ),
                     ],

@@ -107,6 +107,23 @@ class AppTheme {
     ),
   ];
 
+  // Centralized card shadows for consistency
+  static List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.08),
+      blurRadius: 12,
+      offset: const Offset(0, 6),
+    ),
+  ];
+
+  static List<BoxShadow> cardShadowDark = [
+    BoxShadow(
+      color: const Color(0xFF000000).withValues(alpha: 0.22),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
+    ),
+  ];
+
   // === CORES COMPLEMENTARES ===
   static Color accentColor = const Color(0xFF04CF73); // color2
   static Color highlightColor = const Color(0xFF05E284); // color1
@@ -413,26 +430,19 @@ class AppTheme {
 
   // === COMPONENTES MODERNOS ===
   static BoxDecoration get modernCard => BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radiusXLarge),
         color: lightCardColor,
-        boxShadow: softShadow,
+        boxShadow: cardShadow,
         border: Border.all(
-            color: lightBorderColor.withValues(alpha: 0.1), width: 1),
+            color: lightBorderColor.withValues(alpha: 0.08), width: 1),
       );
 
   static BoxDecoration get modernCardDark => BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radiusXLarge),
         color: darkCardColor,
-        boxShadow: [
-          BoxShadow(
-            color:
-                const Color(0xFF000000).withValues(alpha: 0.3), // Sombra neutra
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-        border:
-            Border.all(color: darkBorderColor.withValues(alpha: 0.2), width: 1),
+        boxShadow: cardShadowDark,
+        border: Border.all(
+            color: darkBorderColor.withValues(alpha: 0.16), width: 1),
       );
 
   static BoxDecoration modernGlassCard(bool isDark) => BoxDecoration(
@@ -457,6 +467,15 @@ class AppTheme {
   static double get radiusLarge => 12.0;
   static double get radiusXLarge => 16.0;
 
+  // Centralized elevated button style used across app
+  static ButtonStyle get elevatedButtonStyle => ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      );
+
   // === MISSING GETTERS FOR PADDING ===
   static double get paddingLarge => 20.0;
   static double get padding => 16.0;
@@ -472,8 +491,9 @@ class AppTheme {
   static ButtonStyle get buttonStyle => ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       );
 
   // === MISSING SNACKBAR METHODS ===

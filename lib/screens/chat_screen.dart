@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/modulo_bncc.dart';
 import '../models/progresso_usuario.dart';
 import '../models/conversa.dart';
+import '../services/progresso_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
@@ -499,6 +500,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _showConversationsList =
       false; // Novo estado para controlar se mostra lista de conversas ou chat - false para modo módulo
 
+  // Novos campos para aulas
+  int _totalAulas = 0;
+  int _aulaAtual = 1;
+
   // Configurações de IA
   bool _useGemini = true;
   String _modeloOllama = 'gemma3:1b';
@@ -567,6 +572,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     if (widget.modulo != null) {
       _contextoAtual = widget.modulo!.titulo;
+      // Inicializa dados das aulas se disponível no progresso
+      if (widget.progresso != null) {
+        final chaveModulo =
+            '${widget.modulo!.unidadeTematica}_${widget.modulo!.anoEscolar}';
+        _totalAulas = widget.progresso!.totalAulasPorModulo[chaveModulo] ?? 0;
+        _aulaAtual = widget.progresso!.obterProximaAula(
+            widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar);
+      }
     }
 
     if (widget.conversaInicial != null) {
@@ -677,12 +690,43 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     switch (widget.mode) {
       case ChatMode.module:
+        // Para módulos, gerar mensagem completa com estrutura de aulas
         welcomePrompt = '''
 Você é um tutor de matemática especializado na BNCC, especificamente no módulo "${widget.modulo!.titulo}" 
 do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
 
-Dê as boas-vindas ao aluno de forma calorosa e apresente-se como tutor do módulo.
-Use emojis e formatação Markdown.
+**IMPORTANTE**: 
+1. Dê uma mensagem de boas-vindas calorosa e apresente-se como tutor do módulo
+2. Explique TUDO que o aluno vai aprender neste módulo de forma empolgante e detalhada
+3. Defina quantas aulas terá este módulo (entre 5 a 10 aulas, baseado na complexidade do conteúdo)
+4. Liste os tópicos principais que serão abordados em cada aula
+5. Use emojis e formatação Markdown
+
+Responda EXATAMENTE no seguinte formato (mantendo a estrutura):
+
+# 🎓 Bem-vindo ao Módulo: [TÍTULO DO MÓDULO]
+
+Olá! Eu sou seu tutor de matemática e estou muito animado para estudar com você! 
+
+## 📚 O que você vai aprender
+
+[Explicação completa e empolgante sobre o que será aprendido]
+
+## 🗓️ Estrutura do Curso
+
+Este módulo terá **X aulas** organizadas da seguinte forma:
+
+**Aula 1:** [Tópico]
+**Aula 2:** [Tópico]
+[... continue até a última aula]
+
+## 🚀 Vamos começar?
+
+Agora você pode escolher uma das opções abaixo para continuar seus estudos!
+
+[BOTÃO:Quiz do Conteúdo]
+[BOTÃO:Aula 1]
+[BOTÃO:Curiosidades do Assunto]
 ''';
         break;
       default:
@@ -702,6 +746,11 @@ Use emojis e formatação Markdown.
         modeloOllama: _modeloOllama,
       );
 
+      // Se for módulo, extrair o número de aulas da resposta
+      if (widget.mode == ChatMode.module) {
+        _extrairTotalAulasResposta(response.text);
+      }
+
       _addMessage(ChatMessage(
         text: response.text,
         isUser: false,
@@ -710,16 +759,326 @@ Use emojis e formatação Markdown.
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      // Adicionar botões de ação se for módulo
+      if (widget.mode == ChatMode.module) {
+        _adicionarBotoesAcao();
+      }
     } catch (e) {
+      String fallbackMessage;
+      if (widget.mode == ChatMode.module) {
+        fallbackMessage = '''
+# 🎓 Bem-vindo ao Módulo: ${widget.modulo!.titulo}
+
+Olá! Estou aqui para ser seu tutor neste módulo de matemática! 😊
+
+## 📚 O que você vai aprender
+${widget.modulo!.descricao}
+
+## 🚀 Vamos começar?
+Escolha uma das opções abaixo para continuar seus estudos!
+
+[BOTÃO:Quiz do Conteúdo]
+[BOTÃO:Aula 1]
+[BOTÃO:Curiosidades do Assunto]
+''';
+        _totalAulas = 5; // Valor padrão
+        if (widget.progresso != null && widget.modulo != null) {
+          widget.progresso!.definirTotalAulas(widget.modulo!.unidadeTematica,
+              widget.modulo!.anoEscolar, _totalAulas);
+        }
+      } else {
+        fallbackMessage =
+            'Olá! Estou aqui para ajudar com matemática. Como posso ajudar você hoje? 😊';
+      }
+
       _addMessage(ChatMessage(
-        text:
-            'Olá! Estou aqui para ajudar com matemática. Como posso ajudar você hoje? 😊',
+        text: fallbackMessage,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini
             ? 'gemini'
             : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
       ));
+
+      if (widget.mode == ChatMode.module) {
+        _adicionarBotoesAcao();
+      }
+    }
+  }
+
+  // Método para extrair o número total de aulas da resposta da IA
+  void _extrairTotalAulasResposta(String resposta) {
+    // Busca por padrões como "X aulas", "terá 5 aulas", etc.
+    final regex = RegExp(r'(\d+)\s*aulas?', caseSensitive: false);
+    final match = regex.firstMatch(resposta);
+
+    if (match != null) {
+      _totalAulas = int.tryParse(match.group(1)!) ?? 5;
+    } else {
+      _totalAulas = 5; // Valor padrão
+    }
+
+    // Salva no progresso do usuário
+    if (widget.progresso != null && widget.modulo != null) {
+      widget.progresso!.definirTotalAulas(widget.modulo!.unidadeTematica,
+          widget.modulo!.anoEscolar, _totalAulas);
+      _aulaAtual = widget.progresso!.obterProximaAula(
+          widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar);
+      ProgressoService.salvarProgresso(widget.progresso!);
+    }
+  }
+
+  // Método para adicionar botões de ação após a mensagem de boas-vindas
+  void _adicionarBotoesAcao() {
+    final botaoAula = widget.progresso != null && widget.modulo != null
+        ? widget.progresso!.obterProximaAula(widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar)
+        : 1;
+
+    final mensagemBotoes = '''
+---
+
+## 🎯 **Escolha uma opção para continuar:**
+
+### 🧩 Quiz do Conteúdo
+*Teste seus conhecimentos com perguntas sobre o módulo*
+
+### 📖 Aula $botaoAula
+*${botaoAula == 1 ? 'Comece sua primeira aula' : 'Continue com a próxima aula'}*
+
+### 🔍 Curiosidades do Assunto  
+*Descubra fatos interessantes e aplicações práticas*
+
+---
+
+💡 **Dica:** Clique em qualquer uma das opções acima digitando o nome (ex: "Quiz do Conteúdo")
+''';
+
+    // Adiciona como uma mensagem do sistema (não aparece como usuário nem IA)
+    setState(() {
+      _messages.add(ChatMessage(
+        text: mensagemBotoes,
+        isUser: false,
+        timestamp: DateTime.now(),
+        aiProvider: 'system', // Marca como mensagem do sistema
+      ));
+    });
+  }
+
+  // Método para detectar se o texto é um clique em botão
+  bool _detectarCliqueBotao(String texto) {
+    final textoLower = texto.toLowerCase();
+    return textoLower.contains('quiz do conteúdo') ||
+        textoLower.contains('aula') ||
+        textoLower.contains('curiosidades do assunto') ||
+        textoLower.contains('revisar módulo');
+  }
+
+  // Método para detectar e processar cliques nos botões
+  Future<void> _processarCliqueBotao(String texto) async {
+    String prompt = '';
+
+    if (texto.toLowerCase().contains('quiz do conteúdo')) {
+      prompt = _gerarPromptQuiz();
+    } else if (texto.toLowerCase().contains('aula')) {
+      // Extrai o número da aula
+      final regexAula = RegExp(r'aula\s*(\d+)', caseSensitive: false);
+      final match = regexAula.firstMatch(texto);
+      final numeroAula = match != null ? int.tryParse(match.group(1)!) ?? 1 : 1;
+      prompt = _gerarPromptAula(numeroAula);
+    } else if (texto.toLowerCase().contains('curiosidades')) {
+      prompt = _gerarPromptCuriosidades();
+    }
+
+    if (prompt.isNotEmpty) {
+      await _enviarPromptPersonalizado(prompt, texto);
+    }
+  }
+
+  String _gerarPromptQuiz() {
+    return '''
+Você é um tutor de matemática especializado na BNCC. Crie um quiz de 5 perguntas sobre o módulo "${widget.modulo!.titulo}" 
+do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
+
+O quiz deve:
+- Ter perguntas de múltipla escolha com 4 alternativas (A, B, C, D)
+- Ser adequado ao nível escolar especificado
+- Abordar conceitos importantes do módulo
+- Incluir questões práticas e aplicadas
+- Ter dificuldade progressiva
+
+Formate como:
+
+**🎯 Quiz: ${widget.modulo!.titulo}**
+
+**Questão 1:** [pergunta]
+A) [alternativa]
+B) [alternativa] 
+C) [alternativa]
+D) [alternativa]
+
+[Continue para as 5 questões]
+
+**Gabarito:**
+1-A, 2-B, 3-C, 4-D, 5-A (exemplo)
+
+---
+
+## 🎯 **Escolha uma opção para continuar:**
+
+### 🧩 Quiz do Conteúdo
+*Gere um novo quiz sobre o módulo*
+
+### 📖 Aula $_aulaAtual
+*${_aulaAtual <= _totalAulas ? 'Continue com a próxima aula' : 'Revisar conteúdo do módulo'}*
+
+### 🔍 Curiosidades do Assunto  
+*Descubra fatos interessantes e aplicações práticas*
+
+---
+
+Use emojis e formatação Markdown!
+''';
+  }
+
+  String _gerarPromptAula(int numeroAula) {
+    return '''
+Você é um tutor de matemática especializado na BNCC. Crie uma aula completa e detalhada sobre o módulo "${widget.modulo!.titulo}" 
+do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
+
+**AULA $numeroAula**
+
+A aula deve incluir:
+1. Título da aula
+2. Objetivos de aprendizagem
+3. Explicação teórica clara e detalhada com exemplos
+4. Exercícios práticos (3-5 exercícios com resolução)
+5. Dicas importantes
+6. Resumo dos pontos principais
+
+Use formatação Markdown e LaTeX para fórmulas matemáticas.
+Seja didático e use linguagem apropriada para ${widget.modulo!.anoEscolar}.
+
+Ao final da aula, se for a aula $_totalAulas (última), parabenize o aluno pela conclusão do módulo!
+
+---
+
+## 🎯 **Escolha uma opção para continuar:**
+
+### 🧩 Quiz do Conteúdo
+*Teste seus conhecimentos sobre o módulo*
+
+### 📖 ${numeroAula < _totalAulas ? 'Aula ${numeroAula + 1}' : 'Revisar Módulo'}
+*${numeroAula < _totalAulas ? 'Continue com a próxima aula' : 'Revisar todo o conteúdo do módulo'}*
+
+### 🔍 Curiosidades do Assunto  
+*Descubra fatos interessantes e aplicações práticas*
+
+---
+''';
+  }
+
+  String _gerarPromptCuriosidades() {
+    return '''
+Você é um tutor de matemática especializado na BNCC. Compartilhe curiosidades fascinantes sobre o módulo "${widget.modulo!.titulo}" 
+do ${widget.modulo!.anoEscolar}, unidade temática "${widget.modulo!.unidadeTematica}".
+
+Inclua:
+1. 🌟 Fatos históricos interessantes sobre o tema
+2. 🔬 Aplicações na vida real e profissões que usam esses conceitos
+3. 🎯 Dicas e macetes para facilitar o aprendizado
+4. 🧩 Problemas curiosos ou paradoxos matemáticos relacionados
+5. 🚀 Como esse conhecimento se conecta com outros tópicos de matemática
+
+Use emojis, seja envolvente e desperte a curiosidade do aluno!
+
+---
+
+## 🎯 **Escolha uma opção para continuar:**
+
+### 🧩 Quiz do Conteúdo
+*Teste seus conhecimentos sobre o módulo*
+
+### 📖 Aula $_aulaAtual
+*${_aulaAtual <= _totalAulas ? 'Continue com a próxima aula' : 'Revisar conteúdo do módulo'}*
+
+### 🔍 Curiosidades do Assunto  
+*Descubra mais fatos interessantes*
+
+---
+''';
+  }
+
+  Future<void> _enviarPromptPersonalizado(
+      String prompt, String acaoUsuario) async {
+    // Adiciona a ação do usuário como mensagem
+    _addMessage(ChatMessage(
+      text: acaoUsuario,
+      isUser: true,
+      timestamp: DateTime.now(),
+    ));
+
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+    _typingAnimationController.repeat();
+
+    try {
+      final response = await _aiQueueService.addRequest(
+        conversaId: _getConversationId(),
+        prompt: prompt,
+        userMessage: acaoUsuario,
+        useGemini: _useGemini,
+        modeloOllama: _modeloOllama,
+      );
+
+      _addMessage(ChatMessage(
+        text: response.text,
+        isUser: false,
+        timestamp: DateTime.now(),
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
+      ));
+
+      // Se foi uma aula completada, atualizar progresso
+      if (acaoUsuario.toLowerCase().contains('aula') &&
+          widget.progresso != null &&
+          widget.modulo != null) {
+        widget.progresso!.completarAula(
+            widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar);
+        _aulaAtual = widget.progresso!.obterProximaAula(
+            widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar);
+        await ProgressoService.salvarProgresso(widget.progresso!);
+      }
+
+      // Salva a conversa se existir uma
+      if (_conversaAtual != null) {
+        final conversaAtualizada = _conversaAtual!.copyWith(
+          mensagens: List.from(_messages),
+          ultimaAtualizacao: DateTime.now(),
+        );
+        await ConversaService.salvarConversa(conversaAtualizada);
+      }
+    } catch (e) {
+      _addMessage(ChatMessage(
+        text:
+            'Desculpe, tive um probleminha para responder. Pode tentar novamente? 😅',
+        isUser: false,
+        timestamp: DateTime.now(),
+        aiProvider: _useGemini
+            ? 'gemini'
+            : (_selectedAI == 'flutter_gemma' ? 'flutter_gemma' : 'ollama'),
+      ));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _typingAnimationController.stop();
     }
   }
 
@@ -761,6 +1120,12 @@ Use emojis e formatação Markdown.
     // Se estamos no modo módulo e não há conversa atual, criar uma nova
     if (widget.mode == ChatMode.module && _conversaAtual == null) {
       await _criarConversaModulo();
+    }
+
+    // Verificar se é um clique em botão de ação no modo módulo
+    if (widget.mode == ChatMode.module && _detectarCliqueBotao(text)) {
+      await _processarCliqueBotao(text);
+      return;
     }
 
     _addMessage(ChatMessage(
@@ -1450,6 +1815,41 @@ Use emojis e formatação Markdown para deixar mais atrativo!
                     color: AppTheme.darkTextSecondaryColor,
                   ),
                 ),
+                // Mostra progresso das aulas se estiver no modo módulo
+                if (widget.mode == ChatMode.module && widget.modulo != null && widget.progresso != null && _totalAulas > 0) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'Aula $_aulaAtual/$_totalAulas',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${(widget.progresso!.calcularProgressoAulas(widget.modulo!.unidadeTematica, widget.modulo!.anoEscolar) * 100).round()}% completo',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

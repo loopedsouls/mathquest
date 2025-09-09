@@ -383,9 +383,7 @@ class _ModulosScreenState extends State<ModulosScreen>
                     if (isCompleto || exerciciosConsecutivos > 0) ...[
                       const SizedBox(height: 2),
                       Text(
-                        isCompleto
-                            ? 'Completo!'
-                            : '$exerciciosConsecutivos/${modulo.exerciciosNecessarios} exercícios',
+                        isCompleto ? 'Completo!' : _obterTextoProgresso(modulo),
                         style: TextStyle(
                           color: isCompleto
                               ? AppTheme.successColor
@@ -433,7 +431,17 @@ class _ModulosScreenState extends State<ModulosScreen>
 
           // Progresso e botão
           if (isDesbloqueado) ...[
-            if (taxaAcerto > 0) ...[
+            // Mostra progresso das aulas se houver
+            if (_temProgressoAulas(modulo)) ...[
+              ModernProgressIndicator(
+                value: _progresso!.calcularProgressoAulas(
+                    modulo.unidadeTematica, modulo.anoEscolar),
+                label: _obterLabelProgressoAulas(modulo),
+                color:
+                    isCompleto ? AppTheme.successColor : AppTheme.primaryColor,
+              ),
+              const SizedBox(height: 8),
+            ] else if (taxaAcerto > 0) ...[
               ModernProgressIndicator(
                 value: exerciciosConsecutivos / modulo.exerciciosNecessarios,
                 label: 'Progresso (${(taxaAcerto * 100).round()}% acerto)',
@@ -544,5 +552,36 @@ do ${modulo.anoEscolar}, unidade temática "${modulo.unidadeTematica}".
 - O aluno está estudando conteúdos de ${modulo.anoEscolar}
 - Foque em tornar o aprendizado prazeroso e acessível
 ''';
+  }
+
+  // Métodos auxiliares para progresso de aulas
+  String _obterTextoProgresso(ModuloBNCC modulo) {
+    final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
+    final totalAulas = _progresso!.totalAulasPorModulo[chaveModulo] ?? 0;
+    final aulasCompletas =
+        _progresso!.aulasComplementadasPorModulo[chaveModulo] ?? 0;
+
+    if (totalAulas > 0) {
+      return '$aulasCompletas/$totalAulas aulas';
+    } else {
+      final exerciciosConsecutivos =
+          _progresso!.exerciciosCorretosConsecutivos[chaveModulo] ?? 0;
+      return '$exerciciosConsecutivos/${modulo.exerciciosNecessarios} exercícios';
+    }
+  }
+
+  bool _temProgressoAulas(ModuloBNCC modulo) {
+    final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
+    return (_progresso!.totalAulasPorModulo[chaveModulo] ?? 0) > 0;
+  }
+
+  String _obterLabelProgressoAulas(ModuloBNCC modulo) {
+    final chaveModulo = '${modulo.unidadeTematica}_${modulo.anoEscolar}';
+    final totalAulas = _progresso!.totalAulasPorModulo[chaveModulo] ?? 0;
+    final aulasCompletas =
+        _progresso!.aulasComplementadasPorModulo[chaveModulo] ?? 0;
+    final progresso = (aulasCompletas / totalAulas * 100).round();
+
+    return 'Aulas: $aulasCompletas/$totalAulas ($progresso%)';
   }
 }

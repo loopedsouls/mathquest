@@ -29,7 +29,7 @@ class ModulosScreen extends StatefulWidget {
 class _ModulosScreenState extends State<ModulosScreen>
     with TickerProviderStateMixin {
   ProgressoUsuario? _progresso;
-  String _unidadeSelecionada = 'Números';
+  String _cursoSelecionado = 'Matemática Básica';
   bool _carregando = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -162,25 +162,25 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   Widget _buildUnidadesSeletor() {
-    final unidades = ['fundamental', 'medio', 'superior'];
+    final cursos = Matematica.cursos.keys.toList();
 
     return Container(
       height: 60,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: unidades.length,
+        itemCount: cursos.length,
         separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final unidade = unidades[index];
-          final isSelected = unidade == _unidadeSelecionada;
+          final curso = cursos[index];
+          final isSelected = curso == _cursoSelecionado;
           final progresso =
-              _progresso?.calcularProgressoPorUnidade(unidade) ?? 0.0;
+              _progresso?.calcularProgressoPorUnidade(curso) ?? 0.0;
 
           return GestureDetector(
             onTap: () {
               setState(() {
-                _unidadeSelecionada = unidade;
+                _cursoSelecionado = curso;
               });
             },
             child: AnimatedContainer(
@@ -220,12 +220,12 @@ class _ModulosScreenState extends State<ModulosScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _getUnidadeIcon(unidade),
+                        _getCursoIcon(curso),
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        unidade,
+                        curso,
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
@@ -268,22 +268,27 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  String _getUnidadeIcon(String unidade) {
-    switch (unidade) {
-      case 'fundamental':
-        return '🏫';
-      case 'medio':
-        return '🎓';
-      case 'superior':
-        return '🎓';
-      default:
+  String _getCursoIcon(String curso) {
+    switch (curso) {
+      case 'Matemática Básica':
+        return '🔢';
+      case 'Geometria':
+        return '📐';
+      case 'Álgebra':
+        return '🔤';
+      case 'Trigonometria':
+        return '📏';
+      case 'Cálculo':
+        return '∫';
+      case 'Outros':
         return '📚';
+      default:
+        return '�';
     }
   }
 
   Widget _buildModulosGrid() {
-    final assuntos =
-        Matematica.topicos[_unidadeSelecionada]?.keys.toList() ?? [];
+    final assuntos = Matematica.cursos[_cursoSelecionado]?.keys.toList() ?? [];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -313,8 +318,15 @@ class _ModulosScreenState extends State<ModulosScreen>
     final modulo =
         modulosRelacionados.isNotEmpty ? modulosRelacionados.first : null;
 
+    // Obter os subtópicos do assunto
+    final subtemas = Matematica.cursos[_cursoSelecionado]?[assunto] ?? [];
+    final subtemasPreview = subtemas.take(3).toList();
+    final subtemasTexto = subtemasPreview.isNotEmpty
+        ? subtemasPreview.join(', ')
+        : 'Conteúdo a ser definido';
+
     if (_progresso == null || modulo == null) {
-      return _buildAssuntoCardSimples(assunto);
+      return _buildAssuntoCardSimples(assunto, subtemasTexto);
     }
 
     final isCompleto = _progresso!.modulosCompletos[modulo.unidadeTematica]
@@ -386,10 +398,11 @@ class _ModulosScreenState extends State<ModulosScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Nível: ${_getNomeNivel(_unidadeSelecionada)}',
+                      subtemasTexto,
                       style: AppTheme.bodySmall.copyWith(
                         fontSize: 12,
                         color: AppTheme.darkTextSecondaryColor,
+                        height: 1.4,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -441,7 +454,7 @@ class _ModulosScreenState extends State<ModulosScreen>
     );
   }
 
-  Widget _buildAssuntoCardSimples(String assunto) {
+  Widget _buildAssuntoCardSimples(String assunto, String subtemasTexto) {
     return ModernCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -475,11 +488,14 @@ class _ModulosScreenState extends State<ModulosScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Nível: ${_getNomeNivel(_unidadeSelecionada)}',
+                    subtemasTexto,
                     style: AppTheme.bodySmall.copyWith(
                       fontSize: 12,
                       color: AppTheme.darkTextSecondaryColor,
+                      height: 1.4,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -494,19 +510,6 @@ class _ModulosScreenState extends State<ModulosScreen>
         ),
       ),
     );
-  }
-
-  String _getNomeNivel(String nivel) {
-    switch (nivel) {
-      case 'fundamental':
-        return 'Ensino Fundamental';
-      case 'medio':
-        return 'Ensino Médio';
-      case 'superior':
-        return 'Ensino Superior';
-      default:
-        return nivel;
-    }
   }
 
   void _iniciarAssunto(String assunto, ModuloBNCC modulo) {
@@ -542,8 +545,8 @@ class _ModulosScreenState extends State<ModulosScreen>
   String _criarPromptParaModulo(ModuloBNCC modulo) {
     // Obter os subtópicos do assunto selecionado
     final subtemas = (_assuntoSelecionado != null &&
-            Matematica.topicos[_unidadeSelecionada] != null)
-        ? Matematica.topicos[_unidadeSelecionada]![_assuntoSelecionado!] ?? []
+            Matematica.cursos[_cursoSelecionado] != null)
+        ? Matematica.cursos[_cursoSelecionado]![_assuntoSelecionado!] ?? []
         : [];
 
     final subtemasTexto = subtemas.isNotEmpty
@@ -573,7 +576,7 @@ do ${modulo.anoEscolar}, unidade temática "${modulo.unidadeTematica}".
 - Adapte a complexidade das explicações ao nível do aluno
 
 **Contexto adicional:**
-- Este módulo faz parte da unidade temática: $_unidadeSelecionada
+- Este módulo faz parte do curso: $_cursoSelecionado
 - O aluno está estudando conteúdos de ${modulo.anoEscolar}
 - Foque em tornar o aprendizado prazeroso e acessível
 ''';

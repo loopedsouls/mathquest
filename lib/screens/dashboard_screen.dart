@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../models/conquista.dart';
 import '../services/progresso_service.dart';
+import 'conquistas.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -500,95 +501,142 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  // Achievement card with badges
+  // Achievement section with detailed view
   Widget _buildAchievementCard() {
     final unlockedAchievements =
-        _conquistas.where((c) => c.desbloqueada).length;
+        _conquistas.where((c) => c.desbloqueada).toList();
+    final lockedAchievements =
+        _conquistas.where((c) => !c.desbloqueada).toList();
 
-    return ModernCard(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.emoji_events,
-                  color: Colors.amber,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Conquistas',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$unlockedAchievements/${_conquistas.length}',
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ConquistasScreen()),
+        );
+      },
+      child: ModernCard(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+                  const SizedBox(width: 8),
+                  const Text('Conquistas',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Text(
+                        '${unlockedAchievements.length}/${_conquistas.length}',
+                        style: const TextStyle(
+                            color: Colors.amber,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (unlockedAchievements.isNotEmpty) ...[
+                const Text('Desbloqueadas',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: unlockedAchievements.length,
+                    itemBuilder: (context, index) {
+                      final conquista = unlockedAchievements[index];
+                      return Container(
+                        width: 100,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                                radius: 30,
+                                backgroundColor:
+                                    Colors.amber.withValues(alpha: 0.2),
+                                child: Text(conquista.emoji,
+                                    style: const TextStyle(fontSize: 24))),
+                            const SizedBox(height: 8),
+                            Text(conquista.titulo,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis),
+                            Text('+${conquista.pontosBonus} XP',
+                                style: TextStyle(
+                                    color: AppTheme.accentColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 60,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _conquistas.length,
-                itemBuilder: (context, index) {
-                  final conquista = _conquistas[index];
-                  return Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    child: _buildAchievementBadge(conquista),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAchievementBadge(Conquista conquista) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: conquista.desbloqueada
-            ? Colors.amber.withValues(alpha: 0.2)
-            : AppTheme.darkBorderColor.withValues(alpha: 0.3),
-        border: Border.all(
-          color:
-              conquista.desbloqueada ? Colors.amber : AppTheme.darkBorderColor,
-          width: 2,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          conquista.emoji,
-          style: TextStyle(
-            fontSize: conquista.desbloqueada ? 24 : 16,
-            color:
-                conquista.desbloqueada ? null : AppTheme.darkTextSecondaryColor,
+              if (lockedAchievements.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text('Bloqueadas',
+                    style: TextStyle(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: lockedAchievements.length,
+                    itemBuilder: (context, index) {
+                      final conquista = lockedAchievements[index];
+                      return Container(
+                        width: 100,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                                radius: 30,
+                                backgroundColor: AppTheme.darkBorderColor
+                                    .withValues(alpha: 0.3),
+                                child: Icon(Icons.lock,
+                                    color: AppTheme.darkTextSecondaryColor)),
+                            const SizedBox(height: 8),
+                            Text(conquista.titulo,
+                                style: TextStyle(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),

@@ -40,7 +40,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
   // Fila de perguntas pré-carregadas
   final List<Map<String, dynamic>> _perguntasPreCarregadas = [];
-  bool _preCarregamentoAtivo = false;
 
   // Tipos de quiz disponíveis - ciclo através deles para garantir todos os tipos
   final List<String> _tiposQuiz = [
@@ -362,7 +361,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
     // Limpa fila de perguntas pré-carregadas
     _perguntasPreCarregadas.clear();
-    _preCarregamentoAtivo = false;
 
     // Não inicia o quiz automaticamente - espera pelo botão Start da tela inicial
   }
@@ -485,34 +483,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _cardAnimationController.forward();
   }
 
-  void _iniciarPreCarregamento() {
-    if (_preCarregamentoAtivo || perguntaIndex >= totalPerguntas - 1) {
-      return;
-    }
-
-    _preCarregamentoAtivo = true;
-    debugPrint('Iniciando pré-carregamento de TODAS as perguntas restantes...');
-
-    // Pré-carrega TODAS as perguntas restantes de uma vez
-    final perguntasParaCarregar = totalPerguntas - perguntaIndex - 1;
-
-    debugPrint('Gerando $perguntasParaCarregar perguntas de uma vez...');
-
-    // Usar Future.wait para gerar todas as perguntas em paralelo
-    final futures = <Future>[];
-    for (int i = 0; i < perguntasParaCarregar; i++) {
-      futures.add(_preCarregarPergunta());
-    }
-
-    // Aguardar todas as perguntas serem geradas
-    Future.wait(futures).then((_) {
-      debugPrint('Todas as perguntas foram pré-carregadas! Total: ${_perguntasPreCarregadas.length}');
-      _preCarregamentoAtivo = false;
-    }).catchError((error) {
-      debugPrint('Erro ao pré-carregar perguntas: $error');
-      _preCarregamentoAtivo = false;
-    });
-  }
 
   Future<void> _preCarregarPergunta() async {
     try {
@@ -730,7 +700,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   void _finalizarQuiz() {
     // Limpa fila de perguntas pré-carregadas
     _perguntasPreCarregadas.clear();
-    _preCarregamentoAtivo = false;
 
     if (mounted) {
       setState(() {
@@ -771,7 +740,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   String _buildSubtitle() {
-    String progresso = 'Pergunta ${perguntaIndex + 1}/$totalPerguntas';
+    String progresso = 'Pergunta $perguntaIndex + 1/$totalPerguntas';
     String nivel = 'Tipo: ${_getTipoTitulo(tipoAtual)}';
 
     // Adiciona indicador de perguntas pré-carregadas
@@ -1198,7 +1167,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     await Future.wait(futures);
-    debugPrint('Todas as ${totalPerguntas} perguntas foram geradas! Total na fila: ${_perguntasPreCarregadas.length}');
+    debugPrint('Todas as $totalPerguntas perguntas foram geradas! Total na fila: ${_perguntasPreCarregadas.length}');
   }
 
   Future<void> _iniciarCarregamentoPerguntas() async {

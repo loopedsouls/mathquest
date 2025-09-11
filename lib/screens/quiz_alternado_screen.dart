@@ -81,12 +81,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   int _currentSnakeLength = 10;
 
   // Inimigos (tipo Slither.io)
-  List<List<Offset>> _enemySnakes = [];
-  List<Offset> _enemyDirections = [];
-  List<Color> _enemyColors = [];
+  final List<List<Offset>> _enemySnakes = [];
+  final List<Offset> _enemyDirections = [];
+  final List<Color> _enemyColors = [];
 
   // Configurações do jogo
-  int _gridSize = 20;
+  final int _gridSize = 20;
   double _cellSize = 15;
 
   // Configurações visuais

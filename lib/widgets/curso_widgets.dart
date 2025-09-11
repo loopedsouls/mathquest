@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/matematica_nova.dart';
+import '../models/matematica.dart';
 import '../theme/app_theme.dart';
 
 class CursoStatsWidget extends StatelessWidget {
@@ -349,7 +349,6 @@ class CursoStatsWidget extends StatelessWidget {
   }
 }
 
-// Widget para mostrar trilhas em formato de roadmap
 class TrilhaRoadmapWidget extends StatelessWidget {
   final List<TrilhaAprendizado> trilhas;
   final Function(TrilhaAprendizado) onTrilhaTap;

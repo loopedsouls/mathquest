@@ -191,7 +191,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       const Offset(0, 1), // baixo
       const Offset(0, -1), // cima
     ];
-    return directions[(DateTime.now().millisecondsSinceEpoch + DateTime.now().microsecondsSinceEpoch) % 4];
+    return directions[(DateTime.now().millisecondsSinceEpoch +
+            DateTime.now().microsecondsSinceEpoch) %
+        4];
   }
 
   Color _getEnemyColor(int index) {
@@ -482,7 +484,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _cardAnimationController.reset();
     _cardAnimationController.forward();
   }
-
 
   Future<void> _preCarregarPergunta() async {
     try {
@@ -1167,7 +1168,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     await Future.wait(futures);
-    debugPrint('Todas as $totalPerguntas perguntas foram geradas! Total na fila: ${_perguntasPreCarregadas.length}');
+    debugPrint(
+        'Todas as $totalPerguntas perguntas foram geradas! Total na fila: ${_perguntasPreCarregadas.length}');
   }
 
   Future<void> _iniciarCarregamentoPerguntas() async {
@@ -1318,9 +1320,14 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                   builder: (context, constraints) {
                                     // Calcular tamanho da célula baseado no espaço disponível
                                     final availableWidth = constraints.maxWidth;
-                                    final availableHeight = constraints.maxHeight;
-                                    _cellSize = (availableWidth < availableHeight ? availableWidth : availableHeight) / _gridSize;
-                                    
+                                    final availableHeight =
+                                        constraints.maxHeight;
+                                    _cellSize =
+                                        (availableWidth < availableHeight
+                                                ? availableWidth
+                                                : availableHeight) /
+                                            _gridSize;
+
                                     return CustomPaint(
                                       painter: SnakePainter(
                                         snakeSegments: _snakeSegments,
@@ -1351,14 +1358,15 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                       size: 32,
                                     ),
                                     style: IconButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                      backgroundColor: AppTheme.primaryColor
+                                          .withValues(alpha: 0.1),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  
+
                                   // Linha com esquerda, centro (vazio), direita
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1371,13 +1379,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                           size: 32,
                                         ),
                                         style: IconButton.styleFrom(
-                                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                          backgroundColor: AppTheme.primaryColor
+                                              .withValues(alpha: 0.1),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 40), // Espaço vazio no centro
+                                      const SizedBox(
+                                          width: 40), // Espaço vazio no centro
                                       IconButton(
                                         onPressed: _moveRight,
                                         icon: Icon(
@@ -1386,16 +1397,18 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                           size: 32,
                                         ),
                                         style: IconButton.styleFrom(
-                                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                          backgroundColor: AppTheme.primaryColor
+                                              .withValues(alpha: 0.1),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  
+
                                   // Botão baixo
                                   IconButton(
                                     onPressed: _moveDown,
@@ -1405,7 +1418,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                       size: 32,
                                     ),
                                     style: IconButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                      backgroundColor: AppTheme.primaryColor
+                                          .withValues(alpha: 0.1),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),

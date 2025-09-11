@@ -1,12 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Permissões de internet -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <!-- Permissões para Flutter Gemma (IA local) -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <application
         android:label="mathquest"
         android:name="${applicationName}"
@@ -38,19 +30,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-            
-        <!-- Suporte OpenGL para Flutter Gemma (GPU acceleration) -->
-        <uses-native-library
-            android:name="libOpenCL.so"
-            android:required="false"/>
-        <uses-native-library 
-            android:name="libOpenCL-car.so" 
-            android:required="false"/>
-        <uses-native-library 
-            android:name="libOpenCL-pixel.so" 
-            android:required="false"/>
     </application>
-        
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.

@@ -1480,6 +1480,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 768;
+    final isDesktop = screenWidth >= 1024;
 
     // Mostrar tela inicial primeiro
     if (_mostrarTelaInicial) {
@@ -1508,15 +1509,102 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
             ],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header responsivo com botão voltar para a tela inicial
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 24 : 16,
-                  vertical: isTablet ? 8 : 6,
+        child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(isTablet),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(bool isTablet) {
+    return SafeArea(
+      child: Column(
+        children: [
+          // Header responsivo com botão voltar para a tela inicial
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 24 : 16,
+              vertical: isTablet ? 8 : 6,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
+                  icon: Icon(
+                    Icons.home_rounded,
+                    color: AppTheme.primaryColor,
+                    size: isTablet ? 28 : 24,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        AppTheme.primaryColor.withValues(alpha: 0.08),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
+                SizedBox(width: isTablet ? 12 : 8),
+                Expanded(
+                  child: ResponsiveHeader(
+                    title: 'Quiz Alternado',
+                    subtitle: _buildSubtitle(),
+                    trailing: _buildHeaderTrailing(isTablet),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Conteúdo principal
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isTablet ? 24 : 16),
+              child: Column(
+                children: [
+                  // Progresso e status
+                  _buildStatusProgress(isTablet),
+                  SizedBox(height: isTablet ? 24 : 20),
+
+                  // Card do exercício
+                  if (carregando)
+                    _buildLoadingCard(isTablet)
+                  else if (perguntaAtual != null)
+                    _buildExercicioCard(isTablet),
+
+                  SizedBox(height: isTablet ? 24 : 20),
+
+                  // Botões de ação
+                  if (!carregando && perguntaAtual != null)
+                    _buildActionButtons(isTablet),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Sidebar esquerda com progresso e informações
+        Container(
+          width: 320,
+          decoration: BoxDecoration(
+            color: AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+            border: Border(
+              right: BorderSide(
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header da sidebar
+              Container(
+                padding: const EdgeInsets.all(24),
                 child: Row(
                   children: [
                     IconButton(
@@ -1525,7 +1613,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                       icon: Icon(
                         Icons.home_rounded,
                         color: AppTheme.primaryColor,
-                        size: isTablet ? 28 : 24,
+                        size: 24,
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor:
@@ -1535,39 +1623,49 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                         ),
                       ),
                     ),
-                    SizedBox(width: isTablet ? 12 : 8),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: ResponsiveHeader(
-                        title: 'Quiz Alternado',
-                        subtitle: _buildSubtitle(),
-                        trailing: _buildHeaderTrailing(isTablet),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quiz Alternado',
+                            style: TextStyle(
+                              color: AppTheme.darkTextPrimaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _buildSubtitle(),
+                            style: TextStyle(
+                              color: AppTheme.darkTextSecondaryColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // Conteúdo principal
+              // Progresso detalhado
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(isTablet ? 24 : 16),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Progresso e status
-                      _buildStatusProgress(isTablet),
-                      SizedBox(height: isTablet ? 24 : 20),
+                      _buildStatusProgress(true),
+                      const SizedBox(height: 24),
 
-                      // Card do exercício
-                      if (carregando)
-                        _buildLoadingCard(isTablet)
-                      else if (perguntaAtual != null)
-                        _buildExercicioCard(isTablet),
+                      // Estatísticas em tempo real
+                      _buildRealtimeStats(),
+                      const SizedBox(height: 24),
 
-                      SizedBox(height: isTablet ? 24 : 20),
-
-                      // Botões de ação
-                      if (!carregando && perguntaAtual != null)
-                        _buildActionButtons(isTablet),
+                      // Histórico de respostas recentes
+                      _buildRecentAnswers(),
                     ],
                   ),
                 ),
@@ -1575,7 +1673,35 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
             ],
           ),
         ),
-      ),
+
+        // Área principal do conteúdo
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Card do exercício centralizado
+                    if (carregando)
+                      _buildLoadingCard(true)
+                    else if (perguntaAtual != null)
+                      _buildExercicioCard(true),
+
+                    const SizedBox(height: 32),
+
+                    // Botões de ação centralizados
+                    if (!carregando && perguntaAtual != null)
+                      _buildActionButtons(true),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1800,6 +1926,221 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
               fontWeight: FontWeight.w600,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRealtimeStats() {
+    final porcentagemAcertos = respostas.isNotEmpty
+        ? (estatisticas['corretas']! / respostas.length * 100).round()
+        : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'ESTATÍSTICAS',
+            style: TextStyle(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Progresso atual
+          Row(
+            children: [
+              Icon(
+                Icons.timeline_rounded,
+                color: AppTheme.primaryColor,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Progresso: $perguntaIndex/$totalPerguntas',
+                style: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Taxa de acertos
+          Row(
+            children: [
+              Icon(
+                Icons.trending_up_rounded,
+                color: AppTheme.successColor,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Taxa de acertos: $porcentagemAcertos%',
+                style: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Pontuação atual
+          Row(
+            children: [
+              Icon(
+                Icons.stars_rounded,
+                color: AppTheme.warningColor,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Pontuação: $pontuacao pontos',
+                style: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentAnswers() {
+    if (respostas.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'HISTÓRICO',
+              style: TextStyle(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhuma resposta ainda',
+              style: TextStyle(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Mostrar as últimas 5 respostas
+    final recentAnswers = respostas.reversed.take(5).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'HISTÓRICO RECENTE',
+            style: TextStyle(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...recentAnswers.map((resposta) {
+            final isCorrect = resposta['correta'] == true;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isCorrect
+                    ? AppTheme.successColor.withValues(alpha: 0.1)
+                    : AppTheme.errorColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isCorrect
+                      ? AppTheme.successColor.withValues(alpha: 0.3)
+                      : AppTheme.errorColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isCorrect ? Icons.check_circle : Icons.cancel,
+                    color:
+                        isCorrect ? AppTheme.successColor : AppTheme.errorColor,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      resposta['tipo']
+                              ?.toString()
+                              .split('_')
+                              .map((word) =>
+                                  word[0].toUpperCase() + word.substring(1))
+                              .join(' ') ??
+                          'Quiz',
+                      style: TextStyle(
+                        color: AppTheme.darkTextPrimaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${resposta['pontos'] ?? 0}pts',
+                    style: TextStyle(
+                      color: isCorrect
+                          ? AppTheme.successColor
+                          : AppTheme.errorColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ],
       ),
     );

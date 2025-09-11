@@ -311,42 +311,231 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _buildNavigationRail() {
-    return SizedBox(
-      width: 80, // Largura fixa e compacta
-      child: NavigationRail(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onNavigationTap,
-        labelType: NavigationRailLabelType.all,
-        selectedIconTheme: IconThemeData(
-          color: AppTheme.primaryColor,
-          size: 28,
+    return Container(
+      width: 280, // Largura expandida para desktop
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurfaceColor,
+        border: Border(
+          right: BorderSide(
+            color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
         ),
-        unselectedIconTheme: IconThemeData(
-          color: AppTheme.darkTextSecondaryColor,
-          size: 24,
-        ),
-        selectedLabelTextStyle: TextStyle(
-          color: AppTheme.primaryColor,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelTextStyle: TextStyle(
-          color: AppTheme.darkTextSecondaryColor,
-        ),
-        destinations: _navigationItems
-            .map((item) => NavigationRailDestination(
-                  icon: Icon(item.icon),
-                  selectedIcon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header da sidebar
+          Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.calculate_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(item.icon),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'MathQuest',
+                          style: TextStyle(
+                            color: AppTheme.darkTextPrimaryColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Tutoria Inteligente',
+                          style: TextStyle(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Indicador de status da IA
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _aiAvailable
+                        ? AppTheme.successColor.withValues(alpha: 0.1)
+                        : AppTheme.warningColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _aiAvailable
+                          ? AppTheme.successColor.withValues(alpha: 0.3)
+                          : AppTheme.warningColor.withValues(alpha: 0.3),
+                    ),
                   ),
-                  label: Text(item.label),
-                ))
-            .toList(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _aiAvailable
+                              ? AppTheme.successColor
+                              : AppTheme.warningColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _aiAvailable
+                            ? 'IA Online'
+                            : (_isOfflineMode
+                                ? 'Modo Offline'
+                                : 'IA Indisponível'),
+                        style: TextStyle(
+                          color: _aiAvailable
+                              ? AppTheme.successColor
+                              : AppTheme.warningColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Navegação principal
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, bottom: 8),
+                    child: Text(
+                      'NAVEGAÇÃO',
+                      style: TextStyle(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  ...List.generate(_navigationItems.length, (index) {
+                    final item = _navigationItems[index];
+                    final isSelected = _selectedIndex == index;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 4),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _onNavigationTap(index),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: AppTheme.primaryColor
+                                          .withValues(alpha: 0.3),
+                                    )
+                                  : null,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  item.icon,
+                                  color: isSelected
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.darkTextSecondaryColor,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    item.label,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? AppTheme.primaryColor
+                                          : AppTheme.darkTextPrimaryColor,
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+
+          // Footer da sidebar
+          Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.darkBackgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.help_outline_rounded,
+                        color: AppTheme.darkTextSecondaryColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Precisa de ajuda?',
+                        style: TextStyle(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

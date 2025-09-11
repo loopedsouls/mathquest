@@ -57,6 +57,8 @@ class ResponsiveWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= 1024;
+
         return Container(
           width: double.infinity,
           height: double.infinity,
@@ -66,13 +68,13 @@ class ResponsiveWrapper extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.darkBackgroundColor,
-                AppTheme.darkSurfaceColor,
+                AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
               ],
             ),
           ),
-          child: SafeArea(
-            child: child,
-          ),
+          child: isDesktop
+              ? child // Desktop não precisa de SafeArea devido ao layout customizado
+              : SafeArea(child: child), // Mobile mantém SafeArea
         );
       },
     );

@@ -89,6 +89,9 @@ class _ModulosScreenState extends State<ModulosScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+
     return Scaffold(
       backgroundColor: AppTheme.darkBackgroundColor,
       body: Container(
@@ -102,16 +105,16 @@ class _ModulosScreenState extends State<ModulosScreen>
             ],
           ),
         ),
-        child: SafeArea(
-          child: _carregando
-              ? _buildLoadingScreen()
-              : _mostrarChat
-                  ? _buildChatView()
-                  : FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: _buildMobileLayout(),
-                    ),
-        ),
+        child: _carregando
+            ? _buildLoadingScreen()
+            : _mostrarChat
+                ? _buildChatView()
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: isDesktop
+                        ? _buildDesktopLayout()
+                        : SafeArea(child: _buildMobileLayout()),
+                  ),
       ),
     );
   }
@@ -902,6 +905,323 @@ class _ModulosScreenState extends State<ModulosScreen>
     // Verificar se o curso está disponível para o nível atual do usuário
     final cursosDisponiveis = cursosPorNivel[nivelUsuario] ?? [];
     return cursosDisponiveis.contains(curso);
+  }
+
+  Widget _buildDesktopLayout() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sidebar esquerda com informações e navegação
+          Container(
+            width: 350,
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header da sidebar
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Módulos de Estudos',
+                        style: TextStyle(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_progresso != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  AppTheme.primaryColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            'Nível: ${_progresso!.nivelUsuario.nome} ${_progresso!.nivelUsuario.emoji}',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Seletor de cursos
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'CURSOS DISPONÍVEIS',
+                        style: TextStyle(
+                          color: AppTheme.darkTextSecondaryColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...Matematica.cursos.keys.map((curso) {
+                        final isSelected = curso == _cursoSelecionado;
+                        final isUnlocked = _cursoEstaDesbloqueado(curso);
+                        final progresso =
+                            _progresso?.calcularProgressoPorUnidade(curso) ??
+                                0.0;
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: isUnlocked
+                                  ? () {
+                                      setState(() {
+                                        _cursoSelecionado = curso;
+                                      });
+                                    }
+                                  : null,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppTheme.primaryColor
+                                          .withValues(alpha: 0.1)
+                                      : (isUnlocked
+                                          ? Colors.transparent
+                                          : AppTheme.darkBackgroundColor
+                                              .withValues(alpha: 0.3)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: AppTheme.primaryColor
+                                              .withValues(alpha: 0.3))
+                                      : Border.all(
+                                          color: AppTheme.darkBorderColor
+                                              .withValues(alpha: 0.2)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          isUnlocked
+                                              ? Icons.school_rounded
+                                              : Icons.lock_rounded,
+                                          color: isSelected
+                                              ? AppTheme.primaryColor
+                                              : (isUnlocked
+                                                  ? AppTheme
+                                                      .darkTextPrimaryColor
+                                                  : AppTheme
+                                                      .darkTextSecondaryColor),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            curso,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? AppTheme.primaryColor
+                                                  : (isUnlocked
+                                                      ? AppTheme
+                                                          .darkTextPrimaryColor
+                                                      : AppTheme
+                                                          .darkTextSecondaryColor),
+                                              fontSize: 14,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (isUnlocked && progresso > 0) ...[
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        value: progresso / 100,
+                                        backgroundColor:
+                                            AppTheme.darkBorderColor,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          isSelected
+                                              ? AppTheme.primaryColor
+                                              : AppTheme.successColor,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${progresso.toInt()}% concluído',
+                                        style: TextStyle(
+                                          color:
+                                              AppTheme.darkTextSecondaryColor,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+
+                // Estatísticas no rodapé
+                if (_progresso != null)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color:
+                            AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                '${_progresso!.totalExerciciosCorretos}',
+                                style: TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Acertos',
+                                style: TextStyle(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            width: 1,
+                            height: 30,
+                            color: AppTheme.darkBorderColor,
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                '${_progresso!.totalExerciciosRespondidos}',
+                                style: TextStyle(
+                                  color: AppTheme.warningColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Total',
+                                style: TextStyle(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 24),
+
+          // Área principal com módulos em grid
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurfaceColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppTheme.darkBorderColor.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header da área principal
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _cursoSelecionado,
+                                style: TextStyle(
+                                  color: AppTheme.darkTextPrimaryColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Selecione um módulo para começar',
+                                style: TextStyle(
+                                  color: AppTheme.darkTextSecondaryColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Grid de módulos
+                  Expanded(
+                    child: _buildModulosGrid(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildChatView() {

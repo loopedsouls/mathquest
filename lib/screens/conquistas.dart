@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/conquista.dart';
+import '../services/gamificacao_service.dart';
 
 class ConquistasScreen extends StatefulWidget {
   const ConquistasScreen({super.key});
@@ -39,51 +40,15 @@ class _ConquistasScreenState extends State<ConquistasScreen>
     setState(() => _carregando = true);
 
     try {
-      // Simula conquistas
+      // Carrega conquistas reais do serviço de gamificação
+      final conquistasDesbloqueadas =
+          await GamificacaoService.obterConquistasDesbloqueadas();
+      final conquistasBloqueadas =
+          await GamificacaoService.obterConquistasBloqueadas();
+
       _conquistas = [
-        Conquista(
-          id: '1',
-          titulo: 'Primeiro Passo',
-          descricao: 'Complete seu primeiro exercício',
-          emoji: '⭐',
-          tipo: TipoConquista.moduloCompleto,
-          criterios: {'completar_primeiro_exercicio': true},
-          pontosBonus: 50,
-          dataConquista: DateTime.now().subtract(const Duration(days: 7)),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '2',
-          titulo: 'Dedicado',
-          descricao: 'Estude por 7 dias consecutivos',
-          emoji: '🔥',
-          tipo: TipoConquista.streakExercicios,
-          criterios: {'dias_consecutivos': 7},
-          pontosBonus: 100,
-          dataConquista: DateTime.now(),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '3',
-          titulo: 'Matemático',
-          descricao: 'Domine 10 tópicos diferentes',
-          emoji: '🎓',
-          tipo: TipoConquista.unidadeCompleta,
-          criterios: {'topicos_dominados': 10},
-          pontosBonus: 200,
-          dataConquista: DateTime.now().subtract(const Duration(days: 2)),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '4',
-          titulo: 'Perfeccionista',
-          descricao: 'Obtenha 100% em 20 exercícios',
-          emoji: '🏆',
-          tipo: TipoConquista.perfeccionista,
-          criterios: {'exercicios_100_porcento': 20},
-          pontosBonus: 300,
-          desbloqueada: false,
-        ),
+        ...conquistasDesbloqueadas,
+        ...conquistasBloqueadas,
       ];
 
       setState(() => _carregando = false);
@@ -93,7 +58,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar dados: $e'),
+            content: Text('Erro ao carregar conquistas: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -104,7 +69,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.darkBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Conquistas',
@@ -125,7 +90,11 @@ class _ConquistasScreenState extends State<ConquistasScreen>
         ),
       ),
       body: _carregando
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+              ),
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -142,33 +111,70 @@ class _ConquistasScreenState extends State<ConquistasScreen>
 
     if (conquistasDesbloqueadas.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.emoji_events_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhuma conquista desbloqueada ainda',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppTheme.darkSurfaceColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.emoji_events_outlined,
+                  size: 60,
+                  color: Colors.grey[400],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Continue estudando para desbloquear suas primeiras conquistas!',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+              const SizedBox(height: 24),
+              Text(
+                'Nenhuma conquista desbloqueada ainda',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                'Continue estudando para desbloquear suas primeiras conquistas!\nCada exercício completado e meta alcançada te aproxima de novas recompensas.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  // Força desbloqueio de conquista para teste
+                  await GamificacaoService.forcarDesbloquearConquista(
+                      'primeiro_modulo');
+                  await _carregarDados();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.rocket_launch),
+                label: const Text(
+                  'Começar Jornada',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -178,31 +184,195 @@ class _ConquistasScreenState extends State<ConquistasScreen>
       itemCount: conquistasDesbloqueadas.length,
       itemBuilder: (context, index) {
         final conquista = conquistasDesbloqueadas[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              radius: 20,
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-              child:
-                  Text(conquista.emoji, style: const TextStyle(fontSize: 20)),
-            ),
-            title: Text(
-              conquista.titulo,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+        return AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: _animationController,
+              curve: Interval(
+                index * 0.1,
+                (index * 0.1) + 0.5,
+                curve: Curves.easeOutCubic,
               ),
-            ),
-            subtitle: Text(conquista.descricao),
-            trailing: Text(
-              '+${conquista.pontosBonus} XP',
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
+            ));
+
+            return SlideTransition(
+              position: slideAnimation,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.15),
+                      AppTheme.primaryLightColor.withValues(alpha: 0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor,
+                                  AppTheme.primaryLightColor,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                conquista.emoji,
+                                style: const TextStyle(fontSize: 28),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  conquista.titulo,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: AppTheme.darkTextPrimaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  conquista.descricao,
+                                  style: TextStyle(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primaryColor
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '+${conquista.pontosBonus} XP',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              if (conquista.dataConquista != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  _formatarData(conquista.dataConquista!),
+                                  style: TextStyle(
+                                    color: AppTheme.darkTextSecondaryColor,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.darkSurfaceColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppTheme.darkBorderColor,
+                              ),
+                            ),
+                            child: Text(
+                              _obterTipoConquista(conquista.tipo),
+                              style: TextStyle(
+                                color: AppTheme.darkTextSecondaryColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.check_circle,
+                            color: AppTheme.successColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Desbloqueada',
+                            style: TextStyle(
+                              color: AppTheme.successColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -214,24 +384,44 @@ class _ConquistasScreenState extends State<ConquistasScreen>
 
     if (conquistasBloqueadas.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Todas as conquistas foram desbloqueadas!',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppTheme.darkSurfaceColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.celebration,
+                  size: 60,
+                  color: Colors.amber,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Text(
+                'Parabéns! 🎉',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Você desbloqueou todas as conquistas disponíveis!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -241,30 +431,207 @@ class _ConquistasScreenState extends State<ConquistasScreen>
       itemCount: conquistasBloqueadas.length,
       itemBuilder: (context, index) {
         final conquista = conquistasBloqueadas[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          color: Colors.grey[50],
-          child: ListTile(
-            leading: CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.grey[100],
-              child: Icon(Icons.lock, color: Colors.grey[400], size: 20),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.darkBorderColor,
             ),
-            title: Text(
-              conquista.titulo,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            subtitle: Text(
-              conquista.descricao,
-              style: TextStyle(color: Colors.grey[500]),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock,
+                        color: Colors.grey[600],
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            conquista.titulo,
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            conquista.descricao,
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '+${conquista.pontosBonus} XP',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _obterTipoConquista(conquista.tipo),
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildProgresoConquista(conquista),
+              ],
             ),
           ),
         );
       },
     );
+  }
+
+  Widget _buildProgresoConquista(Conquista conquista) {
+    // Simula progresso baseado no tipo de conquista
+    double progresso = 0.0;
+    String textoProgresso = '';
+
+    switch (conquista.tipo) {
+      case TipoConquista.streakExercicios:
+        final streakRequerida = conquista.criterios['streak'] as int;
+        progresso = 0.3; // 30% de progresso simulado
+        textoProgresso = 'Sequência: 2/$streakRequerida';
+        break;
+      case TipoConquista.moduloCompleto:
+        final quantidadeRequerida = conquista.criterios['quantidade'] as int;
+        progresso = 0.2;
+        textoProgresso = 'Módulos: 2/$quantidadeRequerida';
+        break;
+      case TipoConquista.pontuacaoTotal:
+        final pontosRequeridos = conquista.criterios['pontos'] as int;
+        progresso = 0.45;
+        textoProgresso =
+            'Pontos: ${(pontosRequeridos * 0.45).round()}/$pontosRequeridos';
+        break;
+      default:
+        progresso = 0.0;
+        textoProgresso = 'Não iniciado';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Progresso:',
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              textoProgresso,
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progresso,
+            backgroundColor: Colors.grey[800],
+            valueColor: AlwaysStoppedAnimation<Color>(
+              AppTheme.primaryColor.withValues(alpha: 0.7),
+            ),
+            minHeight: 6,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatarData(DateTime data) {
+    final agora = DateTime.now();
+    final diferenca = agora.difference(data);
+
+    if (diferenca.inDays == 0) {
+      return 'Hoje';
+    } else if (diferenca.inDays == 1) {
+      return 'Ontem';
+    } else if (diferenca.inDays < 7) {
+      return '${diferenca.inDays} dias atrás';
+    } else {
+      return '${data.day}/${data.month}/${data.year}';
+    }
+  }
+
+  String _obterTipoConquista(TipoConquista tipo) {
+    switch (tipo) {
+      case TipoConquista.moduloCompleto:
+        return 'Módulo Completo';
+      case TipoConquista.unidadeCompleta:
+        return 'Unidade Completa';
+      case TipoConquista.nivelAlcancado:
+        return 'Nível Alcançado';
+      case TipoConquista.streakExercicios:
+        return 'Sequência';
+      case TipoConquista.pontuacaoTotal:
+        return 'Pontuação';
+      case TipoConquista.tempoRecord:
+        return 'Tempo Record';
+      case TipoConquista.perfeccionista:
+        return 'Perfeição';
+      case TipoConquista.persistente:
+        return 'Persistência';
+    }
   }
 }

@@ -396,7 +396,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                   color: AppTheme.darkSurfaceColor,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.celebration,
                   size: 60,
                   color: Colors.amber,

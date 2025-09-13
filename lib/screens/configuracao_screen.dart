@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import '../services/ia_service.dart';
 import '../services/preload_service.dart';
 import '../services/cache_ia_service.dart';
@@ -816,6 +817,141 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ],
           ),
           SizedBox(height: spacing * 1.5),
+
+          // Status do modelo
+          FutureBuilder<Map<String, dynamic>>(
+            future: _getFlutterGemmaStatus(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final modelInfo = snapshot.data ?? {};
+              final exists = modelInfo['exists'] ?? false;
+              final size = modelInfo['sizeFormatted'] ?? '0 B';
+
+              return Container(
+                padding: EdgeInsets.all(spacing),
+                decoration: BoxDecoration(
+                  color: exists
+                      ? AppTheme.successColor.withValues(alpha: 0.1)
+                      : AppTheme.warningColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  border: Border.all(
+                    color: exists
+                        ? AppTheme.successColor.withValues(alpha: 0.3)
+                        : AppTheme.warningColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      exists ? Icons.check_circle_rounded : Icons.download_rounded,
+                      color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                      size: iconSize,
+                    ),
+                    SizedBox(width: spacing),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exists ? 'Modelo Carregado' : 'Modelo Não Encontrado',
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: isMobile ? 12 : 14,
+                            ),
+                          ),
+                          SizedBox(height: spacing * 0.25),
+                          Text(
+                            exists
+                                ? 'Tamanho: $size - Pronto para uso'
+                                : 'Clique em "Baixar Modelo" para configurar',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.darkTextSecondaryColor,
+                              fontSize: isMobile ? 10 : 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          SizedBox(height: spacing),
+
+          // Botões de ação
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: isMobile ? 40 : (isTablet ? 44 : 48),
+                  child: ElevatedButton.icon(
+                    onPressed: carregando ? null : _baixarModeloGemma,
+                    icon: Icon(
+                      Icons.download_rounded,
+                      size: isMobile ? 14 : (isTablet ? 16 : 18),
+                    ),
+                    label: Text(
+                      'Baixar Modelo',
+                      style: AppTheme.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: isMobile ? 11 : 12,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentColor,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: spacing),
+              Expanded(
+                child: SizedBox(
+                  height: isMobile ? 40 : (isTablet ? 44 : 48),
+                  child: ElevatedButton.icon(
+                    onPressed: carregando ? null : _testarFlutterGemma,
+                    icon: Icon(
+                      Icons.play_arrow_rounded,
+                      size: isMobile ? 14 : (isTablet ? 16 : 18),
+                    ),
+                    label: Text(
+                      'Testar',
+                      style: AppTheme.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: isMobile ? 11 : 12,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      foregroundColor: AppTheme.primaryColor,
+                      elevation: 0,
+                      side: BorderSide(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: spacing),
+
           Container(
             padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
@@ -1399,5 +1535,102 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         ),
       ],
     );
+  }
+
+  Future<Map<String, dynamic>> _getFlutterGemmaStatus() async {
+    try {
+      final gemmaService = FlutterGemmaService(
+        onStatusUpdate: (status) {
+          setState(() => this.status = status);
+        },
+        onDownloadProgress: (progress) {
+          // Pode ser usado para mostrar progresso em um indicador visual
+        },
+      );
+      return await gemmaService.getModelInfo();
+    } catch (e) {
+      return {
+        'exists': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  Future<void> _baixarModeloGemma() async {
+    setState(() => carregando = true);
+
+    try {
+      final gemmaService = FlutterGemmaService(
+        onStatusUpdate: (status) {
+          setState(() => this.status = status);
+        },
+        onDownloadProgress: (progress) {
+          // Atualizar UI com progresso se necessário
+          setState(() {});
+        },
+      );
+
+      final success = await gemmaService.forceDownloadModel();
+      if (success) {
+        setState(() {
+          status = '✅ Modelo baixado com sucesso!';
+        });
+      } else {
+        setState(() {
+          status = '❌ Falha no download do modelo';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        status = '❌ Erro no download: $e';
+      });
+    } finally {
+      setState(() => carregando = false);
+    }
+
+    // Limpar status após alguns segundos
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
+  }
+
+  Future<void> _testarFlutterGemma() async {
+    setState(() => carregando = true);
+
+    try {
+      final gemmaService = FlutterGemmaService(
+        onStatusUpdate: (status) {
+          setState(() => this.status = status);
+        },
+      );
+
+      final isAvailable = await gemmaService.isServiceAvailable();
+      if (isAvailable) {
+        // Testar uma geração simples
+        final response = await gemmaService.generate('Olá, teste de funcionamento');
+        setState(() {
+          status = '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
+        });
+      } else {
+        setState(() {
+          status = '❌ Flutter Gemma não está disponível';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        status = '❌ Erro no teste: $e';
+      });
+    } finally {
+      setState(() => carregando = false);
+    }
+
+    // Limpar status após alguns segundos
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
   }
 }

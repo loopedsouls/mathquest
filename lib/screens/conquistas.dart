@@ -11,7 +11,7 @@ class ConquistasScreen extends StatefulWidget {
 }
 
 class _ConquistasScreenState extends State<ConquistasScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   List<Conquista> _conquistas = [];
 
   bool _carregando = true;
@@ -149,29 +149,14 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  // Força desbloqueio de conquista para teste
-                  await GamificacaoService.forcarDesbloquearConquista(
-                      'primeiro_modulo');
-                  await _carregarDados();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              Text(
+                'Continue praticando para desbloquear suas conquistas!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.darkTextSecondaryColor,
+                  fontWeight: FontWeight.w500,
                 ),
-                icon: const Icon(Icons.rocket_launch),
-                label: const Text(
-                  'Começar Jornada',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -540,17 +525,19 @@ class _ConquistasScreenState extends State<ConquistasScreen>
 
     switch (conquista.tipo) {
       case TipoConquista.streakExercicios:
-        final streakRequerida = conquista.criterios['streak'] as int;
+        final streakRequerida = (conquista.criterios['streak'] as int?) ?? 5;
         progresso = 0.3; // 30% de progresso simulado
         textoProgresso = 'Sequência: 2/$streakRequerida';
         break;
       case TipoConquista.moduloCompleto:
-        final quantidadeRequerida = conquista.criterios['quantidade'] as int;
+        final quantidadeRequerida =
+            (conquista.criterios['quantidade'] as int?) ?? 3;
         progresso = 0.2;
         textoProgresso = 'Módulos: 2/$quantidadeRequerida';
         break;
       case TipoConquista.pontuacaoTotal:
-        final pontosRequeridos = conquista.criterios['pontos'] as int;
+        final pontosRequeridos =
+            (conquista.criterios['pontos'] as int?) ?? 1000;
         progresso = 0.45;
         textoProgresso =
             'Pontos: ${(pontosRequeridos * 0.45).round()}/$pontosRequeridos';

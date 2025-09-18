@@ -102,13 +102,13 @@ class ConquistasData {
       pontosBonus: 200,
     ),
     Conquista(
-      id: 'todos_modulos',
-      titulo: 'Mestre BNCC',
-      descricao: 'Complete todos os 20 módulos',
-      emoji: '🏆',
+      id: 'vinte_modulos',
+      titulo: 'Estudioso',
+      descricao: 'Complete 20 módulos',
+      emoji: '🎓',
       tipo: TipoConquista.moduloCompleto,
       criterios: {'quantidade': 20},
-      pontosBonus: 1000,
+      pontosBonus: 400,
     ),
 
     // Conquistas por unidade completa
@@ -176,15 +176,6 @@ class ConquistasData {
       tipo: TipoConquista.nivelAlcancado,
       criterios: {'nivel': 2}, // NivelUsuario.avancado.index
       pontosBonus: 300,
-    ),
-    Conquista(
-      id: 'nivel_especialista',
-      titulo: 'Especialista BNCC',
-      descricao: 'Alcance o nível Especialista',
-      emoji: '👑',
-      tipo: TipoConquista.nivelAlcancado,
-      criterios: {'nivel': 3}, // NivelUsuario.especialista.index
-      pontosBonus: 500,
     ),
 
     // Conquistas por streak

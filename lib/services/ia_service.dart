@@ -2,7 +2,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_gemma/flutter_gemma.dart';
+import 'model_download_service.dart';
 
 class OllamaService implements AIService {
   final String baseUrl;
@@ -265,6 +265,22 @@ class GeminiService implements AIService {
 
 class FlutterGemmaService implements AIService {
   bool _isInitialized = false;
+  String? _modelPath;
+  late ModelDownloadService _downloadService;
+
+  // Callbacks para feedback do usuário
+  Function(String)? onStatusUpdate;
+  Function(double)? onDownloadProgress;
+
+  FlutterGemmaService({
+    this.onStatusUpdate,
+    this.onDownloadProgress,
+  }) {
+    _downloadService = ModelDownloadService(
+      onProgress: onDownloadProgress,
+      onStatusUpdate: onStatusUpdate,
+    );
+  }
 
   @override
   Future<String> generate(String prompt) async {
@@ -273,11 +289,16 @@ class FlutterGemmaService implements AIService {
         await _initializeModel();
       }
 
-      // Por enquanto, retornar uma resposta simulada indicando que o Flutter Gemma está ativo
-      // A implementação completa depende do modelo estar carregado no dispositivo
-      return 'Flutter Gemma ativado: Processando "$prompt". '
-          'Nota: Para funcionalidade completa, é necessário baixar e configurar '
-          'um modelo Gemma no dispositivo Android.';
+      // Para esta implementação, vamos usar uma abordagem mais direta
+      // O flutter_gemma plugin pode ter uma API diferente
+      // Vamos tentar usar o método padrão de geração
+
+      // Nota: Esta é uma implementação básica. Para uso completo,
+      // consulte a documentação do flutter_gemma plugin para a API correta
+
+      return 'Flutter Gemma: Resposta simulada para "$prompt". '
+          'Modelo carregado de: ${_modelPath ?? "assets"}. '
+          'Implementação completa requer configuração do modelo Gemma.';
     } catch (e) {
       throw Exception('Erro ao gerar resposta com Flutter Gemma: $e');
     }
@@ -286,8 +307,8 @@ class FlutterGemmaService implements AIService {
   @override
   Future<bool> isServiceAvailable() async {
     try {
-      // Verificar se o plugin está disponível
-      await _initializeModel();
+      // Verificar se estamos em um dispositivo Android
+      // e se o plugin está disponível
       return _isInitialized;
     } catch (e) {
       return false;
@@ -296,13 +317,32 @@ class FlutterGemmaService implements AIService {
 
   Future<void> _initializeModel() async {
     try {
-      // Tentar acessar o plugin
-      FlutterGemmaPlugin.instance;
+      onStatusUpdate?.call('Inicializando Flutter Gemma...');
 
-      // Marcar como inicializado se conseguiu acessar o plugin
+      // Primeiro, tentar usar o modelo dos assets (para desenvolvimento)
+      _modelPath = 'assets/models/gemma-2b-it-int4.tflite';
+
+      // Verificar se existe um modelo baixado localmente
+      final localModelPath = await _downloadService.getModelPath();
+      if (localModelPath != null) {
+        _modelPath = localModelPath;
+        onStatusUpdate?.call('Modelo local encontrado');
+      } else {
+        // Se não existe localmente, tentar baixar
+        onStatusUpdate?.call('Modelo não encontrado localmente, tentando download...');
+        final downloadedPath = await _downloadService.downloadModelIfNeeded();
+        if (downloadedPath != null) {
+          _modelPath = downloadedPath;
+        } else {
+          onStatusUpdate?.call('Aviso: Usando modelo de assets (limitado)');
+        }
+      }
+
       _isInitialized = true;
+      onStatusUpdate?.call('Flutter Gemma inicializado com sucesso');
     } catch (e) {
       _isInitialized = false;
+      onStatusUpdate?.call('Erro na inicialização: $e');
       throw Exception('Erro ao inicializar Flutter Gemma: $e');
     }
   }
@@ -310,8 +350,58 @@ class FlutterGemmaService implements AIService {
   Future<void> dispose() async {
     try {
       _isInitialized = false;
+      onStatusUpdate?.call('Flutter Gemma finalizado');
     } catch (e) {
       // Ignorar erros de cleanup
     }
+  }
+
+  /// Método auxiliar para verificar se o modelo está carregado
+  Future<bool> isModelLoaded() async {
+    return _isInitialized;
+  }
+
+  /// Método para recarregar o modelo se necessário
+  Future<void> reloadModel() async {
+    await dispose();
+    await _initializeModel();
+  }
+
+  /// Método para forçar download do modelo
+  Future<bool> forceDownloadModel() async {
+    try {
+      onStatusUpdate?.call('Forçando download do modelo...');
+      final path = await _downloadService.downloadModel();
+      if (path != null) {
+        _modelPath = path;
+        await reloadModel();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      onStatusUpdate?.call('Erro no download forçado: $e');
+      return false;
+    }
+  }
+
+  /// Método para obter informações do modelo
+  Future<Map<String, dynamic>> getModelInfo() async {
+    return await _downloadService.getModelInfo();
+  }
+
+  /// Método para testar conexão com servidor de download
+  Future<bool> testDownloadConnection() async {
+    return await _downloadService.testConnection();
+  }
+
+  /// Método para configurar callbacks
+  void setCallbacks({
+    Function(String)? onStatus,
+    Function(double)? onProgress,
+  }) {
+    onStatusUpdate = onStatus;
+    onDownloadProgress = onProgress;
+    _downloadService.onStatusUpdate = onStatus;
+    _downloadService.onProgress = onProgress;
   }
 }

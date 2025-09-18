@@ -375,13 +375,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       return;
     }
 
-    AIService aiService;
-    if (_useGemini) {
-      aiService = GeminiService(apiKey: apiKey!);
-    } else {
-      aiService = OllamaService(defaultModel: _modeloOllama);
-    }
-
+    // Usar SmartAIService que detecta Ollama automaticamente
+    final aiService = SmartAIService();
     tutorService = MathTutorService(aiService: aiService);
 
     // Limpa fila de perguntas pré-carregadas

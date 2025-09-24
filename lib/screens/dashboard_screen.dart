@@ -4,6 +4,7 @@ import '../widgets/modern_components.dart';
 import '../models/conquista.dart';
 import '../services/progresso_service.dart';
 import 'conquistas.dart';
+import 'configuracao_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -262,7 +263,14 @@ class _DashboardScreenState extends State<DashboardScreen>
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ConfiguracaoScreen(),
+                  ),
+                );
+              },
               icon: const Icon(
                 Icons.settings,
                 color: Colors.white,

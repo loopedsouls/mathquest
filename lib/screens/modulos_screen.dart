@@ -10,7 +10,7 @@ import '../screens/chat_screen.dart';
 // Configuração para o programador - definir como false na produção
 // ATENÇÃO: Manter como 'false' em produção para respeitar o sistema de progressão
 // Definir como 'true' apenas durante desenvolvimento/testes
-const bool debugUnlockAllModules = false;
+const bool debugUnlockAllModules = true;
 
 class ModulosScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -160,6 +160,39 @@ class _ModulosScreenState extends State<ModulosScreen>
               : 'Carregando...',
           showBackButton: true,
         ),
+        // Indicador de modo debug
+        if (debugUnlockAllModules)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.developer_mode,
+                  color: AppTheme.warningColor,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'MODO DEBUG ATIVO: Todos os módulos estão desbloqueados',
+                    style: TextStyle(
+                      color: AppTheme.warningColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -310,6 +343,13 @@ class _ModulosScreenState extends State<ModulosScreen>
 
     for (final assunto in todosAssuntos) {
       final modulo = _mapearAssuntoParaModulo(assunto);
+      
+      // Debug mode: todos os assuntos ficam disponíveis
+      if (debugUnlockAllModules) {
+        assuntosDisponiveis.add(assunto);
+        continue;
+      }
+
       if (modulo != null && _progresso != null) {
         final preRequisitosAtendidos = _verificarPreRequisitos(modulo);
         final isDesbloqueado = _progresso!.moduloDesbloqueado(
@@ -476,9 +516,9 @@ class _ModulosScreenState extends State<ModulosScreen>
 
     // Verificar pré-requisitos do módulo
     final preRequisitosAtendidos = _verificarPreRequisitos(modulo);
-    final isDesbloqueado = _progresso!
-            .moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar) &&
-        preRequisitosAtendidos;
+    final isDesbloqueado = debugUnlockAllModules || 
+        (_progresso!.moduloDesbloqueado(modulo.unidadeTematica, modulo.anoEscolar) &&
+        preRequisitosAtendidos);
 
     // Obter os subtópicos do assunto
     final subtemas = Matematica.cursos[_cursoSelecionado]?[assunto] ?? [];
@@ -728,6 +768,11 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   bool _verificarPreRequisitos(ModuloBNCC modulo) {
+    // Debug mode: desbloqueia todos os módulos
+    if (debugUnlockAllModules) {
+      return true;
+    }
+
     if (modulo.prerequisitos.isEmpty) {
       return true; // Sem pré-requisitos
     }
@@ -884,6 +929,11 @@ class _ModulosScreenState extends State<ModulosScreen>
   }
 
   bool _cursoEstaDesbloqueado(String curso) {
+    // Debug mode: desbloqueia todos os cursos
+    if (debugUnlockAllModules) {
+      return true;
+    }
+
     if (_progresso == null) return false;
 
     // Mapeamento direto: nível do usuário -> cursos disponíveis
@@ -962,6 +1012,40 @@ class _ModulosScreenState extends State<ModulosScreen>
                             ),
                           ),
                         ),
+                      // Indicador de modo debug no desktop
+                      if (debugUnlockAllModules) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.warningColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppTheme.warningColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.developer_mode,
+                                color: AppTheme.warningColor,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'DEBUG MODE',
+                                style: TextStyle(
+                                  color: AppTheme.warningColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

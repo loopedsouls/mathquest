@@ -351,8 +351,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 child: Column(
                   children: [
                     Expanded(
-                      child: _buildServiceSelector(
-                          isMobile, isTablet, false),
+                      child: _buildServiceSelector(isMobile, isTablet, false),
                     ),
                   ],
                 ),
@@ -398,270 +397,258 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               ),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header da sidebar
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
-                      borderRadius: BorderRadius.circular(12),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Header da sidebar
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.settings,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Configurações',
+                      style: TextStyle(
+                        color: AppTheme.darkTextPrimaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.settings,
-                      color: Colors.white,
-                      size: 20,
+                    Text(
+                      'Sistema de IA',
+                      style: TextStyle(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // Status da configuração atual
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Configuração Atual',
+                    style: TextStyle(
+                      color: AppTheme.darkTextPrimaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 8),
+                  Row(
                     children: [
-                      Text(
-                        'Configurações',
-                        style: TextStyle(
-                          color: AppTheme.darkTextPrimaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _getServiceStatusColor(),
+                          shape: BoxShape.circle,
                         ),
                       ),
-                      Text(
-                        'Sistema de IA',
-                        style: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: 12,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _getServiceName(_selectedAI),
+                          style: TextStyle(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
+                  if (_currentCredits > 0) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      '$_currentCredits créditos disponíveis',
+                      style: TextStyle(
+                        color: AppTheme.successColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 32),
+            ),
 
-              // Status da configuração atual
+            const SizedBox(height: 24),
+
+            // Ações rápidas
+            Text(
+              'AÇÕES RÁPIDAS',
+              style: TextStyle(
+                color: AppTheme.darkTextSecondaryColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            _buildQuickAction(
+              icon: Icons.wifi_find_rounded,
+              title: 'Testar Conexão',
+              subtitle: 'Verificar conectividade',
+              onTap: testarConexao,
+            ),
+            const SizedBox(height: 8),
+            _buildQuickAction(
+              icon: Icons.analytics_rounded,
+              title: 'Teste Detalhado',
+              subtitle: 'Diagnóstico completo',
+              onTap: _mostrarTesteDetalhado,
+            ),
+            const SizedBox(height: 8),
+            _buildQuickAction(
+              icon: Icons.save_rounded,
+              title: 'Salvar Config',
+              subtitle: 'Manter configurações',
+              onTap: _salvarConfiguracoes,
+            ),
+            if (_preloadEnabled) ...[
+              const SizedBox(height: 8),
+              _buildQuickAction(
+                icon: Icons.delete_sweep_rounded,
+                title: 'Limpar Cache',
+                subtitle: 'Remove dados temporários',
+                onTap: _limparCache,
+              ),
+            ],
+
+            const Spacer(),
+
+            // Informações de uso
+            if (status.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.darkBackgroundColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
+                  color: _getStatusColor().withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                    color: _getStatusColor().withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Configuração Atual',
-                      style: TextStyle(
-                        color: AppTheme.darkTextPrimaryColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     Row(
                       children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _getServiceStatusColor(),
-                            shape: BoxShape.circle,
-                          ),
+                        Icon(
+                          _getStatusIcon(),
+                          color: _getStatusColor(),
+                          size: 14,
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _getServiceName(_selectedAI),
-                            style: TextStyle(
-                              color: AppTheme.darkTextSecondaryColor,
-                              fontSize: 12,
-                            ),
+                        Text(
+                          'Status',
+                          style: TextStyle(
+                            color: _getStatusColor(),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    if (_currentCredits > 0) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '$_currentCredits créditos disponíveis',
-                        style: TextStyle(
-                          color: AppTheme.successColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      status.replaceAll(RegExp(r'[✅❌🗑️]'), '').trim(),
+                      style: TextStyle(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 10,
                       ),
-                    ],
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Ações rápidas
-              Text(
-                'AÇÕES RÁPIDAS',
-                style: TextStyle(
-                  color: AppTheme.darkTextSecondaryColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
+            ],
+          ]),
+        ),
+        // Conteúdo principal
+        Expanded(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: isMobile ? 12 : 16,
                 ),
-              ),
-              const SizedBox(height: 12),
+                child: Column(
+                  children: [
+                    // Seleção de serviço
+                    _buildServiceSelector(isMobile, isTablet, isDesktop),
+                    SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
 
-              _buildQuickAction(
-                icon: Icons.wifi_find_rounded,
-                title: 'Testar Conexão',
-                subtitle: 'Verificar conectividade',
-                onTap: () {}, // TODO: implementar testar conexão
-              ),
-              const SizedBox(height: 8),
-              _buildQuickAction(
-                icon: Icons.analytics_rounded,
-                title: 'Teste Detalhado',
-                subtitle: 'Diagnóstico completo',
-                onTap: _mostrarTesteDetalhado,
-              ),
-              const SizedBox(height: 8),
-              _buildQuickAction(
-                icon: Icons.save_rounded,
-                title: 'Salvar Config',
-                subtitle: 'Manter configurações',
-                onTap: _salvarConfiguracoes,
-              ),
-              if (_preloadEnabled) ...[
-                const SizedBox(height: 8),
-                _buildQuickAction(
-                  icon: Icons.delete_sweep_rounded,
-                  title: 'Limpar Cache',
-                  subtitle: 'Remove dados temporários',
-                  onTap: _limparCache,
-                ),
-              ],
-
-              const Spacer(),
-
-              // Informações de uso
-              if (status.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor().withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _getStatusColor().withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            _getStatusIcon(),
-                            color: _getStatusColor(),
-                            size: 14,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Status',
-                            style: TextStyle(
-                              color: _getStatusColor(),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        status.replaceAll(RegExp(r'[✅❌🗑️]'), '').trim(),
-                        style: TextStyle(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: 10,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    // Configuração do Gemini
+                    if (_selectedAI == 'gemini') ...[
+                      _buildGeminiConfig(isMobile, isTablet, isDesktop),
+                      SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
                     ],
-                  ),
-                ),
-              ],
-          ),
-            
-          ),
-          // Conteúdo principal
-          Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                    vertical: isMobile ? 12 : 16,
-                  ),
-                  child: Column(
-                    children: [
-                      // Seleção de serviço
-                      _buildServiceSelector(
-                          isMobile, isTablet, isDesktop),
-                      SizedBox(
-                          height: isMobile ? 16 : (isTablet ? 20 : 24)),
 
-                      // Configuração do Gemini
-                      if (_selectedAI == 'gemini') ...[
-                        _buildGeminiConfig(isMobile, isTablet, isDesktop),
-                        SizedBox(
-                            height: isMobile ? 16 : (isTablet ? 20 : 24)),
-                      ],
-
-                      // Configuração do Ollama
-                      if (_selectedAI == 'ollama') ...[
-                        _buildOllamaConfig(isMobile, isTablet, isDesktop),
-                        SizedBox(
-                            height: isMobile ? 16 : (isTablet ? 20 : 24)),
-                      ],
-
-                      // Configuração do Flutter Gemma
-                      if (_selectedAI == 'flutter_gemma') ...[
-                        _buildFlutterGemmaConfig(
-                            isMobile, isTablet, isDesktop),
-                        SizedBox(
-                            height: isMobile ? 16 : (isTablet ? 20 : 24)),
-                      ],
-
-                      // Configurações de Precarregamento
-                      _buildPreloadConfig(isMobile, isTablet, isDesktop),
-                      SizedBox(
-                          height: isMobile ? 16 : (isTablet ? 20 : 24)),
-
-                      // Botões de ação
-                      _buildActionButtons(isMobile, isTablet, isDesktop),
-                      SizedBox(
-                          height: isMobile ? 16 : (isTablet ? 20 : 24)),
-
-                      // Status
-                      if (status.isNotEmpty) ...[
-                        _buildStatusCard(isMobile, isTablet, isDesktop),
-                        SizedBox(
-                            height: isMobile ? 16 : (isTablet ? 20 : 24)),
-                      ],
-
-                      // Informações adicionais
-                      _buildInfoSection(isMobile, isTablet, isDesktop),
+                    // Configuração do Ollama
+                    if (_selectedAI == 'ollama') ...[
+                      _buildOllamaConfig(isMobile, isTablet, isDesktop),
+                      SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
                     ],
-                  ),
+
+                    // Configuração do Flutter Gemma
+                    if (_selectedAI == 'flutter_gemma') ...[
+                      _buildFlutterGemmaConfig(isMobile, isTablet, isDesktop),
+                      SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                    ],
+
+                    // Configurações de Precarregamento
+                    _buildPreloadConfig(isMobile, isTablet, isDesktop),
+                    SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
+
+                    // Botões de ação
+                    _buildActionButtons(isMobile, isTablet, isDesktop),
+                    SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
+
+                    // Status
+                    if (status.isNotEmpty) ...[
+                      _buildStatusCard(isMobile, isTablet, isDesktop),
+                      SizedBox(height: isMobile ? 16 : (isTablet ? 20 : 24)),
+                    ],
+
+                    // Informações adicionais
+                    _buildInfoSection(isMobile, isTablet, isDesktop),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1136,8 +1123,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 child: Row(
                   children: [
                     Icon(
-                      exists ? Icons.check_circle_rounded : Icons.download_rounded,
-                      color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                      exists
+                          ? Icons.check_circle_rounded
+                          : Icons.download_rounded,
+                      color: exists
+                          ? AppTheme.successColor
+                          : AppTheme.warningColor,
                       size: iconSize,
                     ),
                     SizedBox(width: spacing),
@@ -1146,9 +1137,13 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            exists ? 'Modelo Carregado' : 'Modelo Não Encontrado',
+                            exists
+                                ? 'Modelo Carregado'
+                                : 'Modelo Não Encontrado',
                             style: AppTheme.bodyMedium.copyWith(
-                              color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                              color: exists
+                                  ? AppTheme.successColor
+                                  : AppTheme.warningColor,
                               fontWeight: FontWeight.w600,
                               fontSize: isMobile ? 12 : 14,
                             ),
@@ -1222,7 +1217,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      backgroundColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.1),
                       foregroundColor: AppTheme.primaryColor,
                       elevation: 0,
                       side: BorderSide(
@@ -1650,7 +1646,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  
   Widget _buildActionButtons(bool isMobile, bool isTablet, bool isDesktop) {
     final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
 
@@ -1898,9 +1893,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       final isAvailable = await gemmaService.isServiceAvailable();
       if (isAvailable) {
         // Testar uma geração simples
-        final response = await gemmaService.generate('Olá, teste de funcionamento');
+        final response =
+            await gemmaService.generate('Olá, teste de funcionamento');
         setState(() {
-          status = '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
+          status =
+              '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
         });
       } else {
         setState(() {

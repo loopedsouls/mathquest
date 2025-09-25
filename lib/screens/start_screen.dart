@@ -62,10 +62,6 @@ class _StartScreenState extends State<StartScreen>
       icon: Icons.chat_rounded,
       label: 'Chat',
     ),
-    NavigationItem(
-      icon: Icons.settings_rounded,
-      label: 'Config',
-    ),
   ];
 
   @override
@@ -274,8 +270,6 @@ class _StartScreenState extends State<StartScreen>
         );
       case 3:
         return const ChatScreen(mode: ChatMode.general);
-      case 4:
-        return const ConfiguracaoScreen();
       default:
         return _buildMainContent(isTablet, isDesktop);
     }

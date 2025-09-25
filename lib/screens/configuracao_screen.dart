@@ -96,7 +96,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     if (apiKey != null) {
       apiKeyController.text = apiKey;
     } else {
-      apiKeyController.text = 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo';
+      apiKeyController.text = 'AIzaSyDSbj4mYAOSdDxEwD8vP7tC8vJ6KzF4N2M';
     }
 
     setState(() {

@@ -653,7 +653,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         aiService = FlutterGemmaService();
       } else {
         // Usar SmartAIService que detecta Ollama automaticamente e usa Gemini como fallback
-        aiService = SmartAIService();
+        aiService = SmartAIService(geminiApiKey: apiKey);
       }
 
       _tutorService = MathTutorService(aiService: aiService);

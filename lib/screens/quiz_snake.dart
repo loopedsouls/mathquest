@@ -67,7 +67,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   late AnimationController _snakeController;
   Timer? _gameTimer; // Timer para movimento contínuo
   final int _initialSnakeLength = 10;
-  int _currentSnakeLength = 10;
 
   // Sistema de múltiplas cobras independentes
   List<List<Offset>> _allSnakes = []; // Todas as cobras no jogo
@@ -457,10 +456,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
             SizedBox(height: isTablet ? 24 : 20),
 
             // Card do exercício
-            if (carregando)
-              _buildLoadingCard(isTablet)
-            else if (perguntaAtual != null)
-              _buildExercicioCard(isTablet),
+            if (perguntaAtual != null) _buildExercicioCard(isTablet),
           ],
         ),
       ),
@@ -626,7 +622,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     // Atualizar _snakeSegments para compatibilidade com o código existente
     if (_allSnakes.isNotEmpty && _mainSnakeIndex < _allSnakes.length) {
       _snakeSegments = _allSnakes[_mainSnakeIndex];
-      _currentSnakeLength = _snakeSegments.length;
     }
 
     if (mounted) {
@@ -693,7 +688,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       // Criar uma nova cobra com os segmentos após o ponto de corte
       final newSnakeSegments = cutSnake.sublist(collisionSegmentIndex + 1);
 
-      if (newSnakeSegments.length > 1) {
+      if (newSnakeSegments.isNotEmpty) {
         // Adicionar nova cobra independente
         _allSnakes.add(newSnakeSegments);
         _allSnakeDirections
@@ -784,9 +779,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       }
 
       // Atualizar _currentSnakeLength para compatibilidade
-      if (_mainSnakeIndex < _allSnakes.length) {
-        _currentSnakeLength = _allSnakes[_mainSnakeIndex].length;
-      }
+      if (_mainSnakeIndex < _allSnakes.length) {}
     }
   }
 
@@ -804,9 +797,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       }
 
       // Atualizar _currentSnakeLength para compatibilidade
-      if (_mainSnakeIndex < _allSnakes.length) {
-        _currentSnakeLength = _allSnakes[_mainSnakeIndex].length;
-      }
+      if (_mainSnakeIndex < _allSnakes.length) {}
     }
   }
 
@@ -830,7 +821,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
     if (mounted) {
       setState(() {
-        carregando = true;
         perguntaAtual = null;
         respostaSelecionada = null;
         _respostaController.clear();
@@ -841,12 +831,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     _processarPerguntaCache(pergunta);
 
     // Não diminui mais a cobra automaticamente a cada pergunta
-
-    if (mounted) {
-      setState(() {
-        carregando = false;
-      });
-    }
 
     _animationController.reset();
     _animationController.forward();
@@ -1140,39 +1124,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
               color: AppTheme.successColor,
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingCard(bool isTablet) {
-    return ModernCard(
-      hasGlow: true,
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppTheme.primaryColor, AppTheme.primaryLightColor],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 3,
-              ),
-            ),
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-          Text(
-            'Gerando próximo exercício...',
-            style: AppTheme.bodyLarge.copyWith(
-              color: AppTheme.darkTextSecondaryColor,
-            ),
-          ),
         ],
       ),
     );

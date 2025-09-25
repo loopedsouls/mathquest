@@ -790,32 +790,23 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          'Erro',
-          style: AppTheme.bodyLarge.copyWith(
-            color: AppTheme.errorColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(
           message,
           style: AppTheme.bodyMedium.copyWith(
-            color: AppTheme.darkTextSecondaryColor,
+            color: Colors.white,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: TextStyle(color: AppTheme.primaryColor),
-            ),
-          ),
-        ],
+        backgroundColor: AppTheme.errorColor,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
       ),
     );
   }

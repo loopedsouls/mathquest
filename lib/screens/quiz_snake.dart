@@ -1,12 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../services/ia_service.dart';
-import '../services/quiz_helper_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-enum SnakeSpeed { lento, normal, rapido, hardcore }
+import '../models/quiz_snake_questions_math.dart';
 
 class QuizSnakeScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -26,8 +23,6 @@ class QuizSnakeScreen extends StatefulWidget {
 
 class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     with TickerProviderStateMixin {
-  late MathTutorService tutorService;
-
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
   String tipoAtual = '';
@@ -36,22 +31,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   String? respostaSelecionada;
   bool carregando = false;
   bool quizFinalizado = false;
-  bool _useGemini = true;
-  String _modeloOllama = 'llama2';
-  bool _perguntaDoCache = false;
   final TextEditingController _respostaController = TextEditingController();
 
-  // Fila de perguntas pré-carregadas
-  final List<Map<String, dynamic>> _perguntasPreCarregadas = [];
-  bool _preCarregamentoAtivo = false;
-
-  // Tipos de quiz disponíveis - ciclo através deles para garantir todos os tipos
-  final List<String> _tiposQuiz = [
-    'multipla_escolha',
-    'verdadeiro_falso',
-    'complete_frase'
-  ];
-  int _tipoIndex = 0;
+  // Questões estáticas baseadas na velocidade
+  late List<Map<String, dynamic>> _questions;
 
   // Resultados
   List<Map<String, dynamic>> respostas = [];
@@ -80,6 +63,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   Offset _direction = const Offset(1, 0); // Direita
   bool _gameRunning = false;
   late AnimationController _snakeController;
+  Timer? _gameTimer; // Timer para movimento contínuo
   final int _initialSnakeLength = 10;
   int _currentSnakeLength = 10;
 
@@ -109,8 +93,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
     _initializeAnimations();
     _initializeSnakeGame();
-    _loadPreferences();
-    _initializeQuiz();
+    _questions = getQuizSnakeQuestions(_currentSpeed);
+    debugPrint('Questões carregadas: ${_questions.length}');
+    debugPrint('Velocidade atual: $_currentSpeed');
     _respostaController.addListener(_onRespostaChanged);
   }
 
@@ -181,15 +166,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     }
   }
 
-  Widget _buildMiniSnakeGame() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 768;
-    final gameHeight = isTablet ? 140.0 : 120.0;
-    final margin = isTablet ? 24.0 : 16.0;
-
+  Widget _buildSnakePanel() {
     return Container(
-      height: gameHeight,
-      margin: EdgeInsets.symmetric(horizontal: margin, vertical: 8),
+      width: MediaQuery.of(context).size.width * 0.4,
       decoration: BoxDecoration(
         color: AppTheme.darkSurfaceColor,
         borderRadius: BorderRadius.circular(12),
@@ -197,22 +176,21 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       ),
       child: Column(
         children: [
-          // Título e contador compacto
+          // Título e contador
           Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 16 : 12, vertical: isTablet ? 8 : 6),
+            padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.games_rounded,
                   color: AppTheme.primaryColor,
-                  size: isTablet ? 18 : 16,
+                  size: 24,
                 ),
-                SizedBox(width: isTablet ? 10 : 8),
+                const SizedBox(width: 12),
                 Text(
                   'Cobra: ${_snakeSegments.length} • ${_getSpeedName(_currentSpeed)}',
-                  style: AppTheme.bodySmall.copyWith(
+                  style: AppTheme.bodyMedium.copyWith(
                     color: AppTheme.darkTextPrimaryColor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -221,22 +199,19 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
             ),
           ),
 
-          // Área do jogo compacta
+          // Área do jogo
           Expanded(
             child: Container(
-              margin: EdgeInsets.all(isTablet ? 6 : 4),
+              margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.black,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Calcular tamanho da célula baseado no espaço disponível
-                  final availableWidth = constraints.maxWidth;
-                  final availableHeight = constraints.maxHeight;
-                  _cellSize = (availableWidth < availableHeight
-                          ? availableWidth
-                          : availableHeight) /
+                  _cellSize = (constraints.maxWidth < constraints.maxHeight
+                          ? constraints.maxWidth
+                          : constraints.maxHeight) /
                       _gridSize;
 
                   return CustomPaint(
@@ -255,6 +230,33 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuizPanel(bool isTablet) {
+    return Expanded(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(isTablet ? 24 : 16),
+        child: Column(
+          children: [
+            // Progresso e status
+            _buildStatusProgress(isTablet),
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Card do exercício
+            if (carregando)
+              _buildLoadingCard(isTablet)
+            else if (perguntaAtual != null)
+              _buildExercicioCard(isTablet),
+
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Botões de ação
+            if (!carregando && perguntaAtual != null)
+              _buildActionButtons(isTablet),
+          ],
+        ),
       ),
     );
   }
@@ -448,59 +450,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     }
   }
 
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
-
-    if (mounted) {
-      setState(() {
-        _useGemini = selectedAI == 'gemini';
-        _modeloOllama = modeloOllama;
-        topico = widget.topico ?? 'números e operações';
-        dificuldade = widget.dificuldade ?? 'fácil';
-      });
-    }
-  }
-
-  Future<void> _initializeQuiz() async {
-    final prefs = await SharedPreferences.getInstance();
-    final apiKey = prefs.getString('gemini_api_key');
-
-    if (_useGemini && (apiKey == null || apiKey.isEmpty)) {
-      if (mounted) {
-        setState(() {
-          carregando = false;
-        });
-      }
-      _showErrorDialog('API Key do Gemini não configurada');
-      return;
-    }
-
-    AIService aiService;
-    if (_useGemini) {
-      aiService = GeminiService(apiKey: apiKey!);
-    } else {
-      aiService = OllamaService(defaultModel: _modeloOllama);
-    }
-
-    tutorService = MathTutorService(aiService: aiService);
-
-    // Limpa fila de perguntas pré-carregadas
-    _perguntasPreCarregadas.clear();
-    _preCarregamentoAtivo = false;
-
-    // Não inicia o quiz automaticamente - espera pelo botão Start da tela inicial
-  }
-
-  String _getTipoAtual() {
-    final tipo = _tiposQuiz[_tipoIndex % _tiposQuiz.length];
-    _tipoIndex++;
-    return tipo;
-  }
-
   Future<void> _gerarPergunta() async {
-    if (perguntaIndex >= totalPerguntas) {
+    if (perguntaIndex >= _questions.length) {
       _finalizarQuiz();
       return;
     }
@@ -514,63 +465,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       });
     }
 
-    try {
-      // Primeiro, verifica se há perguntas pré-carregadas disponíveis
-      if (_perguntasPreCarregadas.isNotEmpty) {
-        debugPrint(
-            'Usando pergunta pré-carregada. Restam: ${_perguntasPreCarregadas.length - 1}');
-        final perguntaPreCarregada = _perguntasPreCarregadas.removeAt(0);
-        _processarPerguntaPreCarregada(perguntaPreCarregada);
+    final pergunta = _questions[perguntaIndex];
+    _processarPerguntaCache(pergunta);
 
-        // Inicia pré-carregamento da próxima pergunta em background se necessário
-        if (_perguntasPreCarregadas.length < 2 && !_preCarregamentoAtivo) {
-          _iniciarPreCarregamento();
-        }
-        return;
-      }
-
-      // Se não há perguntas pré-carregadas, gera normalmente
-      tipoAtual = _getTipoAtual();
-
-      debugPrint('Gerando primeira pergunta tipo: $tipoAtual');
-      debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
-
-      final pergunta = await QuizHelperService.gerarPerguntaInteligente(
-        unidade: topico,
-        ano: ano,
-        tipoQuiz: tipoAtual,
-        dificuldade: dificuldade,
-      );
-
-      if (pergunta != null) {
-        debugPrint('Primeira pergunta obtida da IA: ${pergunta['pergunta']}');
-        _processarPerguntaCache(pergunta);
-
-        // Diminuir cobra quando gerar primeira pergunta
-        _diminuirCobra();
-
-        // Após gerar a primeira pergunta, inicia o pré-carregamento das próximas
-        _iniciarPreCarregamento();
-      } else {
-        _showErrorDialog(
-            'Falha ao gerar pergunta com IA. Verifique sua conexão ou configuração.');
-        if (mounted) {
-          setState(() {
-            carregando = false;
-          });
-        }
-        return;
-      }
-    } catch (e) {
-      debugPrint('Erro ao gerar pergunta: $e');
-      _showErrorDialog('Erro ao gerar pergunta: $e');
-      if (mounted) {
-        setState(() {
-          carregando = false;
-        });
-      }
-      return;
-    }
+    _diminuirCobra();
 
     if (mounted) {
       setState(() {
@@ -588,77 +486,14 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     if (mounted) {
       setState(() {
         perguntaAtual = pergunta;
-        _perguntaDoCache = pergunta['fonte_ia'] == null;
-      });
-    }
-
-    debugPrint('Pergunta processada. Do cache: $_perguntaDoCache');
-    debugPrint('Conteúdo: ${pergunta['pergunta']}');
-  }
-
-  void _processarPerguntaPreCarregada(Map<String, dynamic> pergunta) {
-    if (mounted) {
-      setState(() {
-        perguntaAtual = pergunta;
         tipoAtual = pergunta['tipo'] ?? 'multipla_escolha';
-        _perguntaDoCache = pergunta['fonte_ia'] == null;
-        carregando = false;
       });
     }
 
-    debugPrint('Pergunta pré-carregada processada. Tipo: $tipoAtual');
-    debugPrint('Conteúdo: ${pergunta['pergunta']}');
-
-    _animationController.reset();
-    _animationController.forward();
-    _cardAnimationController.reset();
-    _cardAnimationController.forward();
-  }
-
-  void _iniciarPreCarregamento() {
-    if (_preCarregamentoAtivo || perguntaIndex >= totalPerguntas - 1) {
-      return;
-    }
-
-    _preCarregamentoAtivo = true;
-    debugPrint('Iniciando pré-carregamento de perguntas...');
-
-    // Pré-carrega até 3 perguntas em background
-    final perguntasParaCarregar = totalPerguntas - perguntaIndex - 1;
-    final limite = perguntasParaCarregar > 3 ? 3 : perguntasParaCarregar;
-
-    for (int i = 0; i < limite; i++) {
-      _preCarregarPergunta();
-    }
-  }
-
-  Future<void> _preCarregarPergunta() async {
-    try {
-      final tipo = _getTipoAtual();
-      debugPrint('Pré-carregando pergunta tipo: $tipo');
-
-      final pergunta = await QuizHelperService.gerarPerguntaInteligente(
-        unidade: topico,
-        ano: ano,
-        tipoQuiz: tipo,
-        dificuldade: dificuldade,
-      );
-
-      if (pergunta != null && mounted) {
-        // Adiciona tipo à pergunta para uso posterior
-        pergunta['tipo'] = tipo;
-        _perguntasPreCarregadas.add(pergunta);
-        debugPrint(
-            'Pergunta pré-carregada adicionada. Total na fila: ${_perguntasPreCarregadas.length}');
-
-        // Diminuir cobra quando pré-carregar pergunta
-        _diminuirCobra();
-      }
-    } catch (e) {
-      debugPrint('Erro ao pré-carregar pergunta: $e');
-    } finally {
-      _preCarregamentoAtivo = false;
-    }
+    debugPrint('Pergunta processada: ${pergunta['pergunta']}');
+    debugPrint('Tipo: ${pergunta['tipo']}');
+    debugPrint('Opções: ${pergunta['opcoes']}');
+    debugPrint('Resposta correta: ${pergunta['resposta_correta']}');
   }
 
   Widget _buildMultiplaEscolha() {
@@ -755,16 +590,45 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     // Verifica resposta baseada no tipo
     switch (tipoAtual) {
       case 'multipla_escolha':
-        acertou = respostaSelecionada == respostaCorreta;
+        // Para múltipla escolha, precisamos encontrar qual letra corresponde à resposta correta
+        final opcoes = perguntaAtual!['opcoes'] as List<String>? ?? [];
+        final respostaCorretaValor = respostaCorreta;
+        int respostaCorretaIndex = -1;
+
+        // Encontrar o índice da resposta correta nas opções
+        for (int i = 0; i < opcoes.length; i++) {
+          if (opcoes[i] == respostaCorretaValor) {
+            respostaCorretaIndex = i;
+            break;
+          }
+        }
+
+        if (respostaCorretaIndex != -1) {
+          final letraCorreta =
+              String.fromCharCode(65 + respostaCorretaIndex); // A, B, C, D
+          acertou = respostaSelecionada == letraCorreta;
+          debugPrint(
+              'Múltipla escolha - Selecionada: "$respostaSelecionada", Correta: "$letraCorreta", Acertou: $acertou');
+          debugPrint('Opções: $opcoes');
+          debugPrint('Resposta correta valor: "$respostaCorretaValor"');
+        } else {
+          acertou = false; // Resposta correta não encontrada nas opções
+          debugPrint(
+              'ERRO: Resposta correta "$respostaCorretaValor" não encontrada nas opções: $opcoes');
+        }
         break;
       case 'verdadeiro_falso':
         acertou = respostaSelecionada == respostaCorreta;
+        debugPrint(
+            'Verdadeiro/Falso - Selecionada: $respostaSelecionada, Correta: $respostaCorreta, Acertou: $acertou');
         break;
       case 'complete_frase':
         final respostaUsuario = respostaSelecionada!.toLowerCase().trim();
         final respostaEsperada =
             respostaCorreta.toString().toLowerCase().trim();
         acertou = respostaUsuario == respostaEsperada;
+        debugPrint(
+            'Complete frase - Usuario: "$respostaUsuario", Esperada: "$respostaEsperada", Acertou: $acertou');
         break;
     }
 
@@ -850,10 +714,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   void _finalizarQuiz() {
-    // Limpa fila de perguntas pré-carregadas
-    _perguntasPreCarregadas.clear();
-    _preCarregamentoAtivo = false;
-
     if (mounted) {
       setState(() {
         quizFinalizado = true;
@@ -896,136 +756,15 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     String progresso = 'Pergunta ${perguntaIndex + 1}/$totalPerguntas';
     String nivel = 'Tipo: ${_getTipoTitulo(tipoAtual)}';
 
-    // Adiciona indicador de perguntas pré-carregadas
-    String preCarregadas = '';
-    if (_perguntasPreCarregadas.isNotEmpty) {
-      preCarregadas = ' • ${_perguntasPreCarregadas.length} prontas';
-    }
-
-    if (_useGemini) {
-      return '$progresso • $nivel • IA: Gemini$preCarregadas';
-    } else {
-      return '$progresso • $nivel • IA: Ollama ($_modeloOllama)$preCarregadas';
-    }
+    return '$progresso • $nivel';
   }
 
   Widget _buildHeaderTrailing(bool isTablet) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        StatusIndicator(
-          text: 'Online',
-          icon: Icons.wifi_rounded,
-          color: AppTheme.successColor,
-          isActive: true,
-        ),
-        const SizedBox(height: 4),
-        // Indicador de perguntas pré-carregadas
-        if (_perguntasPreCarregadas.isNotEmpty) ...[
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 12 : 8,
-              vertical: isTablet ? 6 : 4,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.successColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-              border: Border.all(
-                color: AppTheme.successColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.flash_on,
-                  size: isTablet ? 14 : 12,
-                  color: AppTheme.successColor,
-                ),
-                SizedBox(width: isTablet ? 6 : 4),
-                Text(
-                  '${_perguntasPreCarregadas.length} prontas',
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.successColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isTablet ? 12 : 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ] else if (_perguntaDoCache) ...[
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 12 : 8,
-              vertical: isTablet ? 6 : 4,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-              border: Border.all(
-                color: AppTheme.warningColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.offline_bolt,
-                  size: isTablet ? 14 : 12,
-                  color: AppTheme.warningColor,
-                ),
-                SizedBox(width: isTablet ? 6 : 4),
-                Text(
-                  'Cache',
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.warningColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isTablet ? 12 : 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ] else ...[
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 12 : 8,
-              vertical: isTablet ? 6 : 4,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.smart_toy,
-                  size: isTablet ? 14 : 12,
-                  color: AppTheme.primaryColor,
-                ),
-                SizedBox(width: isTablet ? 6 : 4),
-                Text(
-                  _useGemini ? 'Gemini' : 'Ollama',
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isTablet ? 12 : 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
+    return StatusIndicator(
+      text: 'Offline',
+      icon: Icons.games_rounded,
+      color: AppTheme.primaryColor,
+      isActive: true,
     );
   }
 
@@ -2274,9 +2013,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Jogo da cobrinha sempre visível no topo
-              _buildMiniSnakeGame(),
-
               // Header responsivo com botão voltar para a tela inicial
               Container(
                 padding: EdgeInsets.symmetric(
@@ -2315,27 +2051,12 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
               // Conteúdo principal
               Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(isTablet ? 24 : 16),
-                  child: Column(
-                    children: [
-                      // Progresso e status
-                      _buildStatusProgress(isTablet),
-                      SizedBox(height: isTablet ? 24 : 20),
-
-                      // Card do exercício
-                      if (carregando)
-                        _buildLoadingCard(isTablet)
-                      else if (perguntaAtual != null)
-                        _buildExercicioCard(isTablet),
-
-                      SizedBox(height: isTablet ? 24 : 20),
-
-                      // Botões de ação
-                      if (!carregando && perguntaAtual != null)
-                        _buildActionButtons(isTablet),
-                    ],
-                  ),
+                child: Row(
+                  children: [
+                    _buildSnakePanel(),
+                    const SizedBox(width: 16),
+                    _buildQuizPanel(isTablet),
+                  ],
                 ),
               ),
             ],

@@ -284,9 +284,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
-            child: isDesktop 
-              ? _buildDesktopLayout() 
-              : _buildMobileTabletLayout(isMobile, isTablet),
+            child: isDesktop
+                ? _buildDesktopLayout()
+                : _buildMobileTabletLayout(isMobile, isTablet),
           ),
         ),
       ),
@@ -427,7 +427,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               _buildQuickAction(
                 'Testar Conexão',
                 Icons.wifi_find_rounded,
@@ -513,19 +513,47 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header do conteúdo
-                  Text(
-                    'Configurar Serviços de IA',
-                    style: AppTheme.headingLarge.copyWith(
-                      color: AppTheme.darkTextPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selecione e configure seu provedor de IA preferido para uma experiência personalizada.',
-                    style: AppTheme.bodyLarge.copyWith(
-                      color: AppTheme.darkTextSecondaryColor,
-                    ),
+                  // Botão de voltar e header do conteúdo
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppTheme.primaryColor,
+                          size: 24,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor:
+                              AppTheme.primaryColor.withValues(alpha: 0.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        tooltip: 'Voltar',
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Configurar Serviços de IA',
+                              style: AppTheme.headingLarge.copyWith(
+                                color: AppTheme.darkTextPrimaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Selecione e configure seu provedor de IA preferido para uma experiência personalizada.',
+                              style: AppTheme.bodyLarge.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
 
@@ -658,7 +686,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   }
 
   // Métodos auxiliares para a sidebar
-  Widget _buildQuickAction(String title, IconData icon, VoidCallback onTap, bool isLoading) {
+  Widget _buildQuickAction(
+      String title, IconData icon, VoidCallback onTap, bool isLoading) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -732,7 +761,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   Color _getStatusColor() {
     final isSuccess = status.contains('✅');
     final isError = status.contains('❌');
-    
+
     if (isSuccess) return AppTheme.successColor;
     if (isError) return AppTheme.errorColor;
     return AppTheme.infoColor;
@@ -741,7 +770,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   IconData _getStatusIcon() {
     final isSuccess = status.contains('✅');
     final isError = status.contains('❌');
-    
+
     if (isSuccess) return Icons.check_circle_rounded;
     if (isError) return Icons.error_rounded;
     return Icons.info_rounded;
@@ -777,13 +806,16 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             Column(
               children: [
                 _buildServiceCard('gemini', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile, isDesktop: true),
+                    iconInternalSize, borderRadius, spacing, isMobile,
+                    isDesktop: true),
                 SizedBox(height: spacing * 0.75),
                 _buildServiceCard('ollama', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile, isDesktop: true),
+                    iconInternalSize, borderRadius, spacing, isMobile,
+                    isDesktop: true),
                 SizedBox(height: spacing * 0.75),
                 _buildServiceCard('flutter_gemma', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile, isDesktop: true),
+                    iconInternalSize, borderRadius, spacing, isMobile,
+                    isDesktop: true),
               ],
             )
           else if (isTablet)
@@ -900,102 +932,107 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             width: isSelected ? 2 : 1,
           ),
         ),
-        child: isDesktop 
-          ? Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: isSelected ? color : AppTheme.darkBorderColor,
-                    shape: BoxShape.circle,
+        child: isDesktop
+            ? Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isSelected ? color : AppTheme.darkBorderColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: isSelected ? color : AppTheme.darkTextPrimaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: AppTheme.bodyMedium.copyWith(
+                            color: isSelected
+                                ? color
+                                : AppTheme.darkTextPrimaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                          fontSize: 12,
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                if (isSelected) ...[
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: color,
-                    size: 18,
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: color,
+                      size: 18,
+                    ),
+                  ],
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: iconSize,
+                    height: iconSize,
+                    decoration: BoxDecoration(
+                      color: isSelected ? color : AppTheme.darkBorderColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: iconInternalSize,
+                    ),
+                  ),
+                  SizedBox(height: spacing * 0.75),
+                  Text(
+                    title,
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: isSelected ? color : AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: isMobile ? 12 : 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: spacing * 0.25),
+                  Text(
+                    subtitle,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.darkTextSecondaryColor,
+                      fontSize: isMobile ? 10 : 12,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
-              ],
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: iconSize,
-                  height: iconSize,
-                  decoration: BoxDecoration(
-                    color: isSelected ? color : AppTheme.darkBorderColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: iconInternalSize,
-                  ),
-                ),
-                SizedBox(height: spacing * 0.75),
-                Text(
-                  title,
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: isSelected ? color : AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isMobile ? 12 : 14,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: spacing * 0.25),
-                Text(
-                  subtitle,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.darkTextSecondaryColor,
-                    fontSize: isMobile ? 10 : 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+              ),
       ),
     );
   }
 
   Widget _buildGeminiConfig(bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
 
     return ModernCard(
       child: Column(
@@ -1091,9 +1128,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   }
 
   Widget _buildOllamaConfig(bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
 
     return ModernCard(
       child: Column(
@@ -1229,9 +1269,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   Widget _buildFlutterGemmaConfig(
       bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
 
     return ModernCard(
       child: Column(
@@ -1286,8 +1329,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 child: Row(
                   children: [
                     Icon(
-                      exists ? Icons.check_circle_rounded : Icons.download_rounded,
-                      color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                      exists
+                          ? Icons.check_circle_rounded
+                          : Icons.download_rounded,
+                      color: exists
+                          ? AppTheme.successColor
+                          : AppTheme.warningColor,
                       size: iconSize,
                     ),
                     SizedBox(width: spacing),
@@ -1296,9 +1343,13 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            exists ? 'Modelo Carregado' : 'Modelo Não Encontrado',
+                            exists
+                                ? 'Modelo Carregado'
+                                : 'Modelo Não Encontrado',
                             style: AppTheme.bodyMedium.copyWith(
-                              color: exists ? AppTheme.successColor : AppTheme.warningColor,
+                              color: exists
+                                  ? AppTheme.successColor
+                                  : AppTheme.warningColor,
                               fontWeight: FontWeight.w600,
                               fontSize: isMobile ? 12 : 14,
                             ),
@@ -1372,7 +1423,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      backgroundColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.1),
                       foregroundColor: AppTheme.primaryColor,
                       elevation: 0,
                       side: BorderSide(
@@ -1497,9 +1549,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   }
 
   Widget _buildPreloadConfig(bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
 
     return ModernCard(
       child: Column(
@@ -1800,7 +1855,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     );
   }
 
-  
   Widget _buildActionButtons(bool isMobile, bool isTablet, bool isDesktop) {
     final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : 16.0);
 
@@ -1868,8 +1922,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   }
 
   Widget _buildInfoSection(bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing = isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize = isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
 
     return ModernCard(
       child: Column(
@@ -2048,9 +2104,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       final isAvailable = await gemmaService.isServiceAvailable();
       if (isAvailable) {
         // Testar uma geração simples
-        final response = await gemmaService.generate('Olá, teste de funcionamento');
+        final response =
+            await gemmaService.generate('Olá, teste de funcionamento');
         setState(() {
-          status = '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
+          status =
+              '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
         });
       } else {
         setState(() {

@@ -167,10 +167,37 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       if (_selectedAI == 'gemini') {
         final geminiService =
             GeminiService(apiKey: apiKeyController.text.trim());
-        final isAvailable = await geminiService.isServiceAvailable();
-        status = isAvailable
-            ? '✅ Conexão com Gemini funcionando!'
-            : '❌ Erro na conexão com Gemini.';
+
+        // Teste detalhado
+        final testResult = await geminiService.testApiDetailed();
+
+        if (testResult['success']) {
+          status = '✅ Gemini API funcionando!\n'
+              '🤖 Resposta: ${testResult['response']}\n'
+              '🔑 Key: ${testResult['apiKey']}';
+        } else {
+          final errorType = testResult['errorType'] ?? 'UNKNOWN';
+          String errorMessage = '';
+
+          switch (errorType) {
+            case 'INVALID_API_KEY':
+              errorMessage = '❌ API Key inválida ou expirada\n'
+                  '💡 Verifique se a key está correta no Google AI Studio';
+              break;
+            case 'QUOTA_EXCEEDED':
+              errorMessage = '❌ Cota da API excedida\n'
+                  '💡 Aguarde ou use uma nova API key';
+              break;
+            case 'NETWORK_ERROR':
+              errorMessage = '❌ Erro de conexão\n'
+                  '💡 Verifique sua conexão com a internet';
+              break;
+            default:
+              errorMessage = '❌ Erro: ${testResult['error']}';
+          }
+
+          status = errorMessage;
+        }
       } else if (_selectedAI == 'ollama') {
         final ollamaService = OllamaService(defaultModel: _modeloOllama);
         final isAvailable = await ollamaService.isServiceAvailable();
@@ -189,8 +216,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     }
     setState(() => carregando = false);
 
-    // Limpar status após alguns segundos
-    Future.delayed(const Duration(seconds: 3), () {
+    // Limpar status após 8 segundos (mais tempo para ler o status detalhado)
+    Future.delayed(const Duration(seconds: 8), () {
       if (mounted) {
         setState(() => status = '');
       }
@@ -432,6 +459,13 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 'Testar Conexão',
                 Icons.wifi_find_rounded,
                 testarConexao,
+                carregando,
+              ),
+              const SizedBox(height: 8),
+              _buildQuickAction(
+                'Teste Detalhado',
+                Icons.analytics_rounded,
+                _mostrarTesteDetalhado,
                 carregando,
               ),
               const SizedBox(height: 8),
@@ -2129,5 +2163,146 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         setState(() => status = '');
       }
     });
+  }
+
+  Future<void> _mostrarTesteDetalhado() async {
+    if (_selectedAI != 'gemini') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Teste detalhado disponível apenas para Gemini'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
+    // Dialog de loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: AppTheme.primaryColor),
+            const SizedBox(height: 16),
+            Text(
+              'Executando teste detalhado...',
+              style: TextStyle(color: AppTheme.darkTextPrimaryColor),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final geminiService = GeminiService(apiKey: apiKeyController.text.trim());
+      final result = await geminiService.testApiDetailed();
+
+      if (!mounted) return;
+      Navigator.pop(context); // Fechar dialog de loading
+
+      // Mostrar resultado detalhado
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppTheme.darkSurfaceColor,
+          title: Row(
+            children: [
+              Icon(
+                result['success'] ? Icons.check_circle : Icons.error,
+                color: result['success']
+                    ? AppTheme.successColor
+                    : AppTheme.errorColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                result['success'] ? 'Teste Bem-sucedido' : 'Teste Falhou',
+                style: TextStyle(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDetailItem('🔑 API Key', result['apiKey']),
+                _buildDetailItem('🤖 Modelo', result['model']),
+                _buildDetailItem('⏰ Timestamp', result['timestamp']),
+                if (result['success']) ...[
+                  _buildDetailItem('✅ Status', 'Funcionando perfeitamente'),
+                  _buildDetailItem('📥 Resposta', result['response'] ?? 'N/A'),
+                ] else ...[
+                  _buildDetailItem(
+                      '❌ Tipo de Erro', result['errorType'] ?? 'UNKNOWN'),
+                  _buildDetailItem('📝 Detalhes', result['error'] ?? 'N/A'),
+                  if (result['errorType'] == 'INVALID_API_KEY')
+                    _buildDetailItem('💡 Solução',
+                        'Obtenha uma nova API key em https://aistudio.google.com'),
+                  if (result['errorType'] == 'QUOTA_EXCEEDED')
+                    _buildDetailItem('💡 Solução',
+                        'Aguarde a renovação da cota ou use outra API key'),
+                  if (result['errorType'] == 'NETWORK_ERROR')
+                    _buildDetailItem(
+                        '💡 Solução', 'Verifique sua conexão com a internet'),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Fechar',
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Fechar dialog de loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao executar teste: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppTheme.darkTextPrimaryColor,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
   }
 }

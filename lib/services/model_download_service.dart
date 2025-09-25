@@ -4,7 +4,8 @@ import 'package:path_provider/path_provider.dart';
 
 /// Serviço responsável por baixar e gerenciar modelos de IA
 class ModelDownloadService {
-  static const String gemmaModelUrl = 'https://huggingface.co/google/gemma-2b-it/resolve/main/gemma-2b-it-int4.tflite';
+  static const String gemmaModelUrl =
+      'https://huggingface.co/google/gemma-2b-it/resolve/main/gemma-2b-it-int4.tflite';
   static const String modelFileName = 'gemma-2b-it-int4.tflite';
 
   /// Callback para progresso do download
@@ -84,9 +85,11 @@ class ModelDownloadService {
       }
 
       final contentLength = headResponse.headers['content-length'];
-      final totalBytes = contentLength != null ? int.parse(contentLength) : null;
+      final totalBytes =
+          contentLength != null ? int.parse(contentLength) : null;
 
-      onStatusUpdate?.call('Baixando modelo (${_formatBytes(totalBytes ?? 0)})...');
+      onStatusUpdate
+          ?.call('Baixando modelo (${_formatBytes(totalBytes ?? 0)})...');
 
       // Baixar o arquivo
       final request = http.Request('GET', Uri.parse(gemmaModelUrl));
@@ -124,11 +127,11 @@ class ModelDownloadService {
         throw Exception('Arquivo baixado está vazio');
       }
 
-      onStatusUpdate?.call('Modelo baixado com sucesso! (${_formatBytes(fileSize)})');
+      onStatusUpdate
+          ?.call('Modelo baixado com sucesso! (${_formatBytes(fileSize)})');
       onProgress?.call(1.0);
 
       return modelPath;
-
     } catch (e) {
       onStatusUpdate?.call('Erro no download: $e');
       onProgress?.call(0.0);
@@ -199,7 +202,8 @@ class ModelDownloadService {
   Future<bool> testConnection() async {
     try {
       onStatusUpdate?.call('Testando conexão...');
-      final response = await http.head(Uri.parse(gemmaModelUrl))
+      final response = await http
+          .head(Uri.parse(gemmaModelUrl))
           .timeout(const Duration(seconds: 10));
 
       final success = response.statusCode == 200;

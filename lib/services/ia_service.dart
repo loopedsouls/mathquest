@@ -41,7 +41,7 @@ class OllamaService implements AIService {
       // Timeout menor para detecção rápida se não está disponível
       final response = await http
           .get(Uri.parse('$baseUrl/api/tags'))
-          .timeout(Duration(seconds: 3));
+          .timeout(const Duration(seconds: 3));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -111,7 +111,7 @@ class OllamaService implements AIService {
               'stream': false,
             }),
           )
-          .timeout(Duration(seconds: 30));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

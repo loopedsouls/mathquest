@@ -17,7 +17,7 @@ class ProgressChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = primaryColor ?? AppTheme.primaryColor;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -27,8 +27,8 @@ class ProgressChart extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -104,7 +104,7 @@ class ProgressChart extends StatelessWidget {
     return data.entries.map((entry) {
       final index = data.keys.toList().indexOf(entry.key);
       final value = (entry.value * 100).clamp(0.0, 100.0);
-      
+
       return BarChartGroupData(
         x: index,
         barRods: [
@@ -125,15 +125,17 @@ class ProgressChart extends StatelessWidget {
   String _abreviarNome(String nome) {
     final palavras = nome.split(' ');
     if (palavras.length == 1) {
-      return palavras[0].length > 8 ? '${palavras[0].substring(0, 8)}...' : palavras[0];
+      return palavras[0].length > 8
+          ? '${palavras[0].substring(0, 8)}...'
+          : palavras[0];
     }
-    
+
     // Tenta usar as primeiras letras das palavras
     String abrev = palavras.map((p) => p.isNotEmpty ? p[0] : '').join('');
     if (abrev.length > 3) {
       abrev = abrev.substring(0, 3);
     }
-    
+
     return abrev.toUpperCase();
   }
 }
@@ -157,7 +159,7 @@ class RadialProgressWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressColor = color ?? AppTheme.primaryColor;
-    
+
     return SizedBox(
       width: size,
       height: size,
@@ -180,9 +182,9 @@ class RadialProgressWidget extends StatelessWidget {
               Text(
                 value,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: progressColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: progressColor,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               Text(
                 label,
@@ -212,7 +214,7 @@ class TrendLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = lineColor ?? AppTheme.accentColor;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -222,8 +224,8 @@ class TrendLineChart extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -333,7 +335,7 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardColor = color ?? AppTheme.primaryColor;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -360,21 +362,21 @@ class MetricCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                   Text(
                     value,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: cardColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: cardColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
-                    ),
+                          color: Colors.grey[500],
+                        ),
                   ),
                 ],
               ),
@@ -414,13 +416,13 @@ class StreakVisualizationWidget extends StatelessWidget {
                 Text(
                   'Sequência de Atividade',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Streak atual vs melhor
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -441,24 +443,24 @@ class StreakVisualizationWidget extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Visualização dos últimos dias
             Text(
               'Últimos 7 dias:',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
             const SizedBox(height: 8),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: ultimosDias.asMap().entries.map((entry) {
                 final index = entry.key;
                 final ativo = entry.value;
-                
+
                 return Column(
                   children: [
                     Container(
@@ -468,9 +470,10 @@ class StreakVisualizationWidget extends StatelessWidget {
                         color: ativo ? Colors.green : Colors.grey[300],
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ativo 
-                        ? const Icon(Icons.check, color: Colors.white, size: 16)
-                        : null,
+                      child: ativo
+                          ? const Icon(Icons.check,
+                              color: Colors.white, size: 16)
+                          : null,
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -487,8 +490,8 @@ class StreakVisualizationWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakStat(BuildContext context, String label, String value, 
-                          IconData icon, Color color) {
+  Widget _buildStreakStat(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 32),
@@ -496,9 +499,9 @@ class StreakVisualizationWidget extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         Text(
           label,

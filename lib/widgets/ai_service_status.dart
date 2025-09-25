@@ -76,7 +76,7 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (widget.showIcon) ...[
-            SizedBox(
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
@@ -84,10 +84,10 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
               ),
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 4),
           ],
           if (widget.showText)
-            Text(
+            const Text(
               'Verificando...',
               style: TextStyle(
                 fontSize: 12,
@@ -109,7 +109,7 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
               size: 16,
               color: _statusColor,
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 4),
           ],
           if (widget.showText)
             Text(
@@ -132,8 +132,8 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
         title: Row(
           children: [
             Icon(_statusIcon, color: _statusColor),
-            SizedBox(width: 8),
-            Text('Status do Serviço de IA'),
+            const SizedBox(width: 8),
+            const Text('Status do Serviço de IA'),
           ],
         ),
         content: Column(
@@ -141,32 +141,32 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Serviço Atual: $_currentService'),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             if (_currentService == 'Ollama Local') ...[
-              Text(
+              const Text(
                 '✅ Conectado ao Ollama local',
                 style: TextStyle(color: Colors.green),
               ),
-              Text('• Funciona offline'),
-              Text('• Maior privacidade'),
-              Text('• Processamento local'),
+              const Text('• Funciona offline'),
+              const Text('• Maior privacidade'),
+              const Text('• Processamento local'),
             ] else if (_currentService == 'Gemini Cloud') ...[
-              Text(
+              const Text(
                 '☁️ Usando Gemini na nuvem',
                 style: TextStyle(color: Colors.blue),
               ),
-              Text('• Requer internet'),
-              Text('• Processamento na nuvem'),
-              Text('• Sempre disponível'),
+              const Text('• Requer internet'),
+              const Text('• Processamento na nuvem'),
+              const Text('• Sempre disponível'),
             ] else ...[
-              Text(
+              const Text(
                 '⚠️ Serviço não disponível',
                 style: TextStyle(color: Colors.orange),
               ),
-              Text('• Verifique a configuração'),
+              const Text('• Verifique a configuração'),
             ],
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Dica: Para usar Ollama local, configure CORS:\nOLLAMA_ORIGINS="*"',
               style: TextStyle(
                 fontSize: 12,
@@ -182,11 +182,11 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
               Navigator.of(context).pop();
               _updateServiceStatus(); // Atualiza o status
             },
-            child: Text('Atualizar'),
+            child: const Text('Atualizar'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Fechar'),
+            child: const Text('Fechar'),
           ),
         ],
       ),

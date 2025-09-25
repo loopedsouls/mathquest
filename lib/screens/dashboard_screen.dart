@@ -58,52 +58,26 @@ class _DashboardScreenState extends State<DashboardScreen>
         'topicos_total': 18,
       };
 
-      // Simula conquistas
-      _conquistas = [
-        Conquista(
-          id: '1',
-          titulo: 'Primeiro Passo',
-          descricao: 'Complete seu primeiro exercício',
-          emoji: '⭐',
-          tipo: TipoConquista.moduloCompleto,
-          criterios: {'completar_primeiro_exercicio': true},
-          pontosBonus: 50,
-          dataConquista: DateTime.now().subtract(const Duration(days: 7)),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '2',
-          titulo: 'Dedicado',
-          descricao: 'Estude por 7 dias consecutivos',
-          emoji: '🔥',
-          tipo: TipoConquista.streakExercicios,
-          criterios: {'dias_consecutivos': 7},
-          pontosBonus: 100,
-          dataConquista: DateTime.now(),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '3',
-          titulo: 'Matemático',
-          descricao: 'Domine 10 tópicos diferentes',
-          emoji: '🎓',
-          tipo: TipoConquista.unidadeCompleta,
-          criterios: {'topicos_dominados': 10},
-          pontosBonus: 200,
-          dataConquista: DateTime.now().subtract(const Duration(days: 2)),
-          desbloqueada: true,
-        ),
-        Conquista(
-          id: '4',
-          titulo: 'Perfeccionista',
-          descricao: 'Obtenha 100% em 20 exercícios',
-          emoji: '🏆',
-          tipo: TipoConquista.perfeccionista,
-          criterios: {'exercicios_100_porcento': 20},
-          pontosBonus: 300,
-          desbloqueada: false,
-        ),
+      // Carrega conquistas reais do ConquistasData
+      final todasConquistas = ConquistasData.obterTodasConquistas();
+
+      // Simula algumas conquistas desbloqueadas (3 primeiras)
+      List<String> idsDesbloqueadas = [
+        'primeiro_modulo',
+        'dez_modulos',
+        'nivel_intermediario'
       ];
+
+      _conquistas = todasConquistas.map((c) {
+        final desbloqueada = idsDesbloqueadas.contains(c.id);
+        return c.copyWith(
+          desbloqueada: desbloqueada,
+          dataConquista: desbloqueada
+              ? DateTime.now()
+                  .subtract(Duration(days: idsDesbloqueadas.indexOf(c.id) * 2))
+              : null,
+        );
+      }).toList();
 
       setState(() {
         _carregando = false;

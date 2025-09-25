@@ -1734,7 +1734,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final dPadSize =
         screenWidth > 1200 ? 140.0 : 120.0; // Maior em telas grandes
 
-    return Container(
+    return SizedBox(
       width: dPadSize,
       height: dPadSize,
       child: Stack(

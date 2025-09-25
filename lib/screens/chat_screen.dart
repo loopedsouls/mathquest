@@ -647,14 +647,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         return;
       }
 
-      // Inicializa o serviço de IA
+      // Inicializa o serviço de IA com detecção automática
       AIService aiService;
-      if (_useGemini) {
-        aiService = GeminiService(apiKey: apiKey!);
-      } else if (selectedAI == 'flutter_gemma') {
+      if (selectedAI == 'flutter_gemma') {
         aiService = FlutterGemmaService();
       } else {
-        aiService = OllamaService(defaultModel: _modeloOllama);
+        // Usar SmartAIService que detecta Ollama automaticamente e usa Gemini como fallback
+        aiService = SmartAIService();
       }
 
       _tutorService = MathTutorService(aiService: aiService);

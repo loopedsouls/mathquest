@@ -35,10 +35,13 @@ class OllamaService implements AIService {
     }
   }
 
-  /// Verifica se Ollama está rodando
+  /// Verifica se Ollama está rodando (funciona mesmo no GitHub Pages)
   Future<bool> isOllamaRunning() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/tags'));
+      // Timeout menor para detecção rápida se não está disponível
+      final response = await http
+          .get(Uri.parse('$baseUrl/api/tags'))
+          .timeout(Duration(seconds: 3));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -86,25 +89,38 @@ class OllamaService implements AIService {
     return await isOllamaRunning();
   }
 
-  /// Gera uma resposta usando um modelo específico
+  /// Gera uma resposta usando um modelo específico (com suporte a GitHub Pages)
   Future<String> generateWithModel(String model, String prompt) async {
     if (model == 'AUTODETECT') {
       model = await _selectAutomaticModel();
     }
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/generate'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'model': model,
-        'prompt': prompt,
-        'stream': false,
-      }),
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['response'] ?? '';
-    } else {
-      throw Exception('Erro ao gerar resposta: ${response.body}');
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/api/generate'),
+            headers: {
+              'Content-Type': 'application/json',
+              // Headers para permitir requisições do GitHub Pages
+              'Accept': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+            body: jsonEncode({
+              'model': model,
+              'prompt': prompt,
+              'stream': false,
+            }),
+          )
+          .timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] ?? '';
+      } else {
+        throw Exception('Erro ao gerar resposta: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erro de conexão com Ollama: $e');
     }
   }
 }
@@ -112,6 +128,84 @@ class OllamaService implements AIService {
 abstract class AIService {
   Future<String> generate(String prompt);
   Future<bool> isServiceAvailable();
+}
+
+/// Serviço de IA com fallback automático (Ollama -> Gemini)
+class SmartAIService implements AIService {
+  late final OllamaService _ollamaService;
+  late final GeminiService _geminiService;
+
+  bool _ollamaAvailable = false;
+  DateTime? _lastOllamaCheck;
+
+  SmartAIService() {
+    _ollamaService = OllamaService();
+    _geminiService = GeminiService();
+  }
+
+  @override
+  Future<String> generate(String prompt) async {
+    // Tenta usar Ollama primeiro se disponível
+    if (await _isOllamaAvailable()) {
+      try {
+        return await _ollamaService.generate(prompt);
+      } catch (e) {
+        print('Ollama falhou, usando Gemini: $e');
+        _ollamaAvailable = false;
+        return await _geminiService.generate(prompt);
+      }
+    }
+
+    // Fallback para Gemini
+    return await _geminiService.generate(prompt);
+  }
+
+  @override
+  Future<bool> isServiceAvailable() async {
+    // Verifica se pelo menos um serviço está disponível
+    if (await _isOllamaAvailable()) return true;
+    return await _geminiService.isServiceAvailable();
+  }
+
+  /// Verifica se Ollama está disponível (cache por 30 segundos)
+  Future<bool> _isOllamaAvailable() async {
+    final now = DateTime.now();
+
+    // Se verificou recentemente, usa cache
+    if (_lastOllamaCheck != null &&
+        now.difference(_lastOllamaCheck!).inSeconds < 30) {
+      return _ollamaAvailable;
+    }
+
+    // Nova verificação
+    _lastOllamaCheck = now;
+    _ollamaAvailable = await _ollamaService.isOllamaRunning();
+    return _ollamaAvailable;
+  }
+
+  /// Força uma nova verificação do Ollama
+  Future<void> refreshOllamaStatus() async {
+    _lastOllamaCheck = null;
+    await _isOllamaAvailable();
+  }
+
+  /// Retorna qual serviço está sendo usado
+  Future<String> getCurrentService() async {
+    if (await _isOllamaAvailable()) {
+      return 'Ollama Local';
+    }
+    return 'Gemini Cloud';
+  }
+
+  /// Gera resposta forçando uso do Ollama
+  Future<String> generateWithOllama(String prompt) async {
+    return await _ollamaService.generate(prompt);
+  }
+
+  /// Gera resposta forçando uso do Gemini
+  Future<String> generateWithGemini(String prompt) async {
+    return await _geminiService.generate(prompt);
+  }
 }
 
 class MathTutorService {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mathquest/screens/quiz_snake.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
@@ -91,9 +90,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   // Configurações do jogo - agora dinâmico
   int _gridSize = 20;
   double _cellSize = 15;
-
-  // Contador de cliques na cobra verde
-  int _snakeClickCount = 0;
 
   // Configurações visuais
   late String ano;
@@ -358,35 +354,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
   }
 
-  void _onSnakeTap() {
-    if (mounted) {
-      setState(() {
-        _snakeClickCount++;
-        debugPrint('Clique na cobra: $_snakeClickCount/3');
-      });
-
-      // Mostrar feedback visual
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cobra clicada: $_snakeClickCount/3'),
-          duration: const Duration(seconds: 1),
-          backgroundColor: AppTheme.primaryColor,
-        ),
-      );
-
-      if (_snakeClickCount >= 3) {
-        // Navegar para o Quiz Snake
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const QuizSnakeScreen(), // Quiz Snake Screen
-          ),
-        );
-        // Resetar contador
-        _snakeClickCount = 0;
-      }
-    }
-  }
-
   int _calculateGridSize(double availableWidth, double availableHeight) {
     // Calcular grid size baseado no tamanho da tela
     final minSize =
@@ -430,13 +397,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       return;
     }
 
-    AIService aiService;
-    if (_useGemini) {
-      aiService = GeminiService(apiKey: apiKey!);
-    } else {
-      aiService = OllamaService(defaultModel: _modeloOllama);
-    }
-
+    // Usar SmartAIService que detecta Ollama automaticamente
+    final aiService = SmartAIService();
     tutorService = MathTutorService(aiService: aiService);
 
     // Limpa fila de perguntas pré-carregadas
@@ -822,23 +784,32 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   void _showErrorDialog(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(
+          'Erro',
+          style: AppTheme.bodyLarge.copyWith(
+            color: AppTheme.errorColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: Text(
           message,
           style: AppTheme.bodyMedium.copyWith(
-            color: Colors.white,
+            color: AppTheme.darkTextSecondaryColor,
           ),
         ),
-        backgroundColor: AppTheme.errorColor,
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1290,7 +1261,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       setState(() {
         _mostrarTelaInicial = false;
         _mostrarCarregamento = true;
-        _snakeClickCount = 0; // Resetar contador ao iniciar quiz
       });
     }
 
@@ -1468,32 +1438,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                 : availableHeight) /
                             _gridSize;
 
-                        return GestureDetector(
-                          onTapUp: (details) {
-                            // Verificar se o toque foi na cobra verde
-                            final painter = SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: _cellSize,
-                              enemySnakes: _enemySnakes,
-                              enemyColors: _enemyColors,
-                              gridSize: _gridSize,
-                            );
-                            if (painter.hitTestSnake(details.localPosition)) {
-                              _onSnakeTap();
-                            }
-                          },
-                          child: CustomPaint(
-                            painter: SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: _cellSize,
-                              enemySnakes: _enemySnakes,
-                              enemyColors: _enemyColors,
-                              gridSize: _gridSize,
-                            ),
-                            child: Container(),
+                        return CustomPaint(
+                          painter: SnakePainter(
+                            snakeSegments: _snakeSegments,
+                            foodPosition: _foodPosition,
+                            cellSize: _cellSize,
+                            enemySnakes: _enemySnakes,
+                            enemyColors: _enemyColors,
+                            gridSize: _gridSize,
                           ),
+                          child: Container(),
                         );
                       },
                     ),
@@ -1719,33 +1673,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                       : availableHeight) /
                                   _gridSize;
 
-                              return GestureDetector(
-                                onTapUp: (details) {
-                                  // Verificar se o toque foi na cobra verde
-                                  final painter = SnakePainter(
-                                    snakeSegments: _snakeSegments,
-                                    foodPosition: _foodPosition,
-                                    cellSize: _cellSize,
-                                    enemySnakes: _enemySnakes,
-                                    enemyColors: _enemyColors,
-                                    gridSize: _gridSize,
-                                  );
-                                  if (painter
-                                      .hitTestSnake(details.localPosition)) {
-                                    _onSnakeTap();
-                                  }
-                                },
-                                child: CustomPaint(
-                                  painter: SnakePainter(
-                                    snakeSegments: _snakeSegments,
-                                    foodPosition: _foodPosition,
-                                    cellSize: _cellSize,
-                                    enemySnakes: _enemySnakes,
-                                    enemyColors: _enemyColors,
-                                    gridSize: _gridSize,
-                                  ),
-                                  child: Container(),
+                              return CustomPaint(
+                                painter: SnakePainter(
+                                  snakeSegments: _snakeSegments,
+                                  foodPosition: _foodPosition,
+                                  cellSize: _cellSize,
+                                  enemySnakes: _enemySnakes,
+                                  enemyColors: _enemyColors,
+                                  gridSize: _gridSize,
                                 ),
+                                child: Container(),
                               );
                             },
                           ),
@@ -1862,7 +1799,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final dPadSize =
         screenWidth > 1200 ? 140.0 : 120.0; // Maior em telas grandes
 
-    return SizedBox(
+    return Container(
       width: dPadSize,
       height: dPadSize,
       child: Stack(
@@ -2082,32 +2019,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                           _gridSize = 30; // Grid fixo maior para telas grandes
                           _cellSize = gameSize / _gridSize;
 
-                          return GestureDetector(
-                            onTapUp: (details) {
-                              // Verificar se o toque foi na cobra verde
-                              final painter = SnakePainter(
-                                snakeSegments: _snakeSegments,
-                                foodPosition: _foodPosition,
-                                cellSize: _cellSize,
-                                enemySnakes: _enemySnakes,
-                                enemyColors: _enemyColors,
-                                gridSize: _gridSize,
-                              );
-                              if (painter.hitTestSnake(details.localPosition)) {
-                                _onSnakeTap();
-                              }
-                            },
-                            child: CustomPaint(
-                              painter: SnakePainter(
-                                snakeSegments: _snakeSegments,
-                                foodPosition: _foodPosition,
-                                cellSize: _cellSize,
-                                enemySnakes: _enemySnakes,
-                                enemyColors: _enemyColors,
-                                gridSize: _gridSize,
-                              ),
-                              child: Container(),
+                          return CustomPaint(
+                            painter: SnakePainter(
+                              snakeSegments: _snakeSegments,
+                              foodPosition: _foodPosition,
+                              cellSize: _cellSize,
+                              enemySnakes: _enemySnakes,
+                              enemyColors: _enemyColors,
+                              gridSize: _gridSize,
                             ),
+                            child: Container(),
                           );
                         },
                       ),
@@ -2800,7 +2721,6 @@ class SnakePainter extends CustomPainter {
   final List<List<Offset>> enemySnakes;
   final List<Color> enemyColors;
   final int gridSize;
-  final VoidCallback? onSnakeTap;
 
   SnakePainter({
     required this.snakeSegments,
@@ -2809,7 +2729,6 @@ class SnakePainter extends CustomPainter {
     required this.enemySnakes,
     required this.enemyColors,
     required this.gridSize,
-    this.onSnakeTap,
   });
 
   @override
@@ -2904,23 +2823,5 @@ class SnakePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
-  }
-
-  // Método para verificar se um ponto está na cobra verde
-  bool hitTestSnake(Offset position) {
-    if (snakeSegments.isEmpty) return false;
-
-    for (final segment in snakeSegments) {
-      final rect = Rect.fromLTWH(
-        segment.dx * cellSize,
-        segment.dy * cellSize,
-        cellSize,
-        cellSize,
-      );
-      if (rect.contains(position)) {
-        return true;
-      }
-    }
-    return false;
   }
 }

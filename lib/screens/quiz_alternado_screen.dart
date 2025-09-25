@@ -1652,62 +1652,81 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                         ),
                       ],
                     ),
-                    child: Container(
-                      margin: const EdgeInsets.all(4), // Margem interna mínima
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppTheme.darkBackgroundColor,
-                            AppTheme.darkSurfaceColor.withValues(alpha: 0.3),
-                          ],
+                    child: GestureDetector(
+                      onTap: () {
+                        if (mounted) {
+                          setState(() {
+                            _snakeClickCount++;
+                            if (_snakeClickCount >= 3) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => QuizSnakeScreen(
+                                    topico: widget.topico,
+                                    dificuldade: widget.dificuldade,
+                                  ),
+                                ),
+                              );
+                            }
+                          });
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(4), // Margem interna mínima
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppTheme.darkBackgroundColor,
+                              AppTheme.darkSurfaceColor.withValues(alpha: 0.3),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Efeito de tela retrô com brilho
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppTheme.primaryColor.withValues(alpha: 0.08),
-                                  Colors.transparent,
-                                  AppTheme.primaryColor.withValues(alpha: 0.04),
-                                ],
+                        child: Stack(
+                          children: [
+                            // Efeito de tela retrô com brilho
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppTheme.primaryColor.withValues(alpha: 0.08),
+                                    Colors.transparent,
+                                    AppTheme.primaryColor.withValues(alpha: 0.04),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          // Jogo da cobrinha
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final availableWidth = constraints.maxWidth;
-                              final availableHeight = constraints.maxHeight;
-                              _gridSize = _calculateGridSize(
-                                  availableWidth, availableHeight);
-                              _cellSize = (availableWidth < availableHeight
-                                      ? availableWidth
-                                      : availableHeight) /
-                                  _gridSize;
+                            // Jogo da cobrinha
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final availableWidth = constraints.maxWidth;
+                                final availableHeight = constraints.maxHeight;
+                                _gridSize = _calculateGridSize(
+                                    availableWidth, availableHeight);
+                                _cellSize = (availableWidth < availableHeight
+                                        ? availableWidth
+                                        : availableHeight) /
+                                    _gridSize;
 
-                              return CustomPaint(
-                                painter: SnakePainter(
-                                  snakeSegments: _snakeSegments,
-                                  foodPosition: _foodPosition,
-                                  cellSize: _cellSize,
-                                  enemySnakes: _enemySnakes,
-                                  enemyColors: _enemyColors,
-                                  gridSize: _gridSize,
-                                ),
-                                child: Container(),
-                              );
-                            },
-                          ),
-                        ],
+                                return CustomPaint(
+                                  painter: SnakePainter(
+                                    snakeSegments: _snakeSegments,
+                                    foodPosition: _foodPosition,
+                                    cellSize: _cellSize,
+                                    enemySnakes: _enemySnakes,
+                                    enemyColors: _enemyColors,
+                                    gridSize: _gridSize,
+                                  ),
+                                  child: Container(),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -2012,49 +2031,68 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                   ),
                 ),
                 child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1.0, // Área quadrada para o jogo
-                    child: Container(
-                      margin: const EdgeInsets.all(40),
-                      decoration: BoxDecoration(
-                        color: AppTheme.darkSurfaceColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final gameSize =
-                              constraints.maxWidth < constraints.maxHeight
-                                  ? constraints.maxWidth
-                                  : constraints.maxHeight;
-                          _gridSize = 30; // Grid fixo maior para telas grandes
-                          _cellSize = gameSize / _gridSize;
-
-                          return CustomPaint(
-                            painter: SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: _cellSize,
-                              enemySnakes: _enemySnakes,
-                              enemyColors: _enemyColors,
-                              gridSize: _gridSize,
-                            ),
-                            child: Container(),
-                          );
+                    child: AspectRatio(
+                      aspectRatio: 1.0, // Área quadrada para o jogo
+                      child: GestureDetector(
+                        onTap: () {
+                          if (mounted) {
+                            setState(() {
+                              _snakeClickCount++;
+                              if (_snakeClickCount >= 3) {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) => QuizSnakeScreen(
+                                      topico: widget.topico,
+                                      dificuldade: widget.dificuldade,
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                          }
                         },
+                        child: Container(
+                          margin: const EdgeInsets.all(40),
+                          decoration: BoxDecoration(
+                            color: AppTheme.darkSurfaceColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final gameSize =
+                                  constraints.maxWidth < constraints.maxHeight
+                                      ? constraints.maxWidth
+                                      : constraints.maxHeight;
+                              _gridSize = 30; // Grid fixo maior para telas grandes
+                              _cellSize = gameSize / _gridSize;
+
+                              return CustomPaint(
+                                painter: SnakePainter(
+                                  snakeSegments: _snakeSegments,
+                                  foodPosition: _foodPosition,
+                                  cellSize: _cellSize,
+                                  enemySnakes: _enemySnakes,
+                                  enemyColors: _enemyColors,
+                                  gridSize: _gridSize,
+                                ),
+                                child: Container(),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
                 ),
               ),
             ),

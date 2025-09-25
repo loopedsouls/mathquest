@@ -96,18 +96,36 @@ class _StartScreenState extends State<StartScreen>
 
   @override
   void dispose() {
+    // Garantir que a animação seja parada e disposed corretamente
+    if (_animationController.isAnimating) {
+      _animationController.stop();
+    }
     _animationController.dispose();
     super.dispose();
   }
 
   Future<void> _initializeApp() async {
-    await _carregarExerciciosOffline();
-    await _checkAIServices();
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      _animationController.forward();
+    try {
+      await _carregarExerciciosOffline();
+      await _checkAIServices();
+
+      // Verificar se o widget ainda está montado antes de atualizar o estado
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _animationController.forward();
+      }
+    } catch (e) {
+      // Em caso de erro, ainda precisamos parar o loading se o widget estiver montado
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isOfflineMode = true;
+          _aiAvailable = false;
+        });
+        _animationController.forward();
+      }
     }
   }
 
@@ -187,25 +205,34 @@ class _StartScreenState extends State<StartScreen>
         }
       }
 
-      setState(() {
-        _isOfflineMode = !_aiAvailable;
-      });
+      if (mounted) {
+        setState(() {
+          _isOfflineMode = !_aiAvailable;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isOfflineMode = true;
-        _aiAvailable = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isOfflineMode = true;
+          _aiAvailable = false;
+        });
+      }
     }
   }
 
   void _goToConfig() {
     Navigator.of(context)
         .push(
-          MaterialPageRoute(
-            builder: (context) => const ConfiguracaoScreen(),
-          ),
-        )
-        .then((_) => _checkAIServices());
+      MaterialPageRoute(
+        builder: (context) => const ConfiguracaoScreen(),
+      ),
+    )
+        .then((_) {
+      // Verificar se ainda está montado antes de verificar serviços de IA
+      if (mounted) {
+        _checkAIServices();
+      }
+    });
   }
 
   void _goToModulos() {

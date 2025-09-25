@@ -325,7 +325,20 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     if (_gameRunning) return;
 
     _gameRunning = true;
-    // Remover o listener contínuo - agora movemos manualmente
+    // Iniciar movimento contínuo da cobra
+    _startContinuousMovement();
+  }
+
+  void _startContinuousMovement() {
+    _gameTimer?.cancel(); // Cancelar timer anterior se existir
+    final duration = _getSnakeSpeedDuration();
+    _gameTimer = Timer.periodic(duration, (timer) {
+      if (_gameRunning && mounted) {
+        _moveSnakeOnce();
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   void _moveSnakeOnce() {
@@ -672,9 +685,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       });
     }
 
-    // Mover cobra uma vez após responder
-    _moveSnakeOnce();
-
     // Próxima pergunta - será instantânea se houver pré-carregada
     await _gerarPergunta();
   }
@@ -714,6 +724,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   void _finalizarQuiz() {
+    // Parar o jogo da cobra
+    _gameRunning = false;
+    _gameTimer?.cancel();
+
     if (mounted) {
       setState(() {
         quizFinalizado = true;
@@ -1008,6 +1022,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                                   if (mounted) {
                                     setState(() {
                                       _currentSpeed = speed;
+                                      // Reiniciar movimento com nova velocidade
+                                      if (_gameRunning) {
+                                        _startContinuousMovement();
+                                      }
                                     });
                                   }
                                 },
@@ -1154,6 +1172,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                             _mostrarCarregamento = false;
                             _mostrarTelaInicial = true;
                             _gameRunning = false;
+                            _gameTimer?.cancel();
                             _snakeController.stop();
                           });
                         }
@@ -1790,6 +1809,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                 _mostrarCarregamento = false;
                 _mostrarTelaInicial = true;
                 _gameRunning = false;
+                _gameTimer?.cancel();
                 _snakeController.stop();
               });
             }
@@ -1970,6 +1990,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   @override
   void dispose() {
     _respostaController.removeListener(_onRespostaChanged);
+    _gameTimer?.cancel(); // Cancelar timer do jogo
     _animationController.dispose();
     _progressController.dispose();
     _cardAnimationController.dispose();

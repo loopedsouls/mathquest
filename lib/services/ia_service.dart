@@ -323,9 +323,13 @@ class GeminiService implements AIService {
   @override
   Future<bool> isServiceAvailable() async {
     try {
-      await generate('Teste de conexão');
+      print('🔍 Testando API Gemini com key: ${_apiKey.substring(0, 10)}...');
+      final result = await generate('Teste de conexão simples');
+      print(
+          '✅ Gemini API funcionando. Resposta: ${result.substring(0, result.length > 50 ? 50 : result.length)}...');
       return true;
-    } catch (_) {
+    } catch (e) {
+      print('❌ Erro ao testar Gemini API: $e');
       return false;
     }
   }
@@ -353,6 +357,60 @@ class GeminiService implements AIService {
       return response.text ?? 'Não foi possível gerar uma resposta.';
     } catch (e) {
       throw Exception('Erro ao gerar resposta com Gemini: $e');
+    }
+  }
+
+  /// Método de teste detalhado para diagnóstico
+  Future<Map<String, dynamic>> testApiDetailed() async {
+    final Map<String, dynamic> result = {
+      'success': false,
+      'apiKey': _apiKey.isNotEmpty ? '${_apiKey.substring(0, 10)}...' : 'VAZIA',
+      'model': 'gemini-1.5-flash',
+      'error': null,
+      'response': null,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    try {
+      print('🚀 Iniciando teste detalhado da API Gemini...');
+      print('📋 API Key: ${result['apiKey']}');
+      print('🤖 Modelo: ${result['model']}');
+
+      const testPrompt = 'Responda apenas com "OK" se você pode me ouvir.';
+      print('📝 Prompt de teste: $testPrompt');
+
+      final response = await generate(testPrompt);
+
+      result['success'] = true;
+      result['response'] = response;
+
+      print('✅ Teste bem-sucedido!');
+      print('📥 Resposta: $response');
+
+      return result;
+    } catch (e) {
+      result['error'] = e.toString();
+      print('❌ Teste falhou: $e');
+
+      // Análise do tipo de erro
+      if (e.toString().contains('API_KEY_INVALID') ||
+          e.toString().contains('401')) {
+        result['errorType'] = 'INVALID_API_KEY';
+        print('🔑 Erro: API Key inválida ou expirada');
+      } else if (e.toString().contains('quota') ||
+          e.toString().contains('429')) {
+        result['errorType'] = 'QUOTA_EXCEEDED';
+        print('💳 Erro: Cota da API excedida');
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        result['errorType'] = 'NETWORK_ERROR';
+        print('🌐 Erro: Problema de conexão de rede');
+      } else {
+        result['errorType'] = 'UNKNOWN_ERROR';
+        print('❓ Erro desconhecido');
+      }
+
+      return result;
     }
   }
 }

@@ -108,7 +108,7 @@ class QuizHelperService {
         print('🤖 Resposta da IA: $responsePreview');
       }
 
-      final pergunta = _processarRespostaIA(response, tipoQuiz);
+      final pergunta = _processarRespostaIA(response, tipoQuiz, dificuldade);
 
       if (pergunta != null && kDebugMode) {
         final perguntaText = pergunta['pergunta']?.toString() ?? '';
@@ -136,9 +136,47 @@ class QuizHelperService {
     required String tipoQuiz,
     required String dificuldade,
   }) {
+    // Descrições detalhadas de dificuldade baseadas no ano escolar
+    String descricaoDificuldade;
+    switch (dificuldade.toLowerCase()) {
+      case 'fácil':
+        descricaoDificuldade = '''
+- Conceitos básicos e fundamentais da unidade
+- Cálculos simples e diretos
+- Aplicações imediatas e óbvias
+- Adequado para revisão ou introdução ao tópico
+- Exemplos: operações básicas, reconhecimento de padrões simples''';
+        break;
+      case 'médio':
+        descricaoDificuldade = '''
+- Aplicação prática dos conceitos
+- Problemas com 1-2 passos de raciocínio
+- Interpretação de situações do dia a dia
+- Combinação de conceitos básicos
+- Exemplos: resolução de problemas contextualizados, cálculos intermediários''';
+        break;
+      case 'difícil':
+        descricaoDificuldade = '''
+- Raciocínio avançado e análise crítica
+- Problemas complexos com múltiplos passos
+- Aplicações não óbvias e desafiadoras
+- Integração de múltiplos conceitos
+- Exemplos: problemas de otimização, situações complexas que exigem estratégia''';
+        break;
+      default:
+        descricaoDificuldade = '''
+- Nível adequado ao progresso do estudante
+- Equilibra desafio e acessibilidade''';
+    }
+
     final basePrompt = '''
 Contexto: Estou criando uma pergunta de matemática para um estudante do $ano sobre a unidade temática "$unidade" da BNCC.
 Nível de dificuldade: $dificuldade
+
+INSTRUÇÕES ESPECÍFICAS DE DIFICULDADE:
+$descricaoDificuldade
+
+IMPORTANTE: Garanta que a pergunta seja ORIGINAL e NÃO REPETITIVA. Evite fórmulas, conceitos ou contextos já usados anteriormente. Varie os exemplos e situações apresentadas.
 
 ''';
 
@@ -156,10 +194,11 @@ EXPLICACAO: [explicação breve e didática]
 
 Características:
 - Pergunta clara e contextualizada
-- 4 alternativas plausíveis
+- 4 alternativas plausíveis, incluindo distratores realistas
 - Apenas uma resposta correta
-- Explicação educativa
+- Explicação educativa que explica o conceito
 - Adequada ao $ano e unidade "$unidade"
+- Nível de dificuldade $dificuldade conforme especificado acima
 ''';
 
       case 'verdadeiro_falso':
@@ -172,7 +211,9 @@ EXPLICACAO: [explicação breve do porquê a afirmação é verdadeira ou falsa]
 Características:
 - Afirmação clara e não ambígua
 - Adequada ao $ano e unidade "$unidade"
-- Explicação didática
+- Explicação didática que esclarece o conceito
+- Inclua elementos que testem compreensão real, não apenas memorização
+- Nível de dificuldade $dificuldade conforme especificado acima
 ''';
 
       case 'complete_frase':
@@ -186,7 +227,9 @@ Características:
 - Frase clara com lacuna bem definida
 - Resposta específica e única
 - Adequada ao $ano e unidade "$unidade"
-- Explicação didática
+- Explicação didática que explica o conceito
+- Foque em termos técnicos ou conceitos chave da unidade
+- Nível de dificuldade $dificuldade conforme especificado acima
 ''';
 
       default:
@@ -196,7 +239,7 @@ Características:
 
   /// Processa a resposta da IA e extrai os componentes
   static Map<String, dynamic>? _processarRespostaIA(
-      String response, String tipoQuiz) {
+      String response, String tipoQuiz, String dificuldade) {
     try {
       final linhas = response
           .split('\n')
@@ -205,11 +248,11 @@ Características:
 
       switch (tipoQuiz.toLowerCase()) {
         case 'multipla_escolha':
-          return _processarMultiplaEscolha(linhas);
+          return _processarMultiplaEscolha(linhas, dificuldade);
         case 'verdadeiro_falso':
-          return _processarVerdadeiroFalso(linhas);
+          return _processarVerdadeiroFalso(linhas, dificuldade);
         case 'complete_frase':
-          return _processarCompleteFrase(linhas);
+          return _processarCompleteFrase(linhas, dificuldade);
         default:
           return null;
       }
@@ -222,7 +265,8 @@ Características:
   }
 
   /// Processa resposta de múltipla escolha
-  static Map<String, dynamic>? _processarMultiplaEscolha(List<String> linhas) {
+  static Map<String, dynamic>? _processarMultiplaEscolha(
+      List<String> linhas, String dificuldade) {
     String? pergunta;
     List<String> opcoes = [];
     String? respostaCorreta;
@@ -251,6 +295,7 @@ Características:
         'opcoes': opcoes,
         'resposta_correta': respostaCorreta,
         'explicacao': explicacao,
+        'dificuldade': dificuldade,
       };
     }
 
@@ -258,7 +303,8 @@ Características:
   }
 
   /// Processa resposta de verdadeiro/falso
-  static Map<String, dynamic>? _processarVerdadeiroFalso(List<String> linhas) {
+  static Map<String, dynamic>? _processarVerdadeiroFalso(
+      List<String> linhas, String dificuldade) {
     String? pergunta;
     String? respostaCorreta;
     String? explicacao;
@@ -280,6 +326,7 @@ Características:
         'pergunta': pergunta,
         'resposta_correta': respostaCorreta,
         'explicacao': explicacao,
+        'dificuldade': dificuldade,
       };
     }
 
@@ -287,7 +334,8 @@ Características:
   }
 
   /// Processa resposta de completar frase
-  static Map<String, dynamic>? _processarCompleteFrase(List<String> linhas) {
+  static Map<String, dynamic>? _processarCompleteFrase(
+      List<String> linhas, String dificuldade) {
     String? pergunta;
     String? respostaCorreta;
     String? explicacao;
@@ -309,6 +357,7 @@ Características:
         'pergunta': pergunta,
         'resposta_correta': respostaCorreta,
         'explicacao': explicacao,
+        'dificuldade': dificuldade,
       };
     }
 

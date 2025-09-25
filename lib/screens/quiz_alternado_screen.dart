@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/quiz_helper_service.dart';
+import '../services/performance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class QuizAlternadoScreen extends StatefulWidget {
@@ -94,6 +95,17 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   late String ano;
   late String topico;
   late String dificuldade;
+
+  // Sistema de dificuldade adaptiva
+  String _dificuldadeAdaptiva = 'fácil';
+
+  Future<String> _getDificuldadeAtual() async {
+    // Usar dificuldade adaptiva baseada na performance do usuário
+    _dificuldadeAdaptiva =
+        await PerformanceService.calcularDificuldadeAdaptiva();
+    return _dificuldadeAdaptiva;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,6 +119,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     _loadPreferences();
     _initializeQuiz();
     _respostaController.addListener(_onRespostaChanged);
+
+    // Inicializar dificuldade adaptiva
+    _initializeDificuldadeAdaptiva();
+  }
+
+  Future<void> _initializeDificuldadeAdaptiva() async {
+    _dificuldadeAdaptiva = await PerformanceService.obterDificuldadeAtual();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onRespostaChanged() {
@@ -428,11 +450,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       debugPrint('Gerando primeira pergunta tipo: $tipoAtual');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
+      final dificuldadeAtual = await _getDificuldadeAtual();
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
         tipoQuiz: tipoAtual,
-        dificuldade: dificuldade,
+        dificuldade: dificuldadeAtual,
       );
 
       if (pergunta != null) {
@@ -530,11 +553,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       final tipo = _getTipoAtual();
       debugPrint('Pré-carregando pergunta tipo: $tipo');
 
+      final dificuldadeAtual = await _getDificuldadeAtual();
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
         tipoQuiz: tipo,
-        dificuldade: dificuldade,
+        dificuldade: dificuldadeAtual,
       );
 
       if (pergunta != null && mounted) {
@@ -668,6 +692,13 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
     }
 
+    // Registrar resposta no sistema de performance para ajustar dificuldade
+    await PerformanceService.registrarResposta(
+      acertou: acertou,
+      dificuldade: _dificuldadeAdaptiva,
+      tipoQuiz: tipoAtual,
+    );
+
     // Salva a resposta
     respostas.add({
       'pergunta': perguntaAtual!['pergunta'],
@@ -676,6 +707,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       'resposta_correta': respostaCorreta,
       'acertou': acertou,
       'explicacao': perguntaAtual!['explicacao'] ?? '',
+      'dificuldade_usada': _dificuldadeAdaptiva,
     });
 
     if (mounted) {
@@ -792,10 +824,14 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       preCarregadas = ' • ${_perguntasPreCarregadas.length} prontas';
     }
 
+    // Adiciona indicador de dificuldade adaptiva
+    String dificuldadeInfo =
+        ' • Dificuldade: ${_dificuldadeAdaptiva.toUpperCase()}';
+
     if (_useGemini) {
-      return '$progresso • $nivel • IA: Gemini$preCarregadas';
+      return '$progresso • $nivel$dificuldadeInfo • IA: Gemini$preCarregadas';
     } else {
-      return '$progresso • $nivel • IA: Ollama ($_modeloOllama)$preCarregadas';
+      return '$progresso • $nivel$dificuldadeInfo • IA: Ollama ($_modeloOllama)$preCarregadas';
     }
   }
 
@@ -1020,6 +1056,40 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 16 : 12,
+                    vertical: isTablet ? 8 : 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getDificuldadeColor(_dificuldadeAdaptiva)
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+                    border: Border.all(
+                      color: _getDificuldadeColor(_dificuldadeAdaptiva)
+                          .withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getDificuldadeIcon(_dificuldadeAdaptiva),
+                        color: _getDificuldadeColor(_dificuldadeAdaptiva),
+                        size: isTablet ? 18 : 16,
+                      ),
+                      SizedBox(width: isTablet ? 8 : 6),
+                      Text(
+                        _dificuldadeAdaptiva.toUpperCase(),
+                        style: AppTheme.bodySmall.copyWith(
+                          color: _getDificuldadeColor(_dificuldadeAdaptiva),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             SizedBox(height: isTablet ? 24 : 20),
@@ -1169,7 +1239,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '• 10 perguntas de tipos variados\n• IA gera conteúdo personalizado\n• Pré-carregamento para experiência fluida',
+                        '• 10 perguntas de tipos variados\n• IA gera conteúdo personalizado\n• Dificuldade adaptativa baseada na performance\n• Pré-carregamento para experiência fluida',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
@@ -2295,6 +2365,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
 
             const SizedBox(height: 24),
 
+            // Performance e Dificuldade Adaptiva
+            _buildPerformanceCard(),
+
+            const SizedBox(height: 24),
+
             // Botões de ação
             Row(
               children: [
@@ -2318,8 +2393,30 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                 const SizedBox(width: 16),
                 Expanded(
                   child: ModernButton(
-                    text: 'Voltar',
-                    onPressed: () => Navigator.of(context).pop(),
+                    text: 'Voltar ao Início',
+                    onPressed: () {
+                      if (mounted) {
+                        setState(() {
+                          _mostrarTelaInicial = true;
+                          quizFinalizado = false;
+                          perguntaIndex = 0;
+                          pontuacao = 0;
+                          respostas.clear();
+                          estatisticas = {
+                            'corretas': 0,
+                            'incorretas': 0,
+                            'multipla_escolha': 0,
+                            'verdadeiro_falso': 0,
+                            'complete_frase': 0,
+                          };
+                          _perguntasPreCarregadas.clear();
+                          _preCarregamentoAtivo = false;
+                          _snakeClickCount = 0;
+                          _gameRunning = false;
+                          _snakeController.stop();
+                        });
+                      }
+                    },
                     isPrimary: true,
                     icon: Icons.home,
                   ),
@@ -2382,6 +2479,209 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       default:
         return AppTheme.primaryColor;
     }
+  }
+
+  Color _getDificuldadeColor(String dificuldade) {
+    switch (dificuldade.toLowerCase()) {
+      case 'fácil':
+        return AppTheme.successColor;
+      case 'médio':
+        return AppTheme.warningColor;
+      case 'difícil':
+        return AppTheme.errorColor;
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
+  IconData _getDificuldadeIcon(String dificuldade) {
+    switch (dificuldade.toLowerCase()) {
+      case 'fácil':
+        return Icons.sentiment_satisfied;
+      case 'médio':
+        return Icons.sentiment_neutral;
+      case 'difícil':
+        return Icons.sentiment_dissatisfied;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Widget _buildPerformanceCard() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: PerformanceService.obterEstatisticas(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.darkBorderColor),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final stats = snapshot.data!;
+        final taxaAcertoGeral = stats['taxa_acerto_geral'] ?? 0.0;
+        final taxaAcertoRecente = stats['taxa_acerto_recente'] ?? 0.0;
+        final sequenciaAcertos = stats['sequencia_acertos'] ?? 0;
+        final sequenciaErros = stats['sequencia_erros'] ?? 0;
+        final dificuldadeAtual = stats['dificuldade_atual'] ?? 'fácil';
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppTheme.darkSurfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.darkBorderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.trending_up,
+                    color: AppTheme.primaryColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Performance Adaptiva',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Taxa de acerto geral
+              _buildPerformanceItem(
+                'Taxa de Acerto Geral',
+                '${taxaAcertoGeral.toStringAsFixed(1)}%',
+                Icons.analytics,
+                _getPerformanceColor(taxaAcertoGeral),
+              ),
+
+              // Taxa de acerto recente
+              _buildPerformanceItem(
+                'Performance Recente',
+                '${taxaAcertoRecente.toStringAsFixed(1)}%',
+                Icons.timeline,
+                _getPerformanceColor(taxaAcertoRecente),
+              ),
+
+              // Sequência atual
+              if (sequenciaAcertos > 0)
+                _buildPerformanceItem(
+                  'Sequência de Acertos',
+                  '$sequenciaAcertos',
+                  Icons.local_fire_department,
+                  AppTheme.successColor,
+                )
+              else if (sequenciaErros > 0)
+                _buildPerformanceItem(
+                  'Sequência de Erros',
+                  '$sequenciaErros',
+                  Icons.warning,
+                  AppTheme.errorColor,
+                ),
+
+              Divider(color: AppTheme.darkBorderColor, height: 32),
+
+              // Dificuldade atual
+              Row(
+                children: [
+                  Icon(
+                    _getDificuldadeIcon(dificuldadeAtual),
+                    color: _getDificuldadeColor(dificuldadeAtual),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Dificuldade Atual',
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getDificuldadeColor(dificuldadeAtual)
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _getDificuldadeColor(dificuldadeAtual)
+                            .withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      dificuldadeAtual.toUpperCase(),
+                      style: AppTheme.bodySmall.copyWith(
+                        color: _getDificuldadeColor(dificuldadeAtual),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              Text(
+                'A dificuldade se ajusta automaticamente baseada na sua performance para otimizar o aprendizado.',
+                style: AppTheme.bodySmall.copyWith(
+                  color: AppTheme.darkTextSecondaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPerformanceItem(
+      String titulo, String valor, IconData icon, Color cor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: cor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              titulo,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.darkTextPrimaryColor,
+              ),
+            ),
+          ),
+          Text(
+            valor,
+            style: AppTheme.bodyMedium.copyWith(
+              color: cor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPerformanceColor(double taxa) {
+    if (taxa >= 70) return AppTheme.successColor;
+    if (taxa >= 50) return AppTheme.warningColor;
+    return AppTheme.errorColor;
   }
 
   Widget _buildEstatisticaItem(

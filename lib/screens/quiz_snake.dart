@@ -63,7 +63,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   Offset _direction = const Offset(1, 0); // Direita
   bool _gameRunning = false;
   bool _gamePaused = false; // Novo estado para pausar durante resposta
-  bool _waitingForManualMove = false; // Novo estado para esperar movimento manual após resposta certa
+  bool _waitingForManualMove =
+      false; // Novo estado para esperar movimento manual após resposta certa
   late AnimationController _snakeController;
   Timer? _gameTimer; // Timer para movimento contínuo
   final int _initialSnakeLength = 10;
@@ -208,11 +209,13 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                 if (_waitingForManualMove) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                      border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       'Pressione WASD ou setas para mover!',
@@ -221,6 +224,101 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                         fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Controles visuais para movimento manual
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.darkBackgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.darkBorderColor),
+                    ),
+                    child: Column(
+                      children: [
+                        // Botão Cima
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: _moveUp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.darkSurfaceColor,
+                              foregroundColor: AppTheme.darkTextPrimaryColor,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child:
+                                const Icon(Icons.keyboard_arrow_up, size: 24),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Botões Esquerda, Direita
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: ElevatedButton(
+                                onPressed: _moveLeft,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.darkSurfaceColor,
+                                  foregroundColor:
+                                      AppTheme.darkTextPrimaryColor,
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Icon(Icons.keyboard_arrow_left,
+                                    size: 24),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: ElevatedButton(
+                                onPressed: _moveRight,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.darkSurfaceColor,
+                                  foregroundColor:
+                                      AppTheme.darkTextPrimaryColor,
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Icon(Icons.keyboard_arrow_right,
+                                    size: 24),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        // Botão Baixo
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: ElevatedButton(
+                            onPressed: _moveDown,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.darkSurfaceColor,
+                              foregroundColor: AppTheme.darkTextPrimaryColor,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child:
+                                const Icon(Icons.keyboard_arrow_down, size: 24),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -712,7 +810,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         await Future.delayed(const Duration(seconds: 1));
       } else {
         // Em outros modos, para a cobra e espera movimento manual
-        _showResultSnackbar('Correto! 🎉\nPressione uma tecla de movimento (WASD ou setas) para continuar!', AppTheme.successColor);
+        _showResultSnackbar(
+            'Correto! 🎉\nPressione uma tecla de movimento (WASD ou setas) para continuar!',
+            AppTheme.successColor);
 
         // Pausar jogo e esperar movimento manual
         if (mounted) {
@@ -2040,72 +2140,97 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.darkBackgroundColor,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.darkBackgroundColor,
-              AppTheme.darkSurfaceColor,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header responsivo com botão voltar para a tela inicial
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 24 : 16,
-                  vertical: isTablet ? 8 : 6,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.of(context)
-                          .popUntil((route) => route.isFirst),
-                      icon: Icon(
-                        Icons.home_rounded,
-                        color: AppTheme.primaryColor,
-                        size: isTablet ? 28 : 24,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor:
-                            AppTheme.primaryColor.withValues(alpha: 0.08),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+        backgroundColor: AppTheme.darkBackgroundColor,
+        body: RawKeyboardListener(
+          focusNode: FocusNode(),
+          autofocus: true,
+          onKey: _waitingForManualMove
+              ? (RawKeyEvent event) {
+                  if (event is RawKeyDownEvent) {
+                    if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+                        event.logicalKey == LogicalKeyboardKey.keyW) {
+                      _moveUp();
+                    } else if (event.logicalKey ==
+                            LogicalKeyboardKey.arrowDown ||
+                        event.logicalKey == LogicalKeyboardKey.keyS) {
+                      _moveDown();
+                    } else if (event.logicalKey ==
+                            LogicalKeyboardKey.arrowLeft ||
+                        event.logicalKey == LogicalKeyboardKey.keyA) {
+                      _moveLeft();
+                    } else if (event.logicalKey ==
+                            LogicalKeyboardKey.arrowRight ||
+                        event.logicalKey == LogicalKeyboardKey.keyD) {
+                      _moveRight();
+                    }
+                  }
+                }
+              : null,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.darkBackgroundColor,
+                  AppTheme.darkSurfaceColor,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  // Header responsivo com botão voltar para a tela inicial
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 24 : 16,
+                      vertical: isTablet ? 8 : 6,
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.of(context)
+                              .popUntil((route) => route.isFirst),
+                          icon: Icon(
+                            Icons.home_rounded,
+                            color: AppTheme.primaryColor,
+                            size: isTablet ? 28 : 24,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor:
+                                AppTheme.primaryColor.withValues(alpha: 0.08),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
-                      ),
+                        SizedBox(width: isTablet ? 12 : 8),
+                        Expanded(
+                          child: ResponsiveHeader(
+                            title: 'Quiz Alternado',
+                            subtitle: _buildSubtitle(),
+                            trailing: _buildHeaderTrailing(isTablet),
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: isTablet ? 12 : 8),
-                    Expanded(
-                      child: ResponsiveHeader(
-                        title: 'Quiz Alternado',
-                        subtitle: _buildSubtitle(),
-                        trailing: _buildHeaderTrailing(isTablet),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
 
-              // Conteúdo principal
-              Expanded(
-                child: Row(
-                  children: [
-                    _buildSnakePanel(),
-                    const SizedBox(width: 16),
-                    _buildQuizPanel(isTablet),
-                  ],
-                ),
+                  // Conteúdo principal
+                  Expanded(
+                    child: Row(
+                      children: [
+                        _buildSnakePanel(),
+                        const SizedBox(width: 16),
+                        _buildQuizPanel(isTablet),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildResultadoScreen() {

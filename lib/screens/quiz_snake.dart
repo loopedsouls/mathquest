@@ -62,6 +62,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   Offset _foodPosition = Offset.zero;
   Offset _direction = const Offset(1, 0); // Direita
   bool _gameRunning = false;
+  bool _gamePaused = false; // Novo estado para pausar durante resposta
+  bool _waitingForManualMove = false; // Novo estado para esperar movimento manual após resposta certa
   late AnimationController _snakeController;
   Timer? _gameTimer; // Timer para movimento contínuo
   final int _initialSnakeLength = 10;
@@ -104,6 +106,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       setState(() {
         respostaSelecionada = _respostaController.text.trim();
       });
+    }
+    // Processar resposta automaticamente após seleção
+    if (respostaSelecionada != null && respostaSelecionada!.isNotEmpty) {
+      _processarResposta();
     }
   }
 
@@ -179,22 +185,45 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
           // Título e contador
           Container(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
               children: [
-                Icon(
-                  Icons.games_rounded,
-                  color: AppTheme.primaryColor,
-                  size: 24,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.games_rounded,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Cobra: ${_snakeSegments.length} • ${_getSpeedName(_currentSpeed)}',
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Cobra: ${_snakeSegments.length} • ${_getSpeedName(_currentSpeed)}',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.darkTextPrimaryColor,
-                    fontWeight: FontWeight.w600,
+                if (_waitingForManualMove) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      'Pressione WASD ou setas para mover!',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -249,12 +278,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
               _buildLoadingCard(isTablet)
             else if (perguntaAtual != null)
               _buildExercicioCard(isTablet),
-
-            SizedBox(height: isTablet ? 24 : 20),
-
-            // Botões de ação
-            if (!carregando && perguntaAtual != null)
-              _buildActionButtons(isTablet),
           ],
         ),
       ),
@@ -333,9 +356,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     _gameTimer?.cancel(); // Cancelar timer anterior se existir
     final duration = _getSnakeSpeedDuration();
     _gameTimer = Timer.periodic(duration, (timer) {
-      if (_gameRunning && mounted) {
+      if (_gameRunning && !_gamePaused && mounted) {
         _moveSnakeOnce();
-      } else {
+      } else if (!_gameRunning) {
         timer.cancel();
       }
     });
@@ -433,7 +456,36 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     // Evitar mudança para direção oposta (não pode ir para trás)
     if (_direction + newDirection != Offset.zero) {
       _direction = newDirection;
+
+      // Se estava esperando movimento manual após resposta certa, continuar o quiz
+      if (_waitingForManualMove) {
+        _continueQuizAfterManualMove();
+      }
     }
+  }
+
+  void _continueQuizAfterManualMove() async {
+    if (mounted) {
+      setState(() {
+        _waitingForManualMove = false;
+        _gamePaused = false;
+      });
+    }
+
+    // Reset das animações e próxima pergunta
+    _cardAnimationController.reset();
+    if (mounted) {
+      setState(() {
+        respostaSelecionada = null;
+        _respostaController.clear();
+      });
+    }
+
+    // Aguardar um pouco antes da próxima pergunta
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Próxima pergunta
+    await _gerarPergunta();
   }
 
   void _moveUp() => _changeDirection(const Offset(0, -1));
@@ -529,6 +581,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                   respostaSelecionada = letra;
                 });
               }
+              // Processar resposta automaticamente
+              _processarResposta();
             },
             isPrimary: isSelected,
             isFullWidth: true,
@@ -551,6 +605,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                   respostaSelecionada = 'Verdadeiro';
                 });
               }
+              // Processar resposta automaticamente
+              _processarResposta();
             },
             isPrimary: respostaSelecionada == 'Verdadeiro',
             icon: respostaSelecionada == 'Verdadeiro'
@@ -568,6 +624,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                   respostaSelecionada = 'Falso';
                 });
               }
+              // Processar resposta automaticamente
+              _processarResposta();
             },
             isPrimary: respostaSelecionada == 'Falso',
             icon: respostaSelecionada == 'Falso'
@@ -588,10 +646,16 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     );
   }
 
-  void _proximaPergunta() async {
+  void _processarResposta() async {
     if (respostaSelecionada == null || respostaSelecionada!.isEmpty) {
-      _showErrorDialog('Por favor, selecione uma resposta.');
-      return;
+      return; // Não processar se não há resposta selecionada
+    }
+
+    // Pausar o jogo durante o processamento
+    if (mounted) {
+      setState(() {
+        _gamePaused = true;
+      });
     }
 
     // Incrementa estatística do tipo atual
@@ -620,36 +684,55 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
           final letraCorreta =
               String.fromCharCode(65 + respostaCorretaIndex); // A, B, C, D
           acertou = respostaSelecionada == letraCorreta;
-          debugPrint(
-              'Múltipla escolha - Selecionada: "$respostaSelecionada", Correta: "$letraCorreta", Acertou: $acertou');
-          debugPrint('Opções: $opcoes');
-          debugPrint('Resposta correta valor: "$respostaCorretaValor"');
         } else {
-          acertou = false; // Resposta correta não encontrada nas opções
-          debugPrint(
-              'ERRO: Resposta correta "$respostaCorretaValor" não encontrada nas opções: $opcoes');
+          acertou = false;
         }
         break;
       case 'verdadeiro_falso':
         acertou = respostaSelecionada == respostaCorreta;
-        debugPrint(
-            'Verdadeiro/Falso - Selecionada: $respostaSelecionada, Correta: $respostaCorreta, Acertou: $acertou');
         break;
       case 'complete_frase':
         final respostaUsuario = respostaSelecionada!.toLowerCase().trim();
         final respostaEsperada =
             respostaCorreta.toString().toLowerCase().trim();
         acertou = respostaUsuario == respostaEsperada;
-        debugPrint(
-            'Complete frase - Usuario: "$respostaUsuario", Esperada: "$respostaEsperada", Acertou: $acertou');
         break;
     }
 
     if (acertou) {
       pontuacao += 10;
       estatisticas['corretas'] = estatisticas['corretas']! + 1;
+
+      // Lógica especial para respostas corretas baseada na velocidade
+      if (_currentSpeed == SnakeSpeed.hardcore) {
+        // No modo hardcore, não para a cobra - continua normalmente
+        _showResultSnackbar('Correto! 🎉', AppTheme.successColor);
+
+        // Aguardar apenas 1 segundo
+        await Future.delayed(const Duration(seconds: 1));
+      } else {
+        // Em outros modos, para a cobra e espera movimento manual
+        _showResultSnackbar('Correto! 🎉\nPressione uma tecla de movimento (WASD ou setas) para continuar!', AppTheme.successColor);
+
+        // Pausar jogo e esperar movimento manual
+        if (mounted) {
+          setState(() {
+            _waitingForManualMove = true;
+            _gamePaused = true;
+          });
+        }
+
+        // Aguardar movimento manual (não continua automaticamente)
+        return;
+      }
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
+      // Mostrar explicação em snackbar
+      final explicacao = perguntaAtual!['explicacao'] ?? 'Resposta incorreta.';
+      _showResultSnackbar('Incorreto 😞\n$explicacao', AppTheme.errorColor);
+
+      // Aguardar 3 segundos para explicação
+      await Future.delayed(const Duration(seconds: 3));
     }
 
     // Salva a resposta
@@ -671,54 +754,39 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     // Atualiza progresso
     _progressController.animateTo(perguntaIndex / totalPerguntas);
 
-    // Mostra explicação se errou
-    if (!acertou) {
-      await _mostrarExplicacao();
-    }
+    // Para respostas erradas, continuar automaticamente após delay
+    if (!acertou || _currentSpeed == SnakeSpeed.hardcore) {
+      // Reset das animações e próxima pergunta
+      _cardAnimationController.reset();
+      if (mounted) {
+        setState(() {
+          respostaSelecionada = null;
+          _respostaController.clear();
+          _gamePaused = false; // Reativar o jogo
+        });
+      }
 
-    // Reset das animações e próxima pergunta
-    _cardAnimationController.reset();
-    if (mounted) {
-      setState(() {
-        respostaSelecionada = null;
-        _respostaController.clear();
-      });
+      // Próxima pergunta
+      await _gerarPergunta();
     }
-
-    // Próxima pergunta - será instantânea se houver pré-carregada
-    await _gerarPergunta();
   }
 
-  Future<void> _mostrarExplicacao() async {
-    final explicacao =
-        perguntaAtual!['explicacao'] ?? 'Explicação não disponível.';
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          'Explicação',
-          style: AppTheme.bodyLarge.copyWith(
-            color: AppTheme.darkTextPrimaryColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+  void _showResultSnackbar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(
-          explicacao,
+          message,
           style: AppTheme.bodyMedium.copyWith(
-            color: AppTheme.darkTextSecondaryColor,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Entendi',
-              style: TextStyle(color: AppTheme.primaryColor),
-            ),
-          ),
-        ],
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }
@@ -733,37 +801,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         quizFinalizado = true;
       });
     }
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: Text(
-          'Erro',
-          style: AppTheme.bodyLarge.copyWith(
-            color: AppTheme.errorColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          message,
-          style: AppTheme.bodyMedium.copyWith(
-            color: AppTheme.darkTextSecondaryColor,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: TextStyle(color: AppTheme.primaryColor),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   String _buildSubtitle() {
@@ -903,22 +940,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildActionButtons(bool isTablet) {
-    return ModernButton(
-      text: perguntaIndex < totalPerguntas - 1
-          ? 'Próxima Pergunta'
-          : 'Finalizar Quiz',
-      onPressed: respostaSelecionada != null && respostaSelecionada!.isNotEmpty
-          ? _proximaPergunta
-          : null,
-      isPrimary: true,
-      icon: perguntaIndex < totalPerguntas - 1
-          ? Icons.arrow_forward
-          : Icons.check,
-      isFullWidth: true,
     );
   }
 

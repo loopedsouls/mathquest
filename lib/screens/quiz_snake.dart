@@ -773,10 +773,19 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   void _moveRight() => _changeDirection(const Offset(1, 0));
 
   void _diminuirCobra() {
-    if (_snakeSegments.length > 1) {
-      _snakeSegments.removeLast();
-      _currentSnakeLength = _snakeSegments.length;
-      debugPrint('Cobra diminuiu para $_currentSnakeLength segmentos');
+    if (_allSnakes.isNotEmpty) {
+      // Diminuir todas as cobras existentes (exceto se tiverem apenas 1 segmento)
+      for (int i = 0; i < _allSnakes.length; i++) {
+        if (_allSnakes[i].length > 1) {
+          _allSnakes[i].removeLast();
+          debugPrint('Cobra $i diminuiu para ${_allSnakes[i].length} segmentos');
+        }
+      }
+
+      // Atualizar _currentSnakeLength para compatibilidade
+      if (_mainSnakeIndex < _allSnakes.length) {
+        _currentSnakeLength = _allSnakes[_mainSnakeIndex].length;
+      }
     }
   }
 
@@ -788,7 +797,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
           // Adiciona um segmento no final da cauda (posição do último segmento)
           final lastSegment = _allSnakes[i].last;
           _allSnakes[i].add(lastSegment);
-          debugPrint('Cobra $i aumentou para ${_allSnakes[i].length} segmentos');
+          debugPrint(
+              'Cobra $i aumentou para ${_allSnakes[i].length} segmentos');
         }
       }
 

@@ -174,7 +174,7 @@ class PerformanceService {
       int acertosRecentes = 0;
       for (final resposta in ultimasRespostas) {
         final partes = resposta.split('|');
-        if (partes.length >= 1 && partes[0] == '1') {
+        if (partes.isNotEmpty && partes[0] == '1') {
           acertosRecentes++;
         }
       }
@@ -339,7 +339,7 @@ class PerformanceService {
       int acertosRecentes = 0;
       for (final resposta in ultimasRespostas) {
         final partes = resposta.split('|');
-        if (partes.length >= 1 && partes[0] == '1') {
+        if (partes.isNotEmpty && partes[0] == '1') {
           acertosRecentes++;
         }
       }

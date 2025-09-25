@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mathquest/screens/quiz_snake.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/ia_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class QuizAlternadoScreen extends StatefulWidget {
+enum SnakeSpeed { lento, normal, rapido, hardcore }
+
+class QuizSnakeScreen extends StatefulWidget {
   final bool isOfflineMode;
   final String? topico;
   final String? dificuldade;
 
-  const QuizAlternadoScreen({
+  const QuizSnakeScreen({
     super.key,
     this.isOfflineMode = false,
     this.topico,
@@ -20,10 +21,10 @@ class QuizAlternadoScreen extends StatefulWidget {
   });
 
   @override
-  State<QuizAlternadoScreen> createState() => _QuizAlternadoScreenState();
+  State<QuizSnakeScreen> createState() => _QuizAlternadoScreenState();
 }
 
-class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
+class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     with TickerProviderStateMixin {
   late MathTutorService tutorService;
 
@@ -91,8 +92,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   int _gridSize = 20;
   double _cellSize = 15;
 
-  // Contador de cliques na cobra verde
-  int _snakeClickCount = 0;
+  // Modos de velocidade
+  SnakeSpeed _currentSpeed = SnakeSpeed.normal;
 
   // Configurações visuais
   late String ano;
@@ -145,16 +146,120 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       curve: Curves.elasticOut,
     ));
 
+    _snakeController = AnimationController(
+      duration: _getSnakeSpeedDuration(),
+      vsync: this,
+    );
+
     _animationController.forward();
     _cardAnimationController.forward();
   }
 
-  void _initializeSnakeGame() {
-    _snakeController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
+  Duration _getSnakeSpeedDuration() {
+    switch (_currentSpeed) {
+      case SnakeSpeed.lento:
+        return const Duration(milliseconds: 500);
+      case SnakeSpeed.normal:
+        return const Duration(milliseconds: 200);
+      case SnakeSpeed.rapido:
+        return const Duration(milliseconds: 100);
+      case SnakeSpeed.hardcore:
+        return const Duration(milliseconds: 50);
+    }
+  }
 
+  String _getSpeedName(SnakeSpeed speed) {
+    switch (speed) {
+      case SnakeSpeed.lento:
+        return 'Lento';
+      case SnakeSpeed.normal:
+        return 'Normal';
+      case SnakeSpeed.rapido:
+        return 'Rápido';
+      case SnakeSpeed.hardcore:
+        return 'Hardcore';
+    }
+  }
+
+  Widget _buildMiniSnakeGame() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 768;
+    final gameHeight = isTablet ? 140.0 : 120.0;
+    final margin = isTablet ? 24.0 : 16.0;
+
+    return Container(
+      height: gameHeight,
+      margin: EdgeInsets.symmetric(horizontal: margin, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.darkBorderColor),
+      ),
+      child: Column(
+        children: [
+          // Título e contador compacto
+          Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 16 : 12, vertical: isTablet ? 8 : 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.games_rounded,
+                  color: AppTheme.primaryColor,
+                  size: isTablet ? 18 : 16,
+                ),
+                SizedBox(width: isTablet ? 10 : 8),
+                Text(
+                  'Cobra: ${_snakeSegments.length} • ${_getSpeedName(_currentSpeed)}',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Área do jogo compacta
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.all(isTablet ? 6 : 4),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Calcular tamanho da célula baseado no espaço disponível
+                  final availableWidth = constraints.maxWidth;
+                  final availableHeight = constraints.maxHeight;
+                  _cellSize = (availableWidth < availableHeight
+                          ? availableWidth
+                          : availableHeight) /
+                      _gridSize;
+
+                  return CustomPaint(
+                    painter: SnakePainter(
+                      snakeSegments: _snakeSegments,
+                      foodPosition: _foodPosition,
+                      cellSize: _cellSize,
+                      enemySnakes: _enemySnakes,
+                      enemyColors: _enemyColors,
+                      gridSize: _gridSize,
+                    ),
+                    child: Container(),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _initializeSnakeGame() {
     // Inicializar cobra com 10 segmentos no centro do grid
     _snakeSegments = [];
     final centerX = _gridSize ~/ 2;
@@ -218,18 +323,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     if (_gameRunning) return;
 
     _gameRunning = true;
-    _snakeController.repeat();
-
-    // Loop do jogo
-    _snakeController.addListener(() {
-      if (mounted && _gameRunning) {
-        _updateSnake();
-      }
-    });
+    // Remover o listener contínuo - agora movemos manualmente
   }
 
-  void _updateSnake() {
-    if (_snakeSegments.isEmpty) return;
+  void _moveSnakeOnce() {
+    if (!_gameRunning || _snakeSegments.isEmpty) return;
 
     final head = _snakeSegments.first;
     var newHead = head + _direction;
@@ -333,35 +431,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       _snakeSegments.removeLast();
       _currentSnakeLength = _snakeSegments.length;
       debugPrint('Cobra diminuiu para $_currentSnakeLength segmentos');
-    }
-  }
-
-  void _onSnakeTap() {
-    if (mounted) {
-      setState(() {
-        _snakeClickCount++;
-        debugPrint('Clique na cobra: $_snakeClickCount/3');
-      });
-
-      // Mostrar feedback visual
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cobra clicada: $_snakeClickCount/3'),
-          duration: const Duration(seconds: 1),
-          backgroundColor: AppTheme.primaryColor,
-        ),
-      );
-
-      if (_snakeClickCount >= 3) {
-        // Navegar para o Quiz Snake
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const QuizSnakeScreen(), // Quiz Snake Screen
-          ),
-        );
-        // Resetar contador
-        _snakeClickCount = 0;
-      }
     }
   }
 
@@ -738,6 +807,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         _respostaController.clear();
       });
     }
+
+    // Mover cobra uma vez após responder
+    _moveSnakeOnce();
 
     // Próxima pergunta - será instantânea se houver pré-carregada
     await _gerarPergunta();
@@ -1166,6 +1238,53 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                 ),
                 const SizedBox(height: 60),
 
+                // Seleção de modo de velocidade
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.darkSurfaceColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.darkBorderColor),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Modo da Cobra',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: SnakeSpeed.values.map((speed) {
+                          final isSelected = _currentSpeed == speed;
+                          return Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: ModernButton(
+                                text: _getSpeedName(speed),
+                                onPressed: () {
+                                  if (mounted) {
+                                    setState(() {
+                                      _currentSpeed = speed;
+                                    });
+                                  }
+                                },
+                                isPrimary: isSelected,
+                                isFullWidth: true,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
                 // Botão Start
                 ModernButton(
                   text: 'Começar Quiz',
@@ -1229,11 +1348,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       setState(() {
         _mostrarTelaInicial = false;
         _mostrarCarregamento = true;
-        _snakeClickCount = 0; // Resetar contador ao iniciar quiz
       });
     }
 
-    // Iniciar jogo da cobrinha
+    // Iniciar jogo da cobrinha imediatamente
     _startSnakeGame();
 
     // Iniciar carregamento das perguntas
@@ -1250,12 +1368,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     // Aguardar mais um pouco para mostrar o jogo
     await Future.delayed(const Duration(seconds: 2));
 
-    // Transicionar para o quiz
+    // Transicionar para o quiz - manter jogo rodando
     if (mounted) {
       setState(() {
         _mostrarCarregamento = false;
-        _gameRunning = false;
-        _snakeController.stop();
+        // Não parar o jogo - _gameRunning permanece true
       });
     }
   }
@@ -1407,32 +1524,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                 : availableHeight) /
                             _gridSize;
 
-                        return GestureDetector(
-                          onTapUp: (details) {
-                            // Verificar se o toque foi na cobra verde
-                            final painter = SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: _cellSize,
-                              enemySnakes: _enemySnakes,
-                              enemyColors: _enemyColors,
-                              gridSize: _gridSize,
-                            );
-                            if (painter.hitTestSnake(details.localPosition)) {
-                              _onSnakeTap();
-                            }
-                          },
-                          child: CustomPaint(
-                            painter: SnakePainter(
-                              snakeSegments: _snakeSegments,
-                              foodPosition: _foodPosition,
-                              cellSize: _cellSize,
-                              enemySnakes: _enemySnakes,
-                              enemyColors: _enemyColors,
-                              gridSize: _gridSize,
-                            ),
-                            child: Container(),
+                        return CustomPaint(
+                          painter: SnakePainter(
+                            snakeSegments: _snakeSegments,
+                            foodPosition: _foodPosition,
+                            cellSize: _cellSize,
+                            enemySnakes: _enemySnakes,
+                            enemyColors: _enemyColors,
+                            gridSize: _gridSize,
                           ),
+                          child: Container(),
                         );
                       },
                     ),
@@ -1658,33 +1759,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                       : availableHeight) /
                                   _gridSize;
 
-                              return GestureDetector(
-                                onTapUp: (details) {
-                                  // Verificar se o toque foi na cobra verde
-                                  final painter = SnakePainter(
-                                    snakeSegments: _snakeSegments,
-                                    foodPosition: _foodPosition,
-                                    cellSize: _cellSize,
-                                    enemySnakes: _enemySnakes,
-                                    enemyColors: _enemyColors,
-                                    gridSize: _gridSize,
-                                  );
-                                  if (painter
-                                      .hitTestSnake(details.localPosition)) {
-                                    _onSnakeTap();
-                                  }
-                                },
-                                child: CustomPaint(
-                                  painter: SnakePainter(
-                                    snakeSegments: _snakeSegments,
-                                    foodPosition: _foodPosition,
-                                    cellSize: _cellSize,
-                                    enemySnakes: _enemySnakes,
-                                    enemyColors: _enemyColors,
-                                    gridSize: _gridSize,
-                                  ),
-                                  child: Container(),
+                              return CustomPaint(
+                                painter: SnakePainter(
+                                  snakeSegments: _snakeSegments,
+                                  foodPosition: _foodPosition,
+                                  cellSize: _cellSize,
+                                  enemySnakes: _enemySnakes,
+                                  enemyColors: _enemyColors,
+                                  gridSize: _gridSize,
                                 ),
+                                child: Container(),
                               );
                             },
                           ),
@@ -2021,32 +2105,16 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                           _gridSize = 30; // Grid fixo maior para telas grandes
                           _cellSize = gameSize / _gridSize;
 
-                          return GestureDetector(
-                            onTapUp: (details) {
-                              // Verificar se o toque foi na cobra verde
-                              final painter = SnakePainter(
-                                snakeSegments: _snakeSegments,
-                                foodPosition: _foodPosition,
-                                cellSize: _cellSize,
-                                enemySnakes: _enemySnakes,
-                                enemyColors: _enemyColors,
-                                gridSize: _gridSize,
-                              );
-                              if (painter.hitTestSnake(details.localPosition)) {
-                                _onSnakeTap();
-                              }
-                            },
-                            child: CustomPaint(
-                              painter: SnakePainter(
-                                snakeSegments: _snakeSegments,
-                                foodPosition: _foodPosition,
-                                cellSize: _cellSize,
-                                enemySnakes: _enemySnakes,
-                                enemyColors: _enemyColors,
-                                gridSize: _gridSize,
-                              ),
-                              child: Container(),
+                          return CustomPaint(
+                            painter: SnakePainter(
+                              snakeSegments: _snakeSegments,
+                              foodPosition: _foodPosition,
+                              cellSize: _cellSize,
+                              enemySnakes: _enemySnakes,
+                              enemyColors: _enemyColors,
+                              gridSize: _gridSize,
                             ),
+                            child: Container(),
                           );
                         },
                       ),
@@ -2206,6 +2274,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
         child: SafeArea(
           child: Column(
             children: [
+              // Jogo da cobrinha sempre visível no topo
+              _buildMiniSnakeGame(),
+
               // Header responsivo com botão voltar para a tela inicial
               Container(
                 padding: EdgeInsets.symmetric(
@@ -2392,7 +2463,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
-                          builder: (context) => QuizAlternadoScreen(
+                          builder: (context) => QuizSnakeScreen(
                             topico: widget.topico,
                             dificuldade: widget.dificuldade,
                           ),
@@ -2509,7 +2580,6 @@ class SnakePainter extends CustomPainter {
   final List<List<Offset>> enemySnakes;
   final List<Color> enemyColors;
   final int gridSize;
-  final VoidCallback? onSnakeTap;
 
   SnakePainter({
     required this.snakeSegments,
@@ -2518,7 +2588,6 @@ class SnakePainter extends CustomPainter {
     required this.enemySnakes,
     required this.enemyColors,
     required this.gridSize,
-    this.onSnakeTap,
   });
 
   @override
@@ -2613,23 +2682,5 @@ class SnakePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
-  }
-
-  // Método para verificar se um ponto está na cobra verde
-  bool hitTestSnake(Offset position) {
-    if (snakeSegments.isEmpty) return false;
-
-    for (final segment in snakeSegments) {
-      final rect = Rect.fromLTWH(
-        segment.dx * cellSize,
-        segment.dy * cellSize,
-        cellSize,
-        cellSize,
-      );
-      if (rect.contains(position)) {
-        return true;
-      }
-    }
-    return false;
   }
 }

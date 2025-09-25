@@ -60,7 +60,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   // Jogo da Cobrinha
   List<Offset> _snakeSegments = [];
   Offset _foodPosition = Offset.zero;
-  Offset _direction = const Offset(1, 0); // Direita
   bool _gameRunning = false;
   bool _gamePaused = false; // Novo estado para pausar durante resposta
   bool _waitingForManualMove =
@@ -69,6 +68,13 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   Timer? _gameTimer; // Timer para movimento contínuo
   final int _initialSnakeLength = 10;
   int _currentSnakeLength = 10;
+
+  // Sistema de múltiplas cobras independentes
+  List<List<Offset>> _allSnakes = []; // Todas as cobras no jogo
+  List<Offset> _allSnakeDirections = []; // Direções de todas as cobras
+  List<Color> _allSnakeColors = []; // Cores de todas as cobras
+  int _mainSnakeIndex =
+      0; // Índice da cobra principal (controlada pelo jogador)
 
   // Inimigos (tipo Slither.io)
   final List<List<Offset>> _enemySnakes = [];
@@ -206,122 +212,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
                     ),
                   ],
                 ),
-                if (_waitingForManualMove) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      'Pressione WASD ou setas para mover!',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Controles visuais para movimento manual
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.darkBackgroundColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.darkBorderColor),
-                    ),
-                    child: Column(
-                      children: [
-                        // Botão Cima
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: ElevatedButton(
-                            onPressed: _moveUp,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.darkSurfaceColor,
-                              foregroundColor: AppTheme.darkTextPrimaryColor,
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child:
-                                const Icon(Icons.keyboard_arrow_up, size: 24),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Botões Esquerda, Direita
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 40,
-                              height: 40,
-                              child: ElevatedButton(
-                                onPressed: _moveLeft,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.darkSurfaceColor,
-                                  foregroundColor:
-                                      AppTheme.darkTextPrimaryColor,
-                                  padding: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Icon(Icons.keyboard_arrow_left,
-                                    size: 24),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 40,
-                              height: 40,
-                              child: ElevatedButton(
-                                onPressed: _moveRight,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.darkSurfaceColor,
-                                  foregroundColor:
-                                      AppTheme.darkTextPrimaryColor,
-                                  padding: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Icon(Icons.keyboard_arrow_right,
-                                    size: 24),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        // Botão Baixo
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: ElevatedButton(
-                            onPressed: _moveDown,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.darkSurfaceColor,
-                              foregroundColor: AppTheme.darkTextPrimaryColor,
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child:
-                                const Icon(Icons.keyboard_arrow_down, size: 24),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -343,7 +233,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
                   return CustomPaint(
                     painter: SnakePainter(
-                      snakeSegments: _snakeSegments,
+                      allSnakes: _allSnakes,
+                      allSnakeColors: _allSnakeColors,
                       foodPosition: _foodPosition,
                       cellSize: _cellSize,
                       enemySnakes: _enemySnakes,
@@ -362,6 +253,200 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   Widget _buildQuizPanel(bool isTablet) {
+    // Se estiver esperando movimento manual, mostrar controles de movimento
+    if (_waitingForManualMove) {
+      return Expanded(
+        child: Container(
+          padding: EdgeInsets.all(isTablet ? 24 : 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Título
+              Column(
+                children: [
+                  Text(
+                    'Correto! 🎉',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: AppTheme.successColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: isTablet ? 8 : 6),
+                  Text(
+                    'Pressione uma direção para continuar!',
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              SizedBox(height: isTablet ? 40 : 30),
+
+              // Controles visuais grandes
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: isTablet ? 300 : 250,
+                  maxHeight: isTablet ? 300 : 250,
+                ),
+                child: Stack(
+                  children: [
+                    // Centro
+                    Center(
+                      child: Container(
+                        width: isTablet ? 80 : 60,
+                        height: isTablet ? 80 : 60,
+                        decoration: BoxDecoration(
+                          color: AppTheme.darkSurfaceColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.darkBorderColor),
+                        ),
+                        child: Icon(
+                          Icons.games,
+                          color: AppTheme.primaryColor,
+                          size: isTablet ? 32 : 24,
+                        ),
+                      ),
+                    ),
+
+                    // Cima
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: SizedBox(
+                          width: isTablet ? 80 : 60,
+                          height: isTablet ? 80 : 60,
+                          child: ElevatedButton(
+                            onPressed: _moveUp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Icon(
+                              Icons.keyboard_arrow_up,
+                              size: isTablet ? 36 : 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Baixo
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: SizedBox(
+                          width: isTablet ? 80 : 60,
+                          height: isTablet ? 80 : 60,
+                          child: ElevatedButton(
+                            onPressed: _moveDown,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              size: isTablet ? 36 : 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Esquerda
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: SizedBox(
+                          width: isTablet ? 80 : 60,
+                          height: isTablet ? 80 : 60,
+                          child: ElevatedButton(
+                            onPressed: _moveLeft,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Icon(
+                              Icons.keyboard_arrow_left,
+                              size: isTablet ? 36 : 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Direita
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: SizedBox(
+                          width: isTablet ? 80 : 60,
+                          height: isTablet ? 80 : 60,
+                          child: ElevatedButton(
+                            onPressed: _moveRight,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Icon(
+                              Icons.keyboard_arrow_right,
+                              size: isTablet ? 36 : 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: isTablet ? 30 : 20),
+
+              // Instruções
+              Text(
+                'Use as setas do teclado ou clique nos botões',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.darkTextSecondaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Layout normal do quiz
     return Expanded(
       child: SingleChildScrollView(
         padding: EdgeInsets.all(isTablet ? 24 : 16),
@@ -383,13 +468,19 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   void _initializeSnakeGame() {
-    // Inicializar cobra com 10 segmentos no centro do grid
+    // Inicializar cobra principal com 10 segmentos no centro do grid
     _snakeSegments = [];
     final centerX = _gridSize ~/ 2;
     final centerY = _gridSize ~/ 2;
     for (int i = 0; i < _initialSnakeLength; i++) {
       _snakeSegments.add(Offset(centerX - i.toDouble(), centerY.toDouble()));
     }
+
+    // Inicializar sistema de múltiplas cobras
+    _allSnakes = [_snakeSegments]; // Cobra principal é a primeira
+    _allSnakeDirections = [const Offset(1, 0)]; // Direita
+    _allSnakeColors = [Colors.green]; // Verde para a cobra principal
+    _mainSnakeIndex = 0;
 
     // Posição inicial da comida (longe da cobra)
     _foodPosition = Offset((centerX + 5).toDouble(), centerY.toDouble());
@@ -463,37 +554,80 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   void _moveSnakeOnce() {
-    if (!_gameRunning || _snakeSegments.isEmpty) return;
+    if (!_gameRunning || _allSnakes.isEmpty) return;
 
-    final head = _snakeSegments.first;
-    var newHead = head + _direction;
+    // Mover todas as cobras independentes
+    for (int snakeIndex = 0; snakeIndex < _allSnakes.length; snakeIndex++) {
+      if (_allSnakes[snakeIndex].isEmpty) continue;
 
-    // Wrap-around nas bordas - a cobra pode atravessar para o lado oposto
-    if (newHead.dx < 0) {
-      newHead = Offset(_gridSize - 1, newHead.dy);
-    } else if (newHead.dx >= _gridSize) {
-      newHead = Offset(0, newHead.dy);
-    }
+      final head = _allSnakes[snakeIndex].first;
+      var newHead = head + _allSnakeDirections[snakeIndex];
 
-    if (newHead.dy < 0) {
-      newHead = Offset(newHead.dx, _gridSize - 1);
-    } else if (newHead.dy >= _gridSize) {
-      newHead = Offset(newHead.dx, 0);
-    }
+      // Wrap-around nas bordas
+      if (newHead.dx < 0) {
+        newHead = Offset(_gridSize - 1, newHead.dy);
+      } else if (newHead.dx >= _gridSize) {
+        newHead = Offset(0, newHead.dy);
+      }
 
-    // Adicionar nova cabeça
-    _snakeSegments.insert(0, newHead);
+      if (newHead.dy < 0) {
+        newHead = Offset(newHead.dx, _gridSize - 1);
+      } else if (newHead.dy >= _gridSize) {
+        newHead = Offset(newHead.dx, 0);
+      }
 
-    // Remover cauda se não comeu comida
-    if (_snakeSegments.first != _foodPosition) {
-      _snakeSegments.removeLast();
-    } else {
-      // Comeu comida - gerar nova posição
-      _generateFood();
+      // Verificar colisão com segmentos de outras cobras
+      bool collisionDetected = false;
+      int collisionSnakeIndex = -1;
+      int collisionSegmentIndex = -1;
+
+      for (int otherSnakeIndex = 0;
+          otherSnakeIndex < _allSnakes.length;
+          otherSnakeIndex++) {
+        if (otherSnakeIndex == snakeIndex) {
+          continue; // Não verificar colisão consigo mesmo
+        }
+
+        for (int segmentIndex = 0;
+            segmentIndex < _allSnakes[otherSnakeIndex].length;
+            segmentIndex++) {
+          if (_allSnakes[otherSnakeIndex][segmentIndex] == newHead) {
+            collisionDetected = true;
+            collisionSnakeIndex = otherSnakeIndex;
+            collisionSegmentIndex = segmentIndex;
+            break;
+          }
+        }
+        if (collisionDetected) break;
+      }
+
+      if (collisionDetected) {
+        // Cortar a cobra atingida e criar uma nova cobra independente
+        _cutSnakeAndCreateNew(
+            collisionSnakeIndex, collisionSegmentIndex, snakeIndex);
+        continue; // Pular o movimento normal desta cobra
+      }
+
+      // Adicionar nova cabeça
+      _allSnakes[snakeIndex].insert(0, newHead);
+
+      // Remover cauda se não comeu comida
+      if (_allSnakes[snakeIndex].first != _foodPosition) {
+        _allSnakes[snakeIndex].removeLast();
+      } else {
+        // Comeu comida - gerar nova posição
+        _generateFood();
+      }
     }
 
     // Atualizar inimigos
     _updateEnemies();
+
+    // Atualizar _snakeSegments para compatibilidade com o código existente
+    if (_allSnakes.isNotEmpty && _mainSnakeIndex < _allSnakes.length) {
+      _snakeSegments = _allSnakes[_mainSnakeIndex];
+      _currentSnakeLength = _snakeSegments.length;
+    }
 
     if (mounted) {
       setState(() {});
@@ -550,10 +684,57 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     );
   }
 
+  void _cutSnakeAndCreateNew(int collisionSnakeIndex, int collisionSegmentIndex,
+      int attackingSnakeIndex) {
+    // A cobra atingida é cortada no ponto de colisão
+    final cutSnake = _allSnakes[collisionSnakeIndex];
+
+    if (collisionSegmentIndex < cutSnake.length - 1) {
+      // Criar uma nova cobra com os segmentos após o ponto de corte
+      final newSnakeSegments = cutSnake.sublist(collisionSegmentIndex + 1);
+
+      if (newSnakeSegments.length > 1) {
+        // Adicionar nova cobra independente
+        _allSnakes.add(newSnakeSegments);
+        _allSnakeDirections
+            .add(_getRandomDirection()); // Direção aleatória para a nova cobra
+        _allSnakeColors
+            .add(_getRandomSnakeColor()); // Cor aleatória para a nova cobra
+
+        // Remover os segmentos cortados da cobra original
+        _allSnakes[collisionSnakeIndex] =
+            cutSnake.sublist(0, collisionSegmentIndex + 1);
+      }
+    }
+
+    // A cobra que causou a colisão também perde um segmento (efeito de ricochete)
+    if (_allSnakes[attackingSnakeIndex].length > 1) {
+      _allSnakes[attackingSnakeIndex].removeLast();
+    }
+
+    debugPrint(
+        'Cobra cortada! Criada nova cobra independente com ${_allSnakes.last.length} segmentos');
+  }
+
+  Color _getRandomSnakeColor() {
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.orange,
+      Colors.pink,
+      Colors.cyan,
+      Colors.yellow,
+      Colors.lime,
+      Colors.indigo,
+    ];
+    return colors[(DateTime.now().millisecondsSinceEpoch) % colors.length];
+  }
+
   void _changeDirection(Offset newDirection) {
     // Evitar mudança para direção oposta (não pode ir para trás)
-    if (_direction + newDirection != Offset.zero) {
-      _direction = newDirection;
+    if (_allSnakeDirections.isNotEmpty &&
+        _allSnakeDirections[_mainSnakeIndex] + newDirection != Offset.zero) {
+      _allSnakeDirections[_mainSnakeIndex] = newDirection;
 
       // Se estava esperando movimento manual após resposta certa, continuar o quiz
       if (_waitingForManualMove) {
@@ -599,6 +780,25 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
     }
   }
 
+  void _aumentarCobra() {
+    if (_allSnakes.isNotEmpty) {
+      // Aumentar todas as cobras existentes
+      for (int i = 0; i < _allSnakes.length; i++) {
+        if (_allSnakes[i].isNotEmpty) {
+          // Adiciona um segmento no final da cauda (posição do último segmento)
+          final lastSegment = _allSnakes[i].last;
+          _allSnakes[i].add(lastSegment);
+          debugPrint('Cobra $i aumentou para ${_allSnakes[i].length} segmentos');
+        }
+      }
+
+      // Atualizar _currentSnakeLength para compatibilidade
+      if (_mainSnakeIndex < _allSnakes.length) {
+        _currentSnakeLength = _allSnakes[_mainSnakeIndex].length;
+      }
+    }
+  }
+
   int _calculateGridSize(double availableWidth, double availableHeight) {
     // Calcular grid size baseado no tamanho da tela
     final minSize =
@@ -614,10 +814,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   Future<void> _gerarPergunta() async {
-    if (perguntaIndex >= _questions.length) {
-      _finalizarQuiz();
-      return;
-    }
+    // Modo endless - sempre gera uma nova pergunta
+    // Remove o limite de 10 perguntas
 
     if (mounted) {
       setState(() {
@@ -628,10 +826,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       });
     }
 
-    final pergunta = _questions[perguntaIndex];
+    final pergunta = _questions[perguntaIndex % _questions.length];
     _processarPerguntaCache(pergunta);
 
-    _diminuirCobra();
+    // Não diminui mais a cobra automaticamente a cada pergunta
 
     if (mounted) {
       setState(() {
@@ -801,6 +999,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       pontuacao += 10;
       estatisticas['corretas'] = estatisticas['corretas']! + 1;
 
+      // Aumentar o tamanho da cobra a cada resposta certa
+      _aumentarCobra();
+
       // Lógica especial para respostas corretas baseada na velocidade
       if (_currentSpeed == SnakeSpeed.hardcore) {
         // No modo hardcore, não para a cobra - continua normalmente
@@ -810,10 +1011,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         await Future.delayed(const Duration(seconds: 1));
       } else {
         // Em outros modos, para a cobra e espera movimento manual
-        _showResultSnackbar(
-            'Correto! 🎉\nPressione uma tecla de movimento (WASD ou setas) para continuar!',
-            AppTheme.successColor);
-
         // Pausar jogo e esperar movimento manual
         if (mounted) {
           setState(() {
@@ -827,6 +1024,10 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       }
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
+
+      // Diminuir o tamanho da cobra a cada resposta errada
+      _diminuirCobra();
+
       // Mostrar explicação em snackbar
       final explicacao = perguntaAtual!['explicacao'] ?? 'Resposta incorreta.';
       _showResultSnackbar('Incorreto 😞\n$explicacao', AppTheme.errorColor);
@@ -889,18 +1090,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         ),
       ),
     );
-  }
-
-  void _finalizarQuiz() {
-    // Parar o jogo da cobra
-    _gameRunning = false;
-    _gameTimer?.cancel();
-
-    if (mounted) {
-      setState(() {
-        quizFinalizado = true;
-      });
-    }
   }
 
   String _buildSubtitle() {
@@ -1405,7 +1594,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
                         return CustomPaint(
                           painter: SnakePainter(
-                            snakeSegments: _snakeSegments,
+                            allSnakes: _allSnakes,
+                            allSnakeColors: _allSnakeColors,
                             foodPosition: _foodPosition,
                             cellSize: _cellSize,
                             enemySnakes: _enemySnakes,
@@ -1640,7 +1830,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
                               return CustomPaint(
                                 painter: SnakePainter(
-                                  snakeSegments: _snakeSegments,
+                                  allSnakes: _allSnakes,
+                                  allSnakeColors: _allSnakeColors,
                                   foodPosition: _foodPosition,
                                   cellSize: _cellSize,
                                   enemySnakes: _enemySnakes,
@@ -1987,7 +2178,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
                           return CustomPaint(
                             painter: SnakePainter(
-                              snakeSegments: _snakeSegments,
+                              allSnakes: _allSnakes,
+                              allSnakeColors: _allSnakeColors,
                               foodPosition: _foodPosition,
                               cellSize: _cellSize,
                               enemySnakes: _enemySnakes,
@@ -2462,7 +2654,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
 // Classe para desenhar o jogo da cobrinha
 class SnakePainter extends CustomPainter {
-  final List<Offset> snakeSegments;
+  final List<List<Offset>> allSnakes;
+  final List<Color> allSnakeColors;
   final Offset foodPosition;
   final double cellSize;
   final List<List<Offset>> enemySnakes;
@@ -2470,7 +2663,8 @@ class SnakePainter extends CustomPainter {
   final int gridSize;
 
   SnakePainter({
-    required this.snakeSegments,
+    required this.allSnakes,
+    required this.allSnakeColors,
     required this.foodPosition,
     required this.cellSize,
     required this.enemySnakes,
@@ -2493,7 +2687,7 @@ class SnakePainter extends CustomPainter {
       }
     }
 
-    // Desenhar inimigos primeiro (atrás da cobra principal)
+    // Desenhar inimigos primeiro (atrás das cobras)
     for (int enemyIndex = 0; enemyIndex < enemySnakes.length; enemyIndex++) {
       if (enemyIndex < enemyColors.length) {
         paint.color = enemyColors[enemyIndex];
@@ -2526,33 +2720,37 @@ class SnakePainter extends CustomPainter {
       }
     }
 
-    // Desenhar cobra principal
-    paint.color = Colors.green;
-    for (final segment in snakeSegments) {
-      canvas.drawRect(
-        Rect.fromLTWH(
-          segment.dx * cellSize,
-          segment.dy * cellSize,
-          cellSize - 1,
-          cellSize - 1,
-        ),
-        paint,
-      );
-    }
+    // Desenhar todas as cobras independentes
+    for (int snakeIndex = 0; snakeIndex < allSnakes.length; snakeIndex++) {
+      if (snakeIndex >= allSnakeColors.length) continue;
 
-    // Desenhar cabeça da cobra principal (diferente)
-    if (snakeSegments.isNotEmpty) {
-      paint.color = Colors.greenAccent;
-      final head = snakeSegments.first;
-      canvas.drawRect(
-        Rect.fromLTWH(
-          head.dx * cellSize,
-          head.dy * cellSize,
-          cellSize - 1,
-          cellSize - 1,
-        ),
-        paint,
-      );
+      paint.color = allSnakeColors[snakeIndex];
+      for (final segment in allSnakes[snakeIndex]) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            segment.dx * cellSize,
+            segment.dy * cellSize,
+            cellSize - 1,
+            cellSize - 1,
+          ),
+          paint,
+        );
+      }
+
+      // Desenhar cabeça da cobra (mais clara)
+      if (allSnakes[snakeIndex].isNotEmpty) {
+        paint.color = allSnakeColors[snakeIndex].withValues(alpha: 0.7);
+        final head = allSnakes[snakeIndex].first;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            head.dx * cellSize,
+            head.dy * cellSize,
+            cellSize - 1,
+            cellSize - 1,
+          ),
+          paint,
+        );
+      }
     }
 
     // Desenhar comida

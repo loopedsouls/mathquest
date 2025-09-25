@@ -739,6 +739,9 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   void _continueQuizAfterManualMove() async {
+    // Próxima pergunta primeiro
+    await _gerarPergunta();
+
     if (mounted) {
       setState(() {
         _waitingForManualMove = false;
@@ -746,7 +749,7 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       });
     }
 
-    // Reset das animações e próxima pergunta
+    // Reset das animações
     _cardAnimationController.reset();
     if (mounted) {
       setState(() {
@@ -754,12 +757,6 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
         _respostaController.clear();
       });
     }
-
-    // Aguardar um pouco antes da próxima pergunta
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Próxima pergunta
-    await _gerarPergunta();
   }
 
   void _moveUp() => _changeDirection(const Offset(0, -1));

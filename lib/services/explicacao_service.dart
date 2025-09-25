@@ -18,10 +18,10 @@ class ExplicacaoService {
   }) async {
     try {
       final db = await DatabaseService.database;
-      
+
       // Verifica se a tabela existe, se não, cria
       await _criarTabelaSeNecessario(db);
-      
+
       final dados = {
         'usuario_id': usuarioId,
         'unidade': unidade,
@@ -37,7 +37,7 @@ class ExplicacaoService {
       };
 
       await db.insert(_tableName, dados);
-      
+
       if (kDebugMode) {
         print('💡 Explicação salva no histórico: $unidade - $ano');
       }
@@ -68,25 +68,50 @@ class ExplicacaoService {
     ''');
 
     // Cria índices para performance
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_explicacoes_unidade ON $_tableName(usuario_id, unidade, ano)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_explicacoes_topico ON $_tableName(topico_especifico)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_explicacoes_data ON $_tableName(data_erro)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_explicacoes_unidade ON $_tableName(usuario_id, unidade, ano)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_explicacoes_topico ON $_tableName(topico_especifico)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_explicacoes_data ON $_tableName(data_erro)');
   }
 
   /// Extrai o tópico da pergunta (análise simples)
   static String _extrairTopico(String pergunta) {
     final perguntaLower = pergunta.toLowerCase();
-    
+
     // Palavras-chave para identificar tópicos
     final topicos = {
       'Adição': ['soma', 'somar', 'adicionar', '+', 'mais'],
       'Subtração': ['subtração', 'subtrair', 'diferença', '-', 'menos'],
-      'Multiplicação': ['multiplicação', 'multiplicar', 'produto', '×', 'vezes'],
+      'Multiplicação': [
+        'multiplicação',
+        'multiplicar',
+        'produto',
+        '×',
+        'vezes'
+      ],
       'Divisão': ['divisão', 'dividir', 'quociente', '÷', 'por'],
-      'Frações': ['fração', 'frac', 'numerador', 'denominador', '/', 'meio', 'terço'],
+      'Frações': [
+        'fração',
+        'frac',
+        'numerador',
+        'denominador',
+        '/',
+        'meio',
+        'terço'
+      ],
       'Porcentagem': ['%', 'porcento', 'porcentagem', 'desconto'],
       'Álgebra': ['x', 'y', 'incógnita', 'equação', 'resolve', 'vale'],
-      'Geometria': ['área', 'perímetro', 'volume', 'quadrado', 'círculo', 'triângulo', 'retângulo'],
+      'Geometria': [
+        'área',
+        'perímetro',
+        'volume',
+        'quadrado',
+        'círculo',
+        'triângulo',
+        'retângulo'
+      ],
       'Estatística': ['média', 'moda', 'mediana', 'gráfico', 'dados'],
       'Probabilidade': ['probabilidade', 'chance', 'evento', 'possível'],
     };
@@ -112,10 +137,10 @@ class ExplicacaoService {
     try {
       final db = await DatabaseService.database;
       await _criarTabelaSeNecessario(db);
-      
+
       String whereClause = 'usuario_id = ? AND unidade = ?';
       List<dynamic> whereArgs = [usuarioId, unidade];
-      
+
       if (ano != null) {
         whereClause += ' AND ano = ?';
         whereArgs.add(ano);
@@ -192,7 +217,8 @@ class ExplicacaoService {
       ''', [usuarioId]);
 
       // Erros recentes (últimos 7 dias)
-      final dataLimite = DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
+      final dataLimite =
+          DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
       final recentesResults = await db.rawQuery('''
         SELECT COUNT(*) as erros_recentes
         FROM $_tableName 

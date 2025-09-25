@@ -2059,11 +2059,11 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
   }
 
   Widget _buildFullscreenSnakeGame() {
-    return RawKeyboardListener(
+    return KeyboardListener(
       focusNode: FocusNode(),
       autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
               event.logicalKey == LogicalKeyboardKey.keyW) {
             _moveUp();
@@ -2295,12 +2295,12 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
 
     return Scaffold(
         backgroundColor: AppTheme.darkBackgroundColor,
-        body: RawKeyboardListener(
+        body: KeyboardListener(
           focusNode: FocusNode(),
           autofocus: true,
-          onKey: _waitingForManualMove
-              ? (RawKeyEvent event) {
-                  if (event is RawKeyDownEvent) {
+          onKeyEvent: _waitingForManualMove
+              ? (KeyEvent event) {
+                  if (event is KeyDownEvent) {
                     if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
                         event.logicalKey == LogicalKeyboardKey.keyW) {
                       _moveUp();
@@ -2730,5 +2730,25 @@ class SnakePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
+  }
+}
+
+// Métodos auxiliares para o QuizSnakeScreen
+extension _QuizSnakeScreenMethods on _QuizAlternadoScreenState {
+  List<Map<String, dynamic>> getQuizSnakeQuestions(SnakeSpeed speed) {
+    return [
+      {
+        'pergunta': 'Quanto é 2 + 2?',
+        'opcoes': ['3', '4', '5', '6'],
+        'resposta_correta': '4',
+        'explicacao': '2 + 2 = 4',
+      },
+      {
+        'pergunta': 'Quanto é 5 × 3?',
+        'opcoes': ['12', '15', '18', '20'],
+        'resposta_correta': '15',
+        'explicacao': '5 × 3 = 15',
+      },
+    ];
   }
 }

@@ -100,7 +100,6 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
         ),
       ];
 
-
       setState(() => _carregando = false);
       _animationController.forward();
     } catch (e) {
@@ -173,7 +172,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
   }
 
   Widget _buildConquistasDesbloqueadas() {
-    final conquistasDesbloqueadas = _conquistas.where((c) => c.desbloqueada).toList();
+    final conquistasDesbloqueadas =
+        _conquistas.where((c) => c.desbloqueada).toList();
 
     if (conquistasDesbloqueadas.isEmpty) {
       return Center(
@@ -242,7 +242,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
   }
 
   Widget _buildConquistasBloqueadas() {
-    final conquistasBloqueadas = _conquistas.where((c) => !c.desbloqueada).toList();
+    final conquistasBloqueadas =
+        _conquistas.where((c) => !c.desbloqueada).toList();
 
     if (conquistasBloqueadas.isEmpty) {
       return Center(
@@ -301,9 +302,12 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
   }
 
   Widget _buildEstatisticasConquistas() {
-    final conquistasDesbloqueadas = _conquistas.where((c) => c.desbloqueada).toList();
+    final conquistasDesbloqueadas =
+        _conquistas.where((c) => c.desbloqueada).toList();
     final totalConquistas = _conquistas.length;
-    final porcentagem = totalConquistas > 0 ? (conquistasDesbloqueadas.length / totalConquistas) * 100 : 0;
+    final porcentagem = totalConquistas > 0
+        ? (conquistasDesbloqueadas.length / totalConquistas) * 100
+        : 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -313,8 +317,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
           Text(
             'Estatísticas de Conquistas',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 24),
           Row(
@@ -350,7 +354,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
     );
   }
 
-  Widget _buildStatCard(String titulo, String valor, IconData icone, Color cor) {
+  Widget _buildStatCard(
+      String titulo, String valor, IconData icone, Color cor) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -453,8 +458,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
           Text(
             'Relatório Geral',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 24),
           _buildProgressCard(),
@@ -588,7 +593,8 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
     );
   }
 
-  Widget _buildPerformanceItem(String label, String value, IconData icon, Color color) {
+  Widget _buildPerformanceItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),

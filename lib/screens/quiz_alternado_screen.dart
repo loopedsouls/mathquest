@@ -1799,7 +1799,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     final dPadSize =
         screenWidth > 1200 ? 140.0 : 120.0; // Maior em telas grandes
 
-    return Container(
+    return SizedBox(
       width: dPadSize,
       height: dPadSize,
       child: Stack(
@@ -1941,11 +1941,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   Widget _buildFullscreenSnakeGame() {
-    return RawKeyboardListener(
+    return KeyboardListener(
       focusNode: FocusNode(),
       autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
               event.logicalKey == LogicalKeyboardKey.keyW) {
             _moveUp();
@@ -2411,7 +2411,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                           };
                           _perguntasPreCarregadas.clear();
                           _preCarregamentoAtivo = false;
-                          _snakeClickCount = 0;
                           _gameRunning = false;
                           _snakeController.stop();
                         });

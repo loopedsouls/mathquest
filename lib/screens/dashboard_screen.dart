@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../models/conquista.dart';
@@ -509,6 +510,27 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
+  Widget _buildConquistaIcon(String icone, {bool isLocked = false}) {
+    if (icone.startsWith('assets/models/') && icone.endsWith('.svg')) {
+      return SvgPicture.asset(
+        icone,
+        width: 36,
+        height: 36,
+        fit: BoxFit.contain,
+        colorFilter: ColorFilter.mode(AppTheme.primaryColor, BlendMode.srcIn),
+      );
+    } else {
+      // Fallback para emojis
+      return Text(
+        icone,
+        style: TextStyle(
+          fontSize: 36,
+          color: isLocked ? Colors.grey[600] : null,
+        ),
+      );
+    }
+  }
+
   // Achievement section with detailed view
   Widget _buildAchievementCard() {
     final unlockedAchievements =
@@ -531,7 +553,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+                  Icon(Icons.emoji_events,
+                      color: AppTheme.primaryColor, size: 24),
                   const SizedBox(width: 8),
                   const Text('Conquistas',
                       style: TextStyle(
@@ -543,13 +566,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.2),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                         '${unlockedAchievements.length}/${_conquistas.length}',
-                        style: const TextStyle(
-                            color: Colors.amber,
+                        style: TextStyle(
+                            color: AppTheme.primaryColor,
                             fontSize: 12,
                             fontWeight: FontWeight.bold)),
                   ),
@@ -577,10 +600,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                           children: [
                             CircleAvatar(
                                 radius: 30,
-                                backgroundColor:
-                                    Colors.amber.withValues(alpha: 0.2),
-                                child: Text(conquista.emoji,
-                                    style: const TextStyle(fontSize: 24))),
+                                backgroundColor: AppTheme.primaryColor
+                                    .withValues(alpha: 0.2),
+                                child: _buildConquistaIcon(conquista.emoji)),
                             const SizedBox(height: 8),
                             Text(conquista.titulo,
                                 style: const TextStyle(
@@ -626,8 +648,32 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 radius: 30,
                                 backgroundColor: AppTheme.darkBorderColor
                                     .withValues(alpha: 0.3),
-                                child: Icon(Icons.lock,
-                                    color: AppTheme.darkTextSecondaryColor)),
+                                child: Stack(
+                                  children: [
+                                    Center(
+                                      child: _buildConquistaIcon(
+                                          conquista.emoji,
+                                          isLocked: true),
+                                    ),
+                                    Positioned(
+                                      bottom: 2,
+                                      right: 2,
+                                      child: Container(
+                                        width: 16,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[700],
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.lock,
+                                          color: Colors.grey[400],
+                                          size: 10,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )),
                             const SizedBox(height: 8),
                             Text(conquista.titulo,
                                 style: TextStyle(

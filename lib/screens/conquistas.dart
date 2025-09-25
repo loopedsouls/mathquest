@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
 import '../models/conquista.dart';
 import '../services/gamificacao_service.dart';
@@ -34,6 +35,33 @@ class _ConquistasScreenState extends State<ConquistasScreen>
     _tabController.dispose();
     _animationController.dispose();
     super.dispose();
+  }
+
+  Widget _buildConquistaIcon(String icone, {bool isLocked = false}) {
+    if (icone.startsWith('assets/models/') && icone.endsWith('.svg')) {
+      return SvgPicture.asset(
+        icone,
+        width: 40,
+        height: 40,
+        fit: BoxFit.contain,
+        colorFilter: ColorFilter.mode(AppTheme.primaryColor, BlendMode.srcIn),
+        placeholderBuilder: (BuildContext context) => Icon(
+          Icons.emoji_events,
+          size: 40,
+          color: AppTheme.primaryColor,
+        ),
+        // Tratamento de erro caso o SVG não carregue
+      );
+    } else {
+      // Fallback para emojis
+      return Text(
+        icone,
+        style: TextStyle(
+          fontSize: 40,
+          color: isLocked ? Colors.grey[600] : null,
+        ),
+      );
+    }
   }
 
   Future<void> _carregarDados() async {
@@ -239,10 +267,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                               ],
                             ),
                             child: Center(
-                              child: Text(
-                                conquista.emoji,
-                                style: const TextStyle(fontSize: 28),
-                              ),
+                              child: _buildConquistaIcon(conquista.emoji),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -439,10 +464,30 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                         color: Colors.grey[800],
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.lock,
-                        color: Colors.grey[600],
-                        size: 28,
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: _buildConquistaIcon(conquista.emoji,
+                                isLocked: true),
+                          ),
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[700],
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.lock,
+                                color: Colors.grey[400],
+                                size: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 16),

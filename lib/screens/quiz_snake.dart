@@ -778,7 +778,8 @@ class _QuizAlternadoScreenState extends State<QuizSnakeScreen>
       for (int i = 0; i < _allSnakes.length; i++) {
         if (_allSnakes[i].length > 1) {
           _allSnakes[i].removeLast();
-          debugPrint('Cobra $i diminuiu para ${_allSnakes[i].length} segmentos');
+          debugPrint(
+              'Cobra $i diminuiu para ${_allSnakes[i].length} segmentos');
         }
       }
 

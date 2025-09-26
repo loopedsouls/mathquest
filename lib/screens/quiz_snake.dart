@@ -2733,22 +2733,4 @@ class SnakePainter extends CustomPainter {
   }
 }
 
-// Métodos auxiliares para o QuizSnakeScreen
-extension _QuizSnakeScreenMethods on _QuizAlternadoScreenState {
-  List<Map<String, dynamic>> getQuizSnakeQuestions(SnakeSpeed speed) {
-    return [
-      {
-        'pergunta': 'Quanto é 2 + 2?',
-        'opcoes': ['3', '4', '5', '6'],
-        'resposta_correta': '4',
-        'explicacao': '2 + 2 = 4',
-      },
-      {
-        'pergunta': 'Quanto é 5 × 3?',
-        'opcoes': ['12', '15', '18', '20'],
-        'resposta_correta': '15',
-        'explicacao': '5 × 3 = 15',
-      },
-    ];
-  }
-}
+

@@ -138,9 +138,9 @@ class SmartAIService implements AIService {
   bool _ollamaAvailable = false;
   DateTime? _lastOllamaCheck;
 
-  SmartAIService() {
+  SmartAIService({String? geminiApiKey}) {
     _ollamaService = OllamaService();
-    _geminiService = GeminiService();
+    _geminiService = GeminiService(apiKey: geminiApiKey);
   }
 
   @override
@@ -292,11 +292,13 @@ Seja preciso na análise matemática.
 class GeminiService implements AIService {
   late final GenerativeModel _model;
   final String _apiKey;
+  final String _modelName;
 
-  GeminiService({String? apiKey})
-      : _apiKey = apiKey ?? 'AIzaSyAiNcBfK0i7P6qPuqfhbT3ijZgHJKyW0xo' {
+  GeminiService({String? apiKey, String? modelName})
+      : _apiKey = apiKey ?? 'AIzaSyDSbj4mYAOSdDxEwD8vP7tC8vJ6KzF4N2M',
+        _modelName = modelName ?? 'gemini-2.5-flash' {
     _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: _modelName,
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,
@@ -339,10 +341,11 @@ class GeminiService implements AIService {
     required String prompt,
     double? temperature,
     int? maxOutputTokens,
+    String? modelName,
   }) async {
     try {
       final model = GenerativeModel(
-        model: 'gemini-1.5-flash',
+        model: modelName ?? _modelName,
         apiKey: _apiKey,
         generationConfig: GenerationConfig(
           temperature: temperature ?? 0.7,

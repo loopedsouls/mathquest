@@ -2732,5 +2732,3 @@ class SnakePainter extends CustomPainter {
     return true;
   }
 }
-
-

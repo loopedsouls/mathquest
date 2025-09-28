@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/ai_queue_service.dart';
+import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 
 class QueueStatusIndicator extends StatefulWidget {

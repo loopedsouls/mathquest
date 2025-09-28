@@ -13,7 +13,6 @@ import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
 import '../services/ia_service.dart';
 import '../services/conversa_service.dart';
-import '../services/ai_queue_service.dart';
 import '../../widgets/modern_components.dart';
 import 'package:file_picker/file_picker.dart';
 

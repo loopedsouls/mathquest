@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'cache_ia_service.dart';
 import 'ia_service.dart';
 
 class QuizHelperService {

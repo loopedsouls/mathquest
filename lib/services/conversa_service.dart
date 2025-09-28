@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversa.dart';
-import '../services/ia_service.dart';
+import 'ia_service.dart';
 
 class ConversaService {
   static const String _chaveConversas = 'conversas_salvas';

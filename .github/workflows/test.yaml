@@ -4,7 +4,7 @@ name: Flutter Web Build
 on:
   push:
     branches:
-      - main
+      - web
 jobs:
   build-web:
     runs-on: ubuntu-latest

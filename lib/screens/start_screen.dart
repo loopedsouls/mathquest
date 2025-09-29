@@ -4,7 +4,7 @@ import '../services/ia_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import 'configuracao_screen.dart';
-import 'quiz_alternado_screen.dart';
+import 'quiz_screen.dart';
 import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'dashboard_screen.dart';

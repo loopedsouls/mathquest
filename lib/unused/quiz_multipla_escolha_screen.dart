@@ -219,7 +219,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       debugPrint('Inicializando serviço de IA...');
       debugPrint('Modo offline: ${widget.isOfflineMode}');
       debugPrint('Usar Gemini: $_useGemini');
-      debugPrint('API Key presente: ${apiKey != null ? 'Sim' : 'Não'}');
+      debugPrint('API Key presente: ${'Sim'}');
 
       AIService aiService;
       if (_useGemini) {

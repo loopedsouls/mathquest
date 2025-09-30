@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ia_service.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import 'configuracao_screen.dart';
@@ -11,6 +12,7 @@ import 'dashboard_screen.dart';
 import 'chat_screen.dart';
 import 'perfil_screen.dart';
 import 'teste_personagem_3d_screen.dart';
+import 'login_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -34,6 +36,7 @@ class StartScreen extends StatefulWidget {
 class _StartScreenState extends State<StartScreen>
     with TickerProviderStateMixin {
   final GeminiService geminiService = GeminiService();
+  final AuthService _authService = AuthService();
   bool _isLoading = true;
   bool _isOfflineMode = false;
   List<Map<String, dynamic>> _exerciciosOffline = [];
@@ -43,6 +46,7 @@ class _StartScreenState extends State<StartScreen>
 
   // Informações sobre a IA configurada
   bool _aiAvailable = false;
+  bool _isUserLoggedIn = false;
 
   // Navegação
   int _selectedIndex = 0;
@@ -75,6 +79,7 @@ class _StartScreenState extends State<StartScreen>
     super.initState();
     _initializeAnimations();
     _initializeApp();
+    _checkAuthState();
   }
 
   void _initializeAnimations() {
@@ -131,6 +136,57 @@ class _StartScreenState extends State<StartScreen>
           _aiAvailable = false;
         });
         _animationController.forward();
+      }
+    }
+  }
+
+  void _checkAuthState() {
+    final user = _authService.currentUser;
+    if (mounted) {
+      setState(() {
+        _isUserLoggedIn = user != null;
+      });
+    }
+  }
+
+  Future<void> _showLoginScreen() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+        fullscreenDialog: true,
+      ),
+    );
+
+    if (result == true && mounted) {
+      _checkAuthState();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login realizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await _authService.signOut();
+      if (mounted) {
+        _checkAuthState();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logout realizado com sucesso!'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao fazer logout: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -401,9 +457,11 @@ class _StartScreenState extends State<StartScreen>
                           ),
                         ),
                         Text(
-                          'Tutoria Inteligente',
+                          _isUserLoggedIn ? 'Usuário logado' : 'Modo convidado',
                           style: TextStyle(
-                            color: AppTheme.darkTextSecondaryColor,
+                            color: _isUserLoggedIn
+                                ? AppTheme.successColor
+                                : AppTheme.darkTextSecondaryColor,
                             fontSize: 12,
                           ),
                         ),
@@ -548,6 +606,87 @@ class _StartScreenState extends State<StartScreen>
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
+                // Botão de Login/Logout
+                if (!_isUserLoggedIn)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _showLoginScreen,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  AppTheme.primaryColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.login_rounded,
+                                color: AppTheme.primaryColor,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Fazer Login',
+                                style: TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_isUserLoggedIn)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _signOut,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.warningColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  AppTheme.warningColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.logout_rounded,
+                                color: AppTheme.warningColor,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Fazer Logout',
+                                style: TextStyle(
+                                  color: AppTheme.warningColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -814,6 +953,26 @@ class _StartScreenState extends State<StartScreen>
                                       isPrimary: false,
                                       height: buttonHeight,
                                     ),
+                                    if (!_isUserLoggedIn) ...[
+                                      SizedBox(height: spacing),
+                                      ModernButton(
+                                        text: 'Fazer Login',
+                                        icon: Icons.login_rounded,
+                                        onPressed: _showLoginScreen,
+                                        isPrimary: false,
+                                        height: buttonHeight,
+                                      ),
+                                    ],
+                                    if (_isUserLoggedIn) ...[
+                                      SizedBox(height: spacing),
+                                      ModernButton(
+                                        text: 'Fazer Logout',
+                                        icon: Icons.logout_rounded,
+                                        onPressed: _signOut,
+                                        isPrimary: false,
+                                        height: buttonHeight,
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),

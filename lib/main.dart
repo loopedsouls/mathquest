@@ -5,10 +5,12 @@ import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'services/firebase_ai_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +19,16 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Inicializar Firebase App Check
+  try {
+    await FirebaseAppCheck.instance.activate();
+    print('Firebase App Check ativado com sucesso');
+  } catch (e) {
+    // App Check pode falhar em algumas plataformas (como Windows) ou durante desenvolvimento
+    // mas isso não deve impedir o funcionamento do app
+    print('Erro ao inicializar App Check (normal em desenvolvimento): $e');
+  }
 
   // Inicializar Remote Config
   try {
@@ -39,6 +51,15 @@ void main() async {
     // Crashlytics pode falhar em algumas plataformas (como Windows)
     // mas isso não deve impedir o funcionamento do app
     print('Erro ao inicializar Crashlytics: $e');
+  }
+
+  // Inicializar Firebase AI
+  try {
+    await FirebaseAIService.initialize();
+  } catch (e) {
+    // Firebase AI pode falhar durante desenvolvimento
+    // mas isso não deve impedir o funcionamento do app
+    print('Erro ao inicializar Firebase AI: $e');
   }
 
   // Configurar orientações permitidas e UI overlay
@@ -135,7 +156,7 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // Sempre mostrar o app principal - autenticação é opcional
+        // Mostrar o app principal - usuário pode estar logado ou como convidado
         return const AppInitializer();
       },
     );

@@ -13,11 +13,11 @@ class TestePersonagem3DScreen extends StatelessWidget {
         title: const Text('Teste Personagem 3D'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               'Personagem 3D Estilo Roblox',
               style: TextStyle(
                 color: Colors.white,
@@ -25,7 +25,7 @@ class TestePersonagem3DScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Personagem3DWidget(
               itensEquipados: {
                 'cabeca': 'chapeu_mago',
@@ -38,8 +38,8 @@ class TestePersonagem3DScreen extends StatelessWidget {
               nome: 'Matemático',
               interactive: true,
             ),
-            const SizedBox(height: 32),
-            const Text(
+            SizedBox(height: 32),
+            Text(
               'Arraste para rotacionar',
               style: TextStyle(
                 color: Colors.grey,

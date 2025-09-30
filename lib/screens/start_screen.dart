@@ -165,7 +165,8 @@ class _StartScreenState extends State<StartScreen>
     if (Platform.isWindows) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Login não disponível no Windows (Firebase desabilitado)'),
+          content:
+              Text('Login não disponível no Windows (Firebase desabilitado)'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -191,6 +192,16 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Future<void> _signOut() async {
+    if (Platform.isWindows) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logout não disponível no Windows'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     try {
       await _authService.signOut();
       if (mounted) {

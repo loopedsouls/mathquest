@@ -40,6 +40,7 @@ pubspec.lock
 .packages
 .pub-cache/
 .pub/
+lib/firebase_options.dart
 
 # Web related
 

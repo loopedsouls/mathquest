@@ -11,55 +11,60 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Inicializar Firebase apenas se não for Windows (problemas de compatibilidade)
+  if (!Platform.isWindows) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-  // Inicializar Firebase App Check
-  try {
-    await FirebaseAppCheck.instance.activate();
-    print('Firebase App Check ativado com sucesso');
-  } catch (e) {
-    // App Check pode falhar em algumas plataformas (como Windows) ou durante desenvolvimento
-    // mas isso não deve impedir o funcionamento do app
-    print('Erro ao inicializar App Check (normal em desenvolvimento): $e');
-  }
+    // Inicializar Firebase App Check
+    try {
+      await FirebaseAppCheck.instance.activate();
+      print('Firebase App Check ativado com sucesso');
+    } catch (e) {
+      // App Check pode falhar em algumas plataformas (como Windows) ou durante desenvolvimento
+      // mas isso não deve impedir o funcionamento do app
+      print('Erro ao inicializar App Check (normal em desenvolvimento): $e');
+    }
 
-  // Inicializar Remote Config
-  try {
-    final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: const Duration(hours: 1),
-    ));
-    await remoteConfig.fetchAndActivate();
-  } catch (e) {
-    // Remote Config pode falhar em algumas plataformas (como Windows)
-    // mas isso não deve impedir o funcionamento do app
-    print('Erro ao inicializar Remote Config: $e');
-  }
+    // Inicializar Remote Config
+    try {
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(hours: 1),
+      ));
+      await remoteConfig.fetchAndActivate();
+    } catch (e) {
+      // Remote Config pode falhar em algumas plataformas (como Windows)
+      // mas isso não deve impedir o funcionamento do app
+      print('Erro ao inicializar Remote Config: $e');
+    }
 
-  // Inicializar Crashlytics após Remote Config
-  try {
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  } catch (e) {
-    // Crashlytics pode falhar em algumas plataformas (como Windows)
-    // mas isso não deve impedir o funcionamento do app
-    print('Erro ao inicializar Crashlytics: $e');
-  }
+    // Inicializar Crashlytics após Remote Config
+    try {
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    } catch (e) {
+      // Crashlytics pode falhar em algumas plataformas (como Windows)
+      // mas isso não deve impedir o funcionamento do app
+      print('Erro ao inicializar Crashlytics: $e');
+    }
 
-  // Inicializar Firebase AI
-  try {
-    await FirebaseAIService.initialize();
-  } catch (e) {
-    // Firebase AI pode falhar durante desenvolvimento
-    // mas isso não deve impedir o funcionamento do app
-    print('Erro ao inicializar Firebase AI: $e');
+    // Inicializar Firebase AI
+    try {
+      await FirebaseAIService.initialize();
+    } catch (e) {
+      // Firebase AI pode falhar durante desenvolvimento
+      // mas isso não deve impedir o funcionamento do app
+      print('Erro ao inicializar Firebase AI: $e');
+    }
+  } else {
+    print('Executando no Windows - Firebase desabilitado para compatibilidade');
   }
 
   // Configurar orientações permitidas e UI overlay
@@ -145,6 +150,11 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Se estiver no Windows, pula autenticação (Firebase não inicializado)
+    if (Platform.isWindows) {
+      return const AppInitializer();
+    }
+
     return StreamBuilder<User?>(
       stream: AuthService().authStateChanges,
       builder: (context, snapshot) {

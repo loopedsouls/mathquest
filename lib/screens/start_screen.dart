@@ -14,6 +14,7 @@ import 'perfil_screen.dart';
 import 'teste_personagem_3d_screen.dart';
 import 'teste_firebase_ai_screen.dart';
 import 'login_screen.dart';
+import 'dart:io';
 
 class NavigationItem {
   final IconData icon;
@@ -142,6 +143,16 @@ class _StartScreenState extends State<StartScreen>
   }
 
   void _checkAuthState() {
+    if (Platform.isWindows) {
+      // No Windows, Firebase não está inicializado, assume não logado
+      if (mounted) {
+        setState(() {
+          _isUserLoggedIn = false;
+        });
+      }
+      return;
+    }
+
     final user = _authService.currentUser;
     if (mounted) {
       setState(() {
@@ -151,6 +162,16 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Future<void> _showLoginScreen() async {
+    if (Platform.isWindows) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login não disponível no Windows (Firebase desabilitado)'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (context) => const LoginScreen(),

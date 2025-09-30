@@ -163,10 +163,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Campo Email
                         TextField(
                           controller: _emailController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: Icon(Icons.email),
                             border: OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -176,10 +178,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Campo Senha
                         TextField(
                           controller: _passwordController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Senha',
                             prefixIcon: Icon(Icons.lock),
                             border: OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
                           obscureText: true,
                           textInputAction: _isLogin
@@ -193,10 +197,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (!_isLogin) ...[
                           TextField(
                             controller: _confirmPasswordController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Confirmar Senha',
                               prefixIcon: Icon(Icons.lock_outline),
                               border: OutlineInputBorder(),
+                              filled: true,
+                              fillColor: Colors.grey[100],
                             ),
                             obscureText: true,
                             textInputAction: TextInputAction.done,
@@ -314,9 +320,11 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey[100],
               ),
               keyboardType: TextInputType.emailAddress,
             ),

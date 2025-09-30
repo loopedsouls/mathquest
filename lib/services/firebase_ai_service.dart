@@ -198,6 +198,22 @@ class FirebaseAIService {
     }
   }
 
+  /// Envia uma mensagem geral para o Firebase AI
+  static Future<String?> sendMessage(String message) async {
+    if (!isAvailable) return null;
+
+    try {
+      final prompt = [Content.text(message)];
+      final response = await _geminiModel!.generateContent(prompt);
+      return response.text;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro ao enviar mensagem para Firebase AI: $e');
+      }
+      return null;
+    }
+  }
+
   /// Teste básico do Firebase AI
   static Future<String?> testarConexao() async {
     if (!isAvailable) {

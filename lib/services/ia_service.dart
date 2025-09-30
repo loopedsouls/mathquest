@@ -82,6 +82,7 @@ class GeminiService implements AIService {
   }
 
   // Método para compatibilidade com código antigo
+  @override
   Future<String> generate(String prompt, {String? context}) async {
     return await gerarResposta(prompt, context ?? '');
   }
@@ -106,6 +107,7 @@ class OllamaService implements AIService {
   // Métodos depreciados para compatibilidade
   Future<bool> isOllamaRunning() async => false;
   Future<List<String>> listModels() async => [];
+  @override
   Future<String> generate(String prompt, {String? context}) async {
     return await gerarResposta(prompt, context ?? '');
   }
@@ -175,6 +177,7 @@ class FlutterGemmaService implements AIService {
   }
 
   // Métodos para compatibilidade
+  @override
   Future<String> generate(String prompt, {String? context}) async {
     return await gerarResposta(prompt, context ?? '');
   }

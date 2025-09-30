@@ -165,8 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           decoration: InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: Icon(Icons.email),
-                            border: OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.email),
+                            border: const OutlineInputBorder(),
                             filled: true,
                             fillColor: Colors.grey[100],
                           ),
@@ -180,8 +180,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           decoration: InputDecoration(
                             labelText: 'Senha',
-                            prefixIcon: Icon(Icons.lock),
-                            border: OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.lock),
+                            border: const OutlineInputBorder(),
                             filled: true,
                             fillColor: Colors.grey[100],
                           ),
@@ -199,8 +199,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _confirmPasswordController,
                             decoration: InputDecoration(
                               labelText: 'Confirmar Senha',
-                              prefixIcon: Icon(Icons.lock_outline),
-                              border: OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              border: const OutlineInputBorder(),
                               filled: true,
                               fillColor: Colors.grey[100],
                             ),
@@ -322,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey[100],
               ),

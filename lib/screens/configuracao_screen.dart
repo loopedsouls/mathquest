@@ -2090,7 +2090,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               children: [
                 Icon(
                   _currentUser != null ? Icons.person : Icons.person_off,
-                  color: _currentUser != null ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+                  color: _currentUser != null
+                      ? AppTheme.successColor
+                      : AppTheme.darkTextSecondaryColor,
                   size: iconSize,
                 ),
                 SizedBox(width: spacing),

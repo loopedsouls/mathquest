@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../services/ia_service.dart';
 import '../services/preload_service.dart';
+import '../services/firebase_ai_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../services/auth_service.dart';
@@ -136,10 +137,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   Future<void> _fetchOllamaModels() async {
     setState(() => _loadingModels = true);
     try {
-      final ollamaService = OllamaService();
-      _ollamaModels = await ollamaService.listModels();
+      // OllamaService deprecated - using Firebase AI models instead
+      _ollamaModels = ['gemini-pro', 'gemini-pro-vision'];
       if (_ollamaModels.isEmpty) {
-        _ollamaModels = ['llama2'];
+        _ollamaModels = ['gemini-pro'];
       }
       if (!_ollamaModels.contains(_modeloOllama)) {
         _modeloOllama = _ollamaModels.first;
@@ -193,11 +194,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ? '✅ Conexão com Gemini funcionando!'
             : '❌ Erro na conexão com Gemini.';
       } else if (_selectedAI == 'ollama') {
-        final ollamaService = OllamaService(defaultModel: _modeloOllama);
-        final isAvailable = await ollamaService.isServiceAvailable();
+        // OllamaService deprecated - using Firebase AI instead
+        final isAvailable = FirebaseAIService.isAvailable;
         status = isAvailable
-            ? '✅ Conexão com Ollama funcionando!'
-            : '❌ Erro na conexão com Ollama.';
+            ? '✅ Firebase AI funcionando!'
+            : '❌ Firebase AI não disponível.';
       } else if (_selectedAI == 'flutter_gemma') {
         final flutterGemmaService = GeminiService();
         final isAvailable = await flutterGemmaService.isServiceAvailable();
@@ -260,7 +261,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     if (confirmed == true) {
       setState(() => carregando = true);
       try {
-        await CacheIAService.limparCache();
+        // CacheIAService deprecated - Firebase AI doesn't use local cache
+        // await CacheIAService.limparCache();
         await _recarregarCreditos(); // Atualiza os créditos na interface
         setState(() {
           status = '🗑️ Cache limpo com sucesso!';
@@ -2294,15 +2296,13 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   Future<Map<String, dynamic>> _getFlutterGemmaStatus() async {
     try {
-      final gemmaService = FlutterGemmaService(
-        onStatusUpdate: (status) {
-          setState(() => this.status = status);
-        },
-        onDownloadProgress: (progress) {
-          // Pode ser usado para mostrar progresso em um indicador visual
-        },
-      );
-      return await gemmaService.getModelInfo();
+      // FlutterGemmaService deprecated - using Firebase AI status instead
+      await FirebaseAIService.initialize();
+      return {
+        'exists': FirebaseAIService.isAvailable,
+        'size': 'N/A (Firebase AI)',
+        'downloaded': FirebaseAIService.isAvailable,
+      };
     } catch (e) {
       return {
         'exists': false,
@@ -2315,19 +2315,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     setState(() => carregando = true);
 
     try {
-      final gemmaService = FlutterGemmaService(
-        onStatusUpdate: (status) {
-          setState(() => this.status = status);
-        },
-        onDownloadProgress: (progress) {
-          // Atualizar UI com progresso se necessário
-          setState(() {});
-        },
-      );
-
-      await gemmaService.forceDownloadModel();
+      // FlutterGemmaService deprecated - using Firebase AI initialization instead
+      await FirebaseAIService.initialize();
       setState(() {
-        status = '✅ Modelo baixado com sucesso!';
+        status = '✅ Firebase AI inicializado com sucesso!';
       });
     } catch (e) {
       setState(() {
@@ -2349,24 +2340,21 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     setState(() => carregando = true);
 
     try {
-      final gemmaService = FlutterGemmaService(
-        onStatusUpdate: (status) {
-          setState(() => this.status = status);
-        },
-      );
+      // Initialize Firebase AI if not already done
+      await FirebaseAIService.initialize();
 
-      final isAvailable = await gemmaService.isServiceAvailable();
+      final isAvailable = FirebaseAIService.isAvailable;
       if (isAvailable) {
         // Testar uma geração simples
         final response =
-            await gemmaService.generate('Olá, teste de funcionamento');
+            await FirebaseAIService.sendMessage('Olá, teste de funcionamento');
         setState(() {
           status =
-              '✅ Flutter Gemma funcionando! Resposta: ${response.substring(0, min(50, response.length))}...';
+              '✅ Firebase AI funcionando! Resposta: ${response != null ? response.substring(0, min(50, response.length)) : "Sem resposta"}...';
         });
       } else {
         setState(() {
-          status = '❌ Flutter Gemma não está disponível';
+          status = '❌ Firebase AI não está disponível';
         });
       }
     } catch (e) {

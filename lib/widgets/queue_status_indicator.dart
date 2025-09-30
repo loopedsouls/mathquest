@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/ia_service.dart';
+import '../services/firebase_ai_service.dart';
 import '../theme/app_theme.dart';
 
 class QueueStatusIndicator extends StatefulWidget {
@@ -13,12 +13,11 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
-  late AIQueueService _queueService;
+  bool _firebaseAIReady = false;
 
   @override
   void initState() {
     super.initState();
-    _queueService = AIQueueService();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -27,46 +26,105 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _queueService.addListener(_onQueueChanged);
-    _updateAnimation();
+    _checkFirebaseAIStatus();
   }
 
-  @override
-  void dispose() {
-    _queueService.removeListener(_onQueueChanged);
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _onQueueChanged() {
+  Future<void> _checkFirebaseAIStatus() async {
+    await FirebaseAIService.initialize();
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _firebaseAIReady = FirebaseAIService.isAvailable;
+      });
       _updateAnimation();
     }
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void _updateAnimation() {
-    if (_queueService.isProcessing || _queueService.queue.isNotEmpty) {
+    if (_firebaseAIReady) {
       _animationController.repeat(reverse: true);
     } else {
       _animationController.stop();
-      _animationController.reset();
+      _animationController.value = 0.5;
     }
   }
 
-  void _showQueueDetails() {
-    final queueInfo = _queueService.getQueueInfo();
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _showStatusDetails,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _firebaseAIReady
+                  ? AppTheme.successColor.withValues(alpha: 0.1)
+                  : AppTheme.errorColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _firebaseAIReady
+                    ? AppTheme.successColor
+                    : AppTheme.errorColor,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ScaleTransition(
+                  scale: _animation,
+                  child: Icon(
+                    _firebaseAIReady ? Icons.check_circle : Icons.error,
+                    color: _firebaseAIReady
+                        ? AppTheme.successColor
+                        : AppTheme.errorColor,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _firebaseAIReady
+                      ? 'Firebase AI Pronto'
+                      : 'Firebase AI Indisponível',
+                  style: TextStyle(
+                    color: _firebaseAIReady
+                        ? AppTheme.successColor
+                        : AppTheme.errorColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
+  void _showStatusDetails() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.darkSurfaceColor,
         title: Row(
           children: [
-            Icon(Icons.queue_outlined, color: AppTheme.primaryColor),
+            Icon(
+              _firebaseAIReady ? Icons.check_circle : Icons.error,
+              color: _firebaseAIReady
+                  ? AppTheme.successColor
+                  : AppTheme.errorColor,
+            ),
             const SizedBox(width: 8),
-            const Text(
-              'Status da Fila de IA',
+            Text(
+              'Status do Firebase AI',
               style: TextStyle(color: Colors.white),
             ),
           ],
@@ -75,43 +133,37 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStatusRow('Gerações na fila:', '${queueInfo['queueLength']}'),
             _buildStatusRow(
-                'Conversas ativas:', '${queueInfo['activeRequests']}'),
-            _buildStatusRow(
-                'Processando:', _queueService.isProcessing ? 'Sim' : 'Não'),
-            _buildStatusRow('Pendentes:', '${queueInfo['pendingRequests']}'),
-            const SizedBox(height: 16),
+                'Status:', _firebaseAIReady ? 'Disponível' : 'Indisponível'),
+            const SizedBox(height: 8),
             Text(
-              'ℹ️ A fila permite trocar de conversa sem perder gerações em andamento.',
+              _firebaseAIReady
+                  ? 'O Firebase AI está funcionando corretamente e pronto para gerar respostas.'
+                  : 'O Firebase AI não está disponível. Verifique a configuração.',
               style: TextStyle(
-                color: AppTheme.secondaryColor,
-                fontSize: 12,
-              ),
+                  color: AppTheme.darkTextSecondaryColor, fontSize: 14),
             ),
           ],
         ),
         actions: [
-          if (_queueService.queue.isNotEmpty ||
-              _queueService.activeRequests.isNotEmpty)
-            TextButton.icon(
-              onPressed: () {
-                _queueService.clearAll();
-                Navigator.of(context).pop();
-              },
-              icon: Icon(Icons.clear_all, color: AppTheme.errorColor),
-              label: Text(
-                'Limpar Fila',
-                style: TextStyle(color: AppTheme.errorColor),
-              ),
-            ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: Text(
               'Fechar',
               style: TextStyle(color: AppTheme.primaryColor),
             ),
           ),
+          if (!_firebaseAIReady)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _checkFirebaseAIStatus();
+              },
+              child: Text(
+                'Tentar Novamente',
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ),
         ],
       ),
     );
@@ -119,86 +171,27 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
 
   Widget _buildStatusRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: 14,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final hasActivity = _queueService.isProcessing ||
-        _queueService.queue.isNotEmpty ||
-        _queueService.activeRequests.isNotEmpty;
-
-    if (!hasActivity) {
-      return const SizedBox.shrink();
-    }
-
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          margin: const EdgeInsets.only(right: 8),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: _showQueueDetails,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor
-                        .withValues(alpha: _animation.value),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.psychology,
-                      size: 16,
-                      color: AppTheme.primaryColor
-                          .withValues(alpha: _animation.value),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _queueService.isProcessing
-                          ? 'IA gerando...'
-                          : 'Na fila: ${_queueService.queue.length}',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor
-                            .withValues(alpha: _animation.value),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

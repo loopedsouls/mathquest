@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../services/ia_service.dart';
 import '../services/quiz_helper_service.dart';
 import '../services/performance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,8 +25,6 @@ class QuizAlternadoScreen extends StatefulWidget {
 
 class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     with TickerProviderStateMixin {
-  late MathTutorService? tutorService;
-
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
   String tipoAtual = '';
@@ -396,8 +393,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     // Usar Firebase AI Service
-    final aiService = GeminiService();
-    tutorService = MathTutorService(aiService: aiService);
 
     // Limpa fila de perguntas pré-carregadas
     _perguntasPreCarregadas.clear();

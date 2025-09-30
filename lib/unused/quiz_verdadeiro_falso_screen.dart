@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../services/ia_service.dart';
 import '../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,8 +25,6 @@ class QuizVerdadeiroFalsoScreen extends StatefulWidget {
 
 class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
     with TickerProviderStateMixin {
-  late MathTutorService tutorService;
-
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
   int perguntaIndex = 0;
@@ -168,7 +165,6 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
 
   Future<void> _initializeQuiz() async {
     await _carregarPreferencias();
-    await _initializeService();
     await _carregarProximaPergunta();
   }
 
@@ -180,23 +176,6 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
       _useGemini = selectedAI == 'gemini';
       _modeloOllama = modeloOllama;
     });
-  }
-
-  Future<void> _initializeService() async {
-    if (!widget.isOfflineMode) {
-      String? apiKey;
-      final prefs = await SharedPreferences.getInstance();
-      apiKey = prefs.getString('gemini_api_key');
-
-      AIService aiService;
-      if (_useGemini) {
-        aiService = GeminiService(apiKey: apiKey);
-      } else {
-        aiService = OllamaService(defaultModel: _modeloOllama);
-      }
-
-      tutorService = MathTutorService(aiService: aiService);
-    }
   }
 
   Future<void> _carregarProximaPergunta() async {

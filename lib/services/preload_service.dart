@@ -83,9 +83,6 @@ class PreloadService {
 
         final gemini = GeminiService(apiKey: apiKey);
         return await gemini.isServiceAvailable();
-      } else if (selectedAI == 'ollama') {
-        final ollama = OllamaService();
-        return await ollama.isOllamaRunning();
       }
 
       return false;
@@ -192,12 +189,6 @@ class PreloadService {
           throw Exception('API Key do Gemini não configurada');
         }
         iaService = GeminiService(apiKey: apiKey);
-      } else if (selectedAI == 'ollama') {
-        final ollama = OllamaService();
-        if (!await ollama.isOllamaRunning()) {
-          throw Exception('Ollama não está rodando');
-        }
-        iaService = ollama;
       } else {
         throw Exception('Serviço de IA não suportado: $selectedAI');
       }

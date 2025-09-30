@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../services/ia_service.dart';
 import '../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
+import '../services/firebase_ai_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -24,7 +24,6 @@ class QuizCompleteAFraseScreen extends StatefulWidget {
 
 class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
     with TickerProviderStateMixin {
-  late MathTutorService tutorService;
   final TextEditingController _respostaController = TextEditingController();
 
   String pergunta = '';
@@ -110,7 +109,6 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
 
   Future<void> _initializeTutoria() async {
     await _carregarPreferencias();
-    await _initializeService();
     await _carregarHistorico();
     await _carregarProximoExercicio();
   }
@@ -123,21 +121,6 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
       _useGemini = selectedAI == 'gemini';
       _modeloOllama = modeloOllama;
     });
-  }
-
-  Future<void> _initializeService() async {
-    String? apiKey;
-    final prefs = await SharedPreferences.getInstance();
-    apiKey = prefs.getString('gemini_api_key');
-
-    AIService aiService;
-    if (_useGemini) {
-      aiService = GeminiService(apiKey: apiKey);
-    } else {
-      aiService = OllamaService(defaultModel: _modeloOllama);
-    }
-
-    tutorService = MathTutorService(aiService: aiService);
   }
 
   Future<void> _carregarProximoExercicio() async {
@@ -217,7 +200,7 @@ Mantenha essas informações na sua memória para quando o usuário solicitar ve
 Responda apenas com "Resposta armazenada na memória" para confirmar que você processou e guardou a solução.
 ''';
 
-      final confirmacao = await tutorService.aiService.generate(promptMemoria);
+      final confirmacao = await FirebaseAIService.sendMessage(promptMemoria);
 
       // Log opcional para debug (pode ser removido em produção)
       debugPrint('IA confirmou armazenamento: $confirmacao');
@@ -245,8 +228,15 @@ Forneça uma resposta no seguinte formato:
 Seja preciso na análise matemática e didático na explicação.
 ''';
 
-      final resultado =
-          await tutorService.aiService.generate(promptVerificacao);
+      final resultado = await FirebaseAIService.sendMessage(promptVerificacao);
+
+      if (resultado == null) {
+        // Fallback se Firebase AI falhar
+        return {
+          'correta': false,
+          'explicacao': 'Erro ao verificar resposta. Tente novamente.',
+        };
+      }
 
       // Analisar a resposta da IA
       final isCorrect = resultado.toUpperCase().startsWith('CORRETO');
@@ -408,10 +398,10 @@ Por favor, forneça instruções claras e específicas sobre:
 Seja didático, encorajador e específico para esta pergunta. Limite sua resposta a cerca de 200 palavras.
 ''';
 
-      final ajudaGerada = await tutorService.aiService.generate(prompt);
+      final ajudaGerada = await FirebaseAIService.sendMessage(prompt);
 
       setState(() {
-        _ajudaIA = ajudaGerada;
+        _ajudaIA = ajudaGerada ?? 'Erro ao gerar ajuda. Tente novamente.';
         _carregandoAjuda = false;
       });
 

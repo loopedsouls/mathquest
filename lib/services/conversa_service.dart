@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversa.dart';
-import 'ia_service.dart';
+import 'firebase_ai_service.dart';
 
 class ConversaService {
   static const String _chaveConversas = 'conversas_salvas';
@@ -62,7 +62,6 @@ class ConversaService {
   static Future<String> gerarTituloAutomatico(
     List<ChatMessage> mensagens,
     String contexto,
-    MathTutorService tutorService,
   ) async {
     if (mensagens.isEmpty) return 'Nova Conversa';
 
@@ -86,7 +85,9 @@ Responda apenas com o título, sem aspas ou explicações. Exemplos:
 - "Álgebra básica"
 ''';
 
-      final titulo = await tutorService.aiService.generate(prompt);
+      final titulo = await FirebaseAIService.sendMessage(prompt);
+
+      if (titulo == null) return 'Nova Conversa';
 
       // Limpa e limita o título
       final tituloLimpo = titulo

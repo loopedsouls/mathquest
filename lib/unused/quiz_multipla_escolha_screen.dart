@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
-import '../services/ia_service.dart';
 import '../services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
 import '../services/explicacao_service.dart';
@@ -29,8 +28,6 @@ class QuizMultiplaEscolhaScreen extends StatefulWidget {
 
 class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     with TickerProviderStateMixin {
-  late MathTutorService tutorService;
-
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
   int perguntaIndex = 0;
@@ -196,7 +193,6 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
 
   Future<void> _initializeQuiz() async {
     await _carregarPreferencias();
-    await _initializeService();
     await _carregarProximaPergunta();
   }
 
@@ -208,31 +204,6 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       _useGemini = selectedAI == 'gemini';
       _modeloOllama = modeloOllama;
     });
-  }
-
-  Future<void> _initializeService() async {
-    if (!widget.isOfflineMode) {
-      String? apiKey;
-      final prefs = await SharedPreferences.getInstance();
-      apiKey = prefs.getString('gemini_api_key');
-
-      debugPrint('Inicializando serviço de IA...');
-      debugPrint('Modo offline: ${widget.isOfflineMode}');
-      debugPrint('Usar Gemini: $_useGemini');
-      debugPrint('API Key presente: ${'Sim'}');
-
-      AIService aiService;
-      if (_useGemini) {
-        aiService = GeminiService(apiKey: apiKey);
-        debugPrint('GeminiService inicializado');
-      } else {
-        aiService = OllamaService(defaultModel: _modeloOllama);
-        debugPrint('OllamaService inicializado com modelo: $_modeloOllama');
-      }
-
-      tutorService = MathTutorService(aiService: aiService);
-      debugPrint('MathTutorService inicializado');
-    }
   }
 
   Future<void> _carregarProximaPergunta() async {

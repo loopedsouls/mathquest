@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'ia_service.dart';
+import 'firebase_ai_service.dart';
 
 class QuizHelperService {
-  /// Gera pergunta inteligente usando cache quando possível
+  /// Gera pergunta inteligente usando Firebase AI
   static Future<Map<String, dynamic>?> gerarPerguntaInteligente({
     required String unidade,
     required String ano,
@@ -11,21 +10,8 @@ class QuizHelperService {
     required String dificuldade,
   }) async {
     try {
-      // Primeira tentativa: buscar no cache
-      Map<String, dynamic>? pergunta = await CacheIAService.obterPergunta(
-        unidade: unidade,
-        ano: ano,
-        tipoQuiz: tipoQuiz,
-        dificuldade: dificuldade,
-      );
-
-      // Se encontrou no cache, retorna
-      if (pergunta != null) {
-        return pergunta;
-      }
-
-      // Se não tem no cache, gera nova pergunta
-      pergunta = await _gerarPerguntaViaIA(
+      // Gera pergunta diretamente via Firebase AI
+      final pergunta = await _gerarPerguntaViaIA(
         unidade: unidade,
         ano: ano,
         tipoQuiz: tipoQuiz,
@@ -34,7 +20,7 @@ class QuizHelperService {
 
       // Se conseguiu gerar via IA, adiciona indicador de fonte
       if (pergunta != null) {
-        pergunta['fonte_ia'] = 'gemini'; // ou 'ollama' baseado na configuração
+        pergunta['fonte_ia'] = 'firebase_ai';
       }
 
       return pergunta;
@@ -56,34 +42,18 @@ class QuizHelperService {
     try {
       if (kDebugMode) {
         print(
-            '🤖 Iniciando geração via IA: $tipoQuiz - $unidade - $dificuldade');
+            '🤖 Iniciando geração via Firebase AI: $tipoQuiz - $unidade - $dificuldade');
       }
 
-      // Cria serviço AI baseado nas preferências do usuário
-      final prefs = await SharedPreferences.getInstance();
-      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-      final apiKey = prefs.getString('gemini_api_key');
-      final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+      // Initialize Firebase AI
+      await FirebaseAIService.initialize();
 
-      if (kDebugMode) {
-        print('🔧 IA selecionada: $selectedAI');
-        print('🔑 API Key definida: ${apiKey != null && apiKey.isNotEmpty}');
-      }
-
-      AIService aiService;
-      if (selectedAI == 'gemini') {
-        if (apiKey == null || apiKey.isEmpty) {
-          if (kDebugMode) {
-            print('❌ API Key do Gemini não configurada');
-          }
-          return null;
+      if (!FirebaseAIService.isAvailable) {
+        if (kDebugMode) {
+          print('❌ Firebase AI não está disponível');
         }
-        aiService = GeminiService(apiKey: apiKey);
-      } else {
-        aiService = OllamaService(defaultModel: modeloOllama);
+        return null;
       }
-
-      final tutorService = MathTutorService(aiService: aiService);
 
       String prompt = _criarPrompt(
         unidade: unidade,
@@ -98,16 +68,33 @@ class QuizHelperService {
         print('📝 Prompt gerado: $promptPreview');
       }
 
-      final response = await tutorService.aiService.generate(prompt);
+      final response = await FirebaseAIService.sendMessage(prompt);
 
       if (kDebugMode) {
-        final responsePreview = response.length > 200
+        final responsePreview = response != null && response.length > 200
             ? '${response.substring(0, 200)}...'
-            : response;
-        print('🤖 Resposta da IA: $responsePreview');
+            : response ?? 'null';
+        print('🤖 Resposta da Firebase AI: $responsePreview');
+      }
+
+      if (response == null) {
+        if (kDebugMode) {
+          print('❌ Falha ao obter resposta da Firebase AI');
+        }
+        return null;
       }
 
       final pergunta = _processarRespostaIA(response, tipoQuiz, dificuldade);
+
+      if (pergunta != null && kDebugMode) {
+        final perguntaText = pergunta['pergunta']?.toString() ?? '';
+        final perguntaPreview = perguntaText.length > 50
+            ? '${perguntaText.substring(0, 50)}...'
+            : perguntaText;
+        print('✅ Pergunta processada com sucesso: $perguntaPreview');
+      } else if (kDebugMode) {
+        print('❌ Falha ao processar resposta da Firebase AI');
+      }
 
       if (pergunta != null && kDebugMode) {
         final perguntaText = pergunta['pergunta']?.toString() ?? '';
@@ -361,30 +348,5 @@ Características:
     }
 
     return null;
-  }
-
-  /// Pré-carrega cache para melhorar performance
-  static Future<void> preCarregarCacheModulo(String unidade, String ano) async {
-    await CacheIAService.preCarregarCache(
-      unidade: unidade,
-      ano: ano,
-      quantidadePorTipo: 5,
-    );
-  }
-
-  /// Obtém estatísticas de uso do cache
-  static Future<Map<String, dynamic>> obterEstatisticasCache() async {
-    return await CacheIAService.obterEstatisticasCache();
-  }
-
-  /// Limpa cache se necessário
-  static Future<void> limparCacheSeNecessario() async {
-    final stats = await CacheIAService.obterEstatisticasCache();
-    final totalPerguntas = stats['total_perguntas_cache'] ?? 0;
-
-    // Se o cache está muito grande (mais de 1000 perguntas), otimiza
-    if (totalPerguntas > 1000) {
-      await CacheIAService.otimizarCache();
-    }
   }
 }

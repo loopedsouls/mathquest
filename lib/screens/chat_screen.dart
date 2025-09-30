@@ -11,7 +11,7 @@ import '../services/progresso_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
-import '../services/ia_service.dart';
+import '../services/firebase_ai_service.dart';
 import '../services/conversa_service.dart';
 import '../../widgets/modern_components.dart';
 import 'package:file_picker/file_picker.dart';
@@ -493,7 +493,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final FocusNode _textFieldFocusNode = FocusNode();
 
   // Serviços
-  AIQueueService? _aiQueueService;
+  // AIQueueService? _aiQueueService; // Deprecated - replaced with FirebaseAIService
 
   // Estado
   bool _isLoading = false;
@@ -521,7 +521,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _aiQueueService = AIQueueService();
+    // _aiQueueService = AIQueueService(); // Deprecated - replaced with FirebaseAIService
     _initializeTypingAnimation();
     _initializeTutor();
 
@@ -645,7 +645,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       // Inicializa o serviço de IA com detecção automática
       // Usar apenas Firebase AI (Gemini)
 
-      _aiQueueService?.addToQueue('initialized');
+      // _aiQueueService?.addToQueue('initialized'); // Deprecated - no longer needed
 
       if (mounted) {
         setState(() {
@@ -725,7 +725,11 @@ Use emojis e formatação Markdown.
     }
 
     try {
-      final response = await _aiQueueService!.addRequest(welcomePrompt);
+      final response = await FirebaseAIService.sendMessage(welcomePrompt);
+
+      if (response == null) {
+        throw Exception('Falha ao obter resposta da IA');
+      }
 
       // Se for módulo, extrair o número de aulas da resposta
       if (widget.mode == ChatMode.module) {
@@ -1019,7 +1023,11 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
     _typingAnimationController.repeat();
 
     try {
-      final response = await _aiQueueService!.addRequest(prompt);
+      final response = await FirebaseAIService.sendMessage(prompt);
+
+      if (response == null) {
+        throw Exception('Falha ao obter resposta da IA');
+      }
 
       _addMessage(ChatMessage(
         text: response,
@@ -1103,7 +1111,11 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
     try {
       final contextPrompt = _buildContextPrompt(text);
 
-      final response = await _aiQueueService!.addRequest(contextPrompt);
+      final response = await FirebaseAIService.sendMessage(contextPrompt);
+
+      if (response == null) {
+        throw Exception('Falha ao obter resposta da IA');
+      }
 
       _addMessage(ChatMessage(
         text: response,
@@ -1375,7 +1387,11 @@ D) [alternativa]
 Use emojis e formatação Markdown para deixar mais atrativo!
 ''';
 
-      final response = await _aiQueueService!.addRequest(quizPrompt);
+      final response = await FirebaseAIService.sendMessage(quizPrompt);
+
+      if (response == null) {
+        throw Exception('Falha ao obter resposta da IA');
+      }
 
       _addMessage(ChatMessage(
         text: response,

@@ -12,7 +12,7 @@ class QuizHelperService {
   }) async {
     try {
       // Primeira tentativa: buscar no cache
-      var pergunta = await CacheIAService.obterPergunta(
+      Map<String, dynamic>? pergunta = await CacheIAService.obterPergunta(
         unidade: unidade,
         ano: ano,
         tipoQuiz: tipoQuiz,

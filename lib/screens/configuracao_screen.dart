@@ -199,7 +199,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             ? '✅ Conexão com Ollama funcionando!'
             : '❌ Erro na conexão com Ollama.';
       } else if (_selectedAI == 'flutter_gemma') {
-        final flutterGemmaService = FlutterGemmaService();
+        final flutterGemmaService = GeminiService();
         final isAvailable = await flutterGemmaService.isServiceAvailable();
         status = isAvailable
             ? '✅ Flutter Gemma funcionando!'
@@ -260,7 +260,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     if (confirmed == true) {
       setState(() => carregando = true);
       try {
-        await CacheIAService.limparTodoCache();
+        await CacheIAService.limparCache();
         await _recarregarCreditos(); // Atualiza os créditos na interface
         setState(() {
           status = '🗑️ Cache limpo com sucesso!';
@@ -2325,16 +2325,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         },
       );
 
-      final success = await gemmaService.forceDownloadModel();
-      if (success) {
-        setState(() {
-          status = '✅ Modelo baixado com sucesso!';
-        });
-      } else {
-        setState(() {
-          status = '❌ Falha no download do modelo';
-        });
-      }
+      await gemmaService.forceDownloadModel();
+      setState(() {
+        status = '✅ Modelo baixado com sucesso!';
+      });
     } catch (e) {
       setState(() {
         status = '❌ Erro no download: $e';

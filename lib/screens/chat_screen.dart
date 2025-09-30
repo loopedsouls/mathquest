@@ -493,8 +493,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final FocusNode _textFieldFocusNode = FocusNode();
 
   // Serviços
-  late MathTutorService _tutorService;
-  late AIQueueService _aiQueueService;
+  AIQueueService? _aiQueueService;
 
   // Estado
   bool _isLoading = false;
@@ -509,7 +508,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // Configurações de IA
   bool _useGemini = true;
-  String _modeloOllama = 'gemma3:1b';
   String _selectedAI =
       'gemini'; // Novo campo para armazenar o tipo de IA selecionado
 
@@ -617,11 +615,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       final prefs = await SharedPreferences.getInstance();
       final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
       final apiKey = prefs.getString('gemini_api_key');
-      final modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
 
       _selectedAI = selectedAI; // Armazenar o tipo de IA selecionado
       _useGemini = selectedAI == 'gemini';
-      _modeloOllama = modeloOllama;
 
       // Define o nome da IA baseado na configuração
       if (_useGemini) {
@@ -647,16 +643,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       }
 
       // Inicializa o serviço de IA com detecção automática
-      AIService aiService;
-      if (selectedAI == 'flutter_gemma') {
-        aiService = FlutterGemmaService();
-      } else {
-        // Usar SmartAIService que detecta Ollama automaticamente e usa Gemini como fallback
-        aiService = SmartAIService(geminiApiKey: apiKey);
-      }
+      // Usar apenas Firebase AI (Gemini)
 
-      _tutorService = MathTutorService(aiService: aiService);
-      _aiQueueService.initialize(_tutorService);
+      _aiQueueService?.addToQueue('initialized');
 
       if (mounted) {
         setState(() {
@@ -736,21 +725,15 @@ Use emojis e formatação Markdown.
     }
 
     try {
-      final response = await _aiQueueService.addRequest(
-        conversaId: _getConversationId(),
-        prompt: welcomePrompt,
-        userMessage: '',
-        useGemini: _useGemini,
-        modeloOllama: _modeloOllama,
-      );
+      final response = await _aiQueueService!.addRequest(welcomePrompt);
 
       // Se for módulo, extrair o número de aulas da resposta
       if (widget.mode == ChatMode.module) {
-        _extrairTotalAulasResposta(response.text);
+        _extrairTotalAulasResposta(response);
       }
 
       _addMessage(ChatMessage(
-        text: response.text,
+        text: response,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini
@@ -1036,16 +1019,10 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
     _typingAnimationController.repeat();
 
     try {
-      final response = await _aiQueueService.addRequest(
-        conversaId: _getConversationId(),
-        prompt: prompt,
-        userMessage: acaoUsuario,
-        useGemini: _useGemini,
-        modeloOllama: _modeloOllama,
-      );
+      final response = await _aiQueueService!.addRequest(prompt);
 
       _addMessage(ChatMessage(
-        text: response.text,
+        text: response,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini
@@ -1080,21 +1057,6 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
         });
       }
       _typingAnimationController.stop();
-    }
-  }
-
-  String _getConversationId() {
-    if (_conversaAtual != null) {
-      return _conversaAtual!.id;
-    }
-
-    switch (widget.mode) {
-      case ChatMode.module:
-        return 'module_${widget.modulo!.titulo}';
-      case ChatMode.sidebar:
-        return 'sidebar_chat_${DateTime.now().millisecondsSinceEpoch}';
-      default:
-        return 'ai_chat_${DateTime.now().millisecondsSinceEpoch}';
     }
   }
 
@@ -1141,16 +1103,10 @@ Use emojis, seja envolvente e desperte a curiosidade do aluno!
     try {
       final contextPrompt = _buildContextPrompt(text);
 
-      final response = await _aiQueueService.addRequest(
-        conversaId: _getConversationId(),
-        prompt: contextPrompt,
-        userMessage: text,
-        useGemini: _useGemini,
-        modeloOllama: _modeloOllama,
-      );
+      final response = await _aiQueueService!.addRequest(contextPrompt);
 
       _addMessage(ChatMessage(
-        text: response.text,
+        text: response,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini
@@ -1419,16 +1375,10 @@ D) [alternativa]
 Use emojis e formatação Markdown para deixar mais atrativo!
 ''';
 
-      final response = await _aiQueueService.addRequest(
-        conversaId: _getConversationId(),
-        prompt: quizPrompt,
-        userMessage: 'Gerar quiz do módulo',
-        useGemini: _useGemini,
-        modeloOllama: _modeloOllama,
-      );
+      final response = await _aiQueueService!.addRequest(quizPrompt);
 
       _addMessage(ChatMessage(
-        text: response.text,
+        text: response,
         isUser: false,
         timestamp: DateTime.now(),
         aiProvider: _useGemini

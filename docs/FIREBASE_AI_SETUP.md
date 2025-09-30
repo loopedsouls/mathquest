@@ -24,6 +24,21 @@ await Firebase.initializeApp(
 await FirebaseAIService.initialize();
 ```
 
+### ✅ **API Corretamente Implementada**
+
+```dart
+// lib/services/firebase_ai_service.dart
+// Inicializar o serviço Gemini Developer API
+_geminiModel = FirebaseAI.googleAI().generativeModel(
+  model: 'gemini-1.5-flash',
+);
+
+// Usar generateContent para gerar texto
+final prompt = [Content.text('Pergunta matemática aqui')];
+final response = await _geminiModel!.generateContent(prompt);
+print(response.text);
+```
+
 ---
 
 ## 🛠️ **Serviço Firebase AI Implementado**
@@ -136,10 +151,20 @@ FirebaseAIService.avaliarResposta(
 ### 🔄 **Em Desenvolvimento**
 
 - [ ] Ativação da API no Console Firebase
-- [ ] Testes de integração
+- [x] Testes de integração (tela de teste criada)
 - [ ] Otimização de prompts
 - [ ] Cache inteligente
 - [ ] Métricas de qualidade
+
+### 🧪 **Tela de Teste Disponível**
+
+- **Acesso**: Menu Principal → "Teste Firebase AI"
+- **Funcionalidades**:
+  - ✅ Teste de conexão básica
+  - ✅ Teste de explicação matemática
+  - ✅ Prompt personalizado
+  - ✅ Status detalhado do serviço
+- **Localização**: `lib/screens/teste_firebase_ai_screen.dart`
 
 ### 📋 **Próximas Features**
 

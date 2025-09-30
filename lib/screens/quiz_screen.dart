@@ -26,7 +26,7 @@ class QuizAlternadoScreen extends StatefulWidget {
 
 class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     with TickerProviderStateMixin {
-  late MathTutorService tutorService;
+  late MathTutorService? tutorService;
 
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
@@ -37,7 +37,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   bool carregando = false;
   bool quizFinalizado = false;
   bool _useGemini = true;
-  String _modeloOllama = 'llama2';
+  final String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
   final TextEditingController _respostaController = TextEditingController();
 
@@ -371,14 +371,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
-
+    // Firebase AI é o único serviço disponível
     if (mounted) {
       setState(() {
-        _useGemini = selectedAI == 'gemini';
-        _modeloOllama = modeloOllama;
+        _useGemini = true; // Sempre usar Firebase AI
         topico = widget.topico ?? 'números e operações';
         dificuldade = widget.dificuldade ?? 'fácil';
       });
@@ -399,8 +395,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       return;
     }
 
-    // Usar SmartAIService que detecta Ollama automaticamente
-    final aiService = SmartAIService();
+    // Usar Firebase AI Service
+    final aiService = GeminiService();
     tutorService = MathTutorService(aiService: aiService);
 
     // Limpa fila de perguntas pré-carregadas
@@ -1671,7 +1667,8 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                         }
                       },
                       child: Container(
-                        margin: const EdgeInsets.all(4), // Margem interna mínima
+                        margin:
+                            const EdgeInsets.all(4), // Margem interna mínima
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
@@ -1693,9 +1690,11 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    AppTheme.primaryColor.withValues(alpha: 0.08),
+                                    AppTheme.primaryColor
+                                        .withValues(alpha: 0.08),
                                     Colors.transparent,
-                                    AppTheme.primaryColor.withValues(alpha: 0.04),
+                                    AppTheme.primaryColor
+                                        .withValues(alpha: 0.04),
                                   ],
                                 ),
                               ),
@@ -2031,68 +2030,71 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
                   ),
                 ),
                 child: Center(
-                    child: AspectRatio(
-                      aspectRatio: 1.0, // Área quadrada para o jogo
-                      child: GestureDetector(
-                        onTap: () {
-                          if (mounted) {
-                            setState(() {
-                              _snakeClickCount++;
-                              if (_snakeClickCount >= 3) {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => QuizSnakeScreen(
-                                      topico: widget.topico,
-                                      dificuldade: widget.dificuldade,
-                                    ),
+                  child: AspectRatio(
+                    aspectRatio: 1.0, // Área quadrada para o jogo
+                    child: GestureDetector(
+                      onTap: () {
+                        if (mounted) {
+                          setState(() {
+                            _snakeClickCount++;
+                            if (_snakeClickCount >= 3) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => QuizSnakeScreen(
+                                    topico: widget.topico,
+                                    dificuldade: widget.dificuldade,
                                   ),
-                                );
-                              }
-                            });
-                          }
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.all(40),
-                          decoration: BoxDecoration(
-                            color: AppTheme.darkSurfaceColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final gameSize =
-                                  constraints.maxWidth < constraints.maxHeight
-                                      ? constraints.maxWidth
-                                      : constraints.maxHeight;
-                              _gridSize = 30; // Grid fixo maior para telas grandes
-                              _cellSize = gameSize / _gridSize;
-
-                              return CustomPaint(
-                                painter: SnakePainter(
-                                  snakeSegments: _snakeSegments,
-                                  foodPosition: _foodPosition,
-                                  cellSize: _cellSize,
-                                  enemySnakes: _enemySnakes,
-                                  enemyColors: _enemyColors,
-                                  gridSize: _gridSize,
                                 ),
-                                child: Container(),
                               );
-                            },
+                            }
+                          });
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color:
+                              AppTheme.darkSurfaceColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            width: 2,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final gameSize =
+                                constraints.maxWidth < constraints.maxHeight
+                                    ? constraints.maxWidth
+                                    : constraints.maxHeight;
+                            _gridSize =
+                                30; // Grid fixo maior para telas grandes
+                            _cellSize = gameSize / _gridSize;
+
+                            return CustomPaint(
+                              painter: SnakePainter(
+                                snakeSegments: _snakeSegments,
+                                foodPosition: _foodPosition,
+                                cellSize: _cellSize,
+                                enemySnakes: _enemySnakes,
+                                enemyColors: _enemyColors,
+                                gridSize: _gridSize,
+                              ),
+                              child: Container(),
+                            );
+                          },
                         ),
                       ),
                     ),
+                  ),
                 ),
               ),
             ),

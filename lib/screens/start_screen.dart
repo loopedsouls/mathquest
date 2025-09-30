@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// removed unused SharedPreferences import
 import '../services/ia_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
@@ -12,6 +12,7 @@ import 'dashboard_screen.dart';
 import 'chat_screen.dart';
 import 'perfil_screen.dart';
 import 'teste_personagem_3d_screen.dart';
+import 'teste_firebase_ai_screen.dart';
 import 'login_screen.dart';
 
 class NavigationItem {
@@ -232,40 +233,9 @@ class _StartScreenState extends State<StartScreen>
 
   Future<void> _checkAIServices() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-      final apiKey = prefs.getString('gemini_api_key');
-      final modeloOllama = prefs.getString('modelo_ollama') ?? 'gemma3:1b';
-
-      bool isConfigured = false;
-      bool isAvailable = false;
-
-      if (selectedAI == 'gemini') {
-        // Verifica se tem API key configurada
-        if (apiKey != null && apiKey.isNotEmpty) {
-          final geminiService = GeminiService(apiKey: apiKey);
-          isAvailable = await geminiService.isServiceAvailable();
-          isConfigured = true;
-        }
-
-        if (isConfigured && isAvailable) {
-          _aiAvailable = true;
-        } else if (isConfigured && !isAvailable) {
-          _aiAvailable = false;
-        } else {
-          _aiAvailable = false;
-        }
-      } else {
-        // Ollama
-        final ollamaService = OllamaService(defaultModel: modeloOllama);
-        isAvailable = await ollamaService.isServiceAvailable();
-
-        if (isAvailable) {
-          _aiAvailable = true;
-        } else {
-          _aiAvailable = false;
-        }
-      }
+      // Firebase AI é o único serviço disponível
+      final geminiService = GeminiService();
+      _aiAvailable = await geminiService.isServiceAvailable();
 
       if (mounted) {
         setState(() {
@@ -324,6 +294,14 @@ class _StartScreenState extends State<StartScreen>
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const AjudaScreen(),
+      ),
+    );
+  }
+
+  void _goToTesteFirebaseAI() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const TesteFirebaseAIScreen(),
       ),
     );
   }
@@ -950,6 +928,13 @@ class _StartScreenState extends State<StartScreen>
                                     ModernButton(
                                       text: 'Ajuda',
                                       onPressed: _goToAjuda,
+                                      isPrimary: false,
+                                      height: buttonHeight,
+                                    ),
+                                    SizedBox(height: spacing),
+                                    ModernButton(
+                                      text: 'Teste Firebase AI',
+                                      onPressed: _goToTesteFirebaseAI,
                                       isPrimary: false,
                                       height: buttonHeight,
                                     ),

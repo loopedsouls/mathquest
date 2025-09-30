@@ -8,11 +8,14 @@ class FirebaseAIService {
   /// Inicializa o Firebase AI
   static Future<void> initialize() async {
     try {
-      // Inicializar Firebase AI - será configurado quando a API estiver disponível
-      // Por ora, mantemos como placeholder para futuras implementações
+      // Inicializar o serviço Gemini Developer API
+      // Criar uma instância GenerativeModel com modelo que suporta nosso caso de uso
+      _geminiModel = FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-1.5-flash', // Usar modelo disponível
+      );
 
       if (kDebugMode) {
-        print('🔄 Firebase AI preparado (API em desenvolvimento)');
+        print('✅ Firebase AI inicializado com sucesso');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -20,6 +23,7 @@ class FirebaseAIService {
       }
       // Firebase AI pode falhar em algumas plataformas
       // O app deve continuar funcionando normalmente
+      _geminiModel = null;
     }
   }
 
@@ -194,12 +198,30 @@ class FirebaseAIService {
     }
   }
 
+  /// Teste básico do Firebase AI
+  static Future<String?> testarConexao() async {
+    if (!isAvailable) {
+      return 'Firebase AI não está disponível';
+    }
+
+    try {
+      final prompt = [Content.text('Diga "Olá, MathQuest!" em uma frase.')];
+      final response = await _geminiModel!.generateContent(prompt);
+      return response.text ?? 'Resposta vazia recebida';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro no teste de conexão: $e');
+      }
+      return 'Erro na conexão: $e';
+    }
+  }
+
   /// Status do serviço para debugging
   static Map<String, dynamic> getStatus() {
     return {
       'gemini_model_available': _geminiModel != null,
       'service_initialized': isAvailable,
-      'firebase_ai_status': 'preparado_para_futuras_implementações',
+      'firebase_ai_status': 'integrado_com_gemini_api',
     };
   }
 }

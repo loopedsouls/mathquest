@@ -3,7 +3,7 @@ import '../services/ia_service.dart';
 
 /// Widget que mostra o status do serviço de IA atual
 class AIServiceStatusWidget extends StatefulWidget {
-  final SmartAIService? aiService;
+  final AIService? aiService;
   final bool showIcon;
   final bool showText;
 
@@ -42,20 +42,17 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
     }
 
     try {
-      final service = await widget.aiService!.getCurrentService();
+      final service = widget.aiService!.serviceName;
 
       setState(() {
         _currentService = service;
         _isLoading = false;
 
-        if (service == 'Ollama Local') {
-          _statusColor = Colors.green;
-          _statusIcon = Icons.computer;
-        } else if (service == 'Gemini Cloud') {
-          _statusColor = Colors.blue;
+        if (service == 'Firebase AI (Gemini)') {
+          _statusColor = Colors.orange;
           _statusIcon = Icons.cloud;
         } else {
-          _statusColor = Colors.orange;
+          _statusColor = Colors.grey;
           _statusIcon = Icons.warning;
         }
       });
@@ -142,22 +139,14 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
           children: [
             Text('Serviço Atual: $_currentService'),
             const SizedBox(height: 16),
-            if (_currentService == 'Ollama Local') ...[
+            if (_currentService == 'Firebase AI (Gemini)') ...[
               const Text(
-                '✅ Conectado ao Ollama local',
-                style: TextStyle(color: Colors.green),
+                '🔥 Firebase AI ativo',
+                style: TextStyle(color: Colors.orange),
               ),
-              const Text('• Funciona offline'),
-              const Text('• Maior privacidade'),
-              const Text('• Processamento local'),
-            ] else if (_currentService == 'Gemini Cloud') ...[
-              const Text(
-                '☁️ Usando Gemini na nuvem',
-                style: TextStyle(color: Colors.blue),
-              ),
-              const Text('• Requer internet'),
-              const Text('• Processamento na nuvem'),
-              const Text('• Sempre disponível'),
+              const Text('• Seguro e confiável'),
+              const Text('• Google Cloud AI'),
+              const Text('• Educação personalizada'),
             ] else ...[
               const Text(
                 '⚠️ Serviço não disponível',
@@ -167,7 +156,7 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
             ],
             const SizedBox(height: 16),
             const Text(
-              'Dica: Para usar Ollama local, configure CORS:\nOLLAMA_ORIGINS="*"',
+              'Dica: Configure Firebase AI no Console do Firebase',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -196,7 +185,7 @@ class _AIServiceStatusWidgetState extends State<AIServiceStatusWidget> {
 
 /// Widget compacto para mostrar apenas o ícone do status
 class AIServiceStatusIcon extends StatelessWidget {
-  final SmartAIService? aiService;
+  final AIService? aiService;
 
   const AIServiceStatusIcon({
     super.key,
@@ -215,7 +204,7 @@ class AIServiceStatusIcon extends StatelessWidget {
 
 /// Widget para mostrar apenas o texto do status
 class AIServiceStatusText extends StatelessWidget {
-  final SmartAIService? aiService;
+  final AIService? aiService;
 
   const AIServiceStatusText({
     super.key,

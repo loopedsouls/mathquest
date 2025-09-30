@@ -138,7 +138,8 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     alignment: Alignment.center,
                     transform: Matrix4.identity()
                       ..setEntry(3, 2, 0.001) // Perspectiva
-                      ..translateByVector3(vm.Vector3(0.0, _bobbingAnimation.value, 0.0))
+                      ..translateByVector3(
+                          vm.Vector3(0.0, _bobbingAnimation.value, 0.0))
                       ..rotateY(widget.interactive && !_isRotating
                           ? _rotationAnimation.value + _userRotation
                           : _userRotation),
@@ -345,7 +346,8 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _getCorSecundaria(itemCabeca).withValues(alpha: 0.7),
+                        color: _getCorSecundaria(itemCabeca)
+                            .withValues(alpha: 0.7),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),

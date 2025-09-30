@@ -344,7 +344,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (mounted) {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Email de reset enviado!')),
+                        const SnackBar(
+                            content: Text('Email de reset enviado!')),
                       );
                     }
                   });

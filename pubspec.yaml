@@ -30,12 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  dependencies: #firebase 
-  firebase_core: 
-  # Adicione outros serviços que usar (auth, firestore, storage etc.)
-  firebase_auth: 
-  cloud_firestore:
-  firebase_options:
+
+  # Firebase dependencies
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -69,7 +68,6 @@ dependencies:
 
   # Para renderizar SVGs
   flutter_svg: ^2.0.9
-  firebase_core: ^4.1.1
 
 dev_dependencies:
   flutter_test:

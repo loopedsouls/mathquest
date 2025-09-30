@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import '../services/personagem_service.dart';
 import '../services/progresso_service.dart';
+import '../services/gamificacao_service.dart';
 
 /// Helper class para integrar recompensas do personagem com o progresso do usuário
 class RecompensasIntegration {
@@ -36,7 +38,42 @@ class RecompensasIntegration {
     }
 
     // Bonus por sequência (streak)
-    // TODO: Implementar cálculo de streak baseado no progresso
+    final progresso = await ProgressoService.carregarProgresso();
+    final streakAtual = progresso.exerciciosCorretosConsecutivos[topico] ?? 0;
+    final novoStreak = streakAtual + 1;
+
+    // Atualizar streak no progresso
+    progresso.exerciciosCorretosConsecutivos[topico] = novoStreak;
+    await ProgressoService.salvarProgresso(progresso);
+
+    // Calcular bonus baseado no streak
+    int bonusStreakXP = 0;
+    int bonusStreakMoedas = 0;
+
+    if (novoStreak >= 5) {
+      bonusStreakXP =
+          (novoStreak ~/ 5) * 5; // +5 XP a cada 5 acertos consecutivos
+      bonusStreakMoedas =
+          (novoStreak ~/ 5) * 1; // +1 moeda a cada 5 acertos consecutivos
+    }
+
+    if (novoStreak == 10) {
+      bonusStreakXP += 25; // Bonus especial por streak de 10
+      bonusStreakMoedas += 5;
+    } else if (novoStreak == 25) {
+      bonusStreakXP += 50; // Bonus especial por streak de 25
+      bonusStreakMoedas += 10;
+    } else if (novoStreak == 50) {
+      bonusStreakXP += 100; // Bonus especial por streak de 50
+      bonusStreakMoedas += 25;
+    } else if (novoStreak == 100) {
+      bonusStreakXP += 200; // Bonus especial por streak de 100
+      bonusStreakMoedas += 50;
+    }
+
+    // Aplicar bonus do streak
+    xpGanho += bonusStreakXP;
+    moedasGanhas += bonusStreakMoedas;
 
     // Aplicar recompensas
     await _personagemService.adicionarRecompensa(
@@ -172,15 +209,37 @@ class RecompensasIntegration {
   }
 
   static Future<int> _contarMedalhas() async {
-    // TODO: Implementar quando sistema de medalhas estiver disponível
-    // Por ora, retorna um valor baseado no progresso
     try {
-      final progresso = await ProgressoService.carregarProgresso();
-      return progresso.totalExerciciosCorretos ~/
-          10; // 1 medalha a cada 10 acertos
+      // Carrega as conquistas desbloqueadas do sistema de gamificação
+      await GamificacaoService.carregarDados();
+      final conquistasDesbloqueadas =
+          await GamificacaoService.obterConquistasDesbloqueadas();
+      return conquistasDesbloqueadas.length;
     } catch (e) {
-      return 0;
+      if (kDebugMode) {
+        print('Erro ao contar medalhas: $e');
+      }
+      // Fallback para cálculo baseado no progresso se o sistema de gamificação falhar
+      try {
+        final progresso = await ProgressoService.carregarProgresso();
+        return progresso.totalExerciciosCorretos ~/
+            10; // 1 medalha a cada 10 acertos
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('Erro no fallback de contagem de medalhas: $fallbackError');
+        }
+        return 0;
+      }
     }
+  }
+
+  /// Reseta o streak quando o usuário erra um exercício
+  static Future<void> resetarStreak({
+    required String topico,
+  }) async {
+    final progresso = await ProgressoService.carregarProgresso();
+    progresso.exerciciosCorretosConsecutivos[topico] = 0;
+    await ProgressoService.salvarProgresso(progresso);
   }
 
   /// Função conveniente para ser chamada após qualquer atividade significativa

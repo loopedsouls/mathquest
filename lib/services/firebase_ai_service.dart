@@ -1,5 +1,6 @@
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
 
 /// Serviço para integração com Firebase AI (Gemini e Imagen)
 class FirebaseAIService {
@@ -110,8 +111,35 @@ class FirebaseAIService {
         final jsonEnd = responseText.lastIndexOf('}');
 
         if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
-          // TODO: Implementar parsing JSON manual ou usar dart:convert
-          // Por ora, retornar null e usar sistema offline como fallback
+          final jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+          final parsedJson = json.decode(jsonString) as Map<String, dynamic>;
+
+          // Validar estrutura básica do JSON
+          if (parsedJson.containsKey('pergunta') &&
+              parsedJson.containsKey('resposta_correta') &&
+              parsedJson.containsKey('explicacao')) {
+            // Para múltipla escolha, verificar se tem opções
+            if (tipo == 'multipla_escolha' &&
+                !parsedJson.containsKey('opcoes')) {
+              if (kDebugMode) {
+                print('JSON válido mas sem opções para múltipla escolha');
+              }
+              return null;
+            }
+
+            if (kDebugMode) {
+              print('✅ JSON do exercício parseado com sucesso');
+            }
+            return parsedJson;
+          } else {
+            if (kDebugMode) {
+              print('❌ JSON não contém campos obrigatórios');
+            }
+          }
+        } else {
+          if (kDebugMode) {
+            print('❌ Não foi possível encontrar JSON válido na resposta');
+          }
         }
       } catch (e) {
         if (kDebugMode) {

@@ -123,7 +123,7 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
                   : AppTheme.errorColor,
             ),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               'Status do Firebase AI',
               style: TextStyle(color: Colors.white),
             ),
@@ -184,7 +184,7 @@ class _QueueStatusIndicatorState extends State<QueueStatusIndicator>
           ),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w500,

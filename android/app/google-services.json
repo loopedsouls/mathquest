@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "11203362979",
+    "project_id": "mathquest6969",
+    "storage_bucket": "mathquest6969.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11203362979:android:955c82a65d5579843cff16",
+        "android_client_info": {
+          "package_name": "com.example.mathquest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2ZTYE2iOnTVUlXlN0O2Xy6lBpbh-TwE8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -266,7 +266,10 @@ Seja preciso na análise matemática e didático na explicação.
       };
     } catch (e) {
       // Fallback para o método original em caso de erro
-      return await tutorService.verificarResposta(pergunta, respostaUsuario);
+      return {
+        'correta': false,
+        'explicacao': 'Erro ao verificar resposta: $e',
+      };
     }
   }
 

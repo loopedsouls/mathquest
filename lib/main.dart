@@ -73,7 +73,7 @@ class ResponsiveWrapper extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.darkBackgroundColor,
-                AppTheme.darkSurfaceColor.withOpacity(0.5),
+                AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
               ],
             ),
           ),

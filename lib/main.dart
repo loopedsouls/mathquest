@@ -5,7 +5,6 @@ import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
-import 'screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -14,21 +13,33 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar Crashlytics
-  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-
   // Inicializar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
   // Inicializar Remote Config
-  final remoteConfig = FirebaseRemoteConfig.instance;
-  await remoteConfig.setConfigSettings(RemoteConfigSettings(
-    fetchTimeout: const Duration(minutes: 1),
-    minimumFetchInterval: const Duration(hours: 1),
-  ));
-  await remoteConfig.fetchAndActivate();
+  try {
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(minutes: 1),
+      minimumFetchInterval: const Duration(hours: 1),
+    ));
+    await remoteConfig.fetchAndActivate();
+  } catch (e) {
+    // Remote Config pode falhar em algumas plataformas (como Windows)
+    // mas isso não deve impedir o funcionamento do app
+    print('Erro ao inicializar Remote Config: $e');
+  }
+
+  // Inicializar Crashlytics após Remote Config
+  try {
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  } catch (e) {
+    // Crashlytics pode falhar em algumas plataformas (como Windows)
+    // mas isso não deve impedir o funcionamento do app
+    print('Erro ao inicializar Crashlytics: $e');
+  }
 
   // Configurar orientações permitidas e UI overlay
   SystemChrome.setPreferredOrientations([
@@ -124,13 +135,8 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        if (snapshot.hasData) {
-          // Usuário autenticado - mostrar app principal
-          return const AppInitializer();
-        } else {
-          // Usuário não autenticado - mostrar tela de login
-          return const LoginScreen();
-        }
+        // Sempre mostrar o app principal - autenticação é opcional
+        return const AppInitializer();
       },
     );
   }

@@ -42,7 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-        // Login bem-sucedido - o listener no main.dart vai redirecionar
+        // Login bem-sucedido
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
       } else {
         if (_passwordController.text != _confirmPasswordController.text) {
           setState(() {
@@ -56,7 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-        // Registro bem-sucedido - o listener vai redirecionar
+        // Registro bem-sucedido
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
       }
     } catch (e) {
       setState(() {

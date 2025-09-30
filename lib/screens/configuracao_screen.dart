@@ -6,6 +6,9 @@ import '../services/ia_service.dart';
 import '../services/preload_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/modern_components.dart';
+import '../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../screens/login_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});
@@ -28,6 +31,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   List<String> _ollamaModels = [];
   bool _loadingModels = false;
 
+  // Estado de autenticação
+  User? _currentUser;
+  bool _authLoading = false;
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -36,6 +43,21 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     super.initState();
     _initializeAnimations();
     _carregarConfiguracoes();
+    _initializeAuthState();
+  }
+
+  void _initializeAuthState() {
+    // Inicializar estado de autenticação
+    _currentUser = AuthService().currentUser;
+
+    // Ouvir mudanças no estado de autenticação
+    AuthService().authStateChanges.listen((User? user) {
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+        });
+      }
+    });
   }
 
   @override
@@ -249,6 +271,107 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         });
       } finally {
         setState(() => carregando = false);
+      }
+
+      // Limpar status após alguns segundos
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => status = '');
+        }
+      });
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => _authLoading = true);
+    try {
+      // Mostrar tela de login como modal
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: const LoginScreen(),
+          ),
+        ),
+      );
+
+      if (result == true) {
+        // Login bem-sucedido
+        setState(() {
+          status = '✅ Login realizado com sucesso!';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        status = '❌ Erro no login: $e';
+      });
+    } finally {
+      setState(() => _authLoading = false);
+    }
+
+    // Limpar status após alguns segundos
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
+  }
+
+  Future<void> _handleLogout() async {
+    // Confirmar logout
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(
+          'Sair da Conta',
+          style: AppTheme.bodyLarge.copyWith(
+            color: AppTheme.darkTextPrimaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Tem certeza que deseja sair da sua conta?',
+          style: AppTheme.bodyMedium.copyWith(
+            color: AppTheme.darkTextSecondaryColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: AppTheme.darkTextSecondaryColor),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Sair',
+              style: TextStyle(color: AppTheme.warningColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _authLoading = true);
+      try {
+        await AuthService().signOut();
+        setState(() {
+          status = '👋 Logout realizado com sucesso!';
+        });
+      } catch (e) {
+        setState(() {
+          status = '❌ Erro no logout: $e';
+        });
+      } finally {
+        setState(() => _authLoading = false);
       }
 
       // Limpar status após alguns segundos
@@ -636,6 +759,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 ),
                 child: Column(
                   children: [
+                    // Seção de Conta
+                    _buildAccountSection(isMobile, isTablet, false),
+                    SizedBox(height: isMobile ? 16 : 20),
+
                     // Seleção de serviço
                     _buildServiceSelector(isMobile, isTablet, false),
                     SizedBox(height: isMobile ? 16 : 20),
@@ -1913,6 +2040,138 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 fontWeight: FontWeight.w600,
                 fontSize: isMobile ? 12 : 14,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountSection(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.account_circle_rounded,
+                color: AppTheme.primaryColor,
+                size: iconSize,
+              ),
+              SizedBox(width: spacing),
+              Text(
+                'Conta',
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing * 1.5),
+          Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurfaceColor,
+              borderRadius: BorderRadius.circular(spacing),
+              border: Border.all(
+                color: AppTheme.darkBorderColor,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _currentUser != null ? Icons.person : Icons.person_off,
+                  color: _currentUser != null ? AppTheme.successColor : AppTheme.darkTextSecondaryColor,
+                  size: iconSize,
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _currentUser != null ? 'Conectado' : 'Modo Convidado',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.darkTextPrimaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 12 : 14,
+                        ),
+                      ),
+                      if (_currentUser != null) ...[
+                        SizedBox(height: spacing * 0.25),
+                        Text(
+                          _currentUser!.email ?? 'Usuário',
+                          style: AppTheme.bodySmall.copyWith(
+                            color: AppTheme.darkTextSecondaryColor,
+                            fontSize: isMobile ? 10 : 11,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (_authLoading)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else if (_currentUser != null)
+                  TextButton.icon(
+                    onPressed: _handleLogout,
+                    icon: Icon(
+                      Icons.logout,
+                      size: 16,
+                      color: AppTheme.warningColor,
+                    ),
+                    label: Text(
+                      'Sair',
+                      style: TextStyle(
+                        color: AppTheme.warningColor,
+                        fontSize: isMobile ? 12 : 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spacing,
+                        vertical: spacing * 0.5,
+                      ),
+                    ),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: _handleLogin,
+                    icon: Icon(
+                      Icons.login,
+                      size: 16,
+                      color: AppTheme.primaryColor,
+                    ),
+                    label: Text(
+                      'Entrar',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: isMobile ? 12 : 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spacing,
+                        vertical: spacing * 0.5,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

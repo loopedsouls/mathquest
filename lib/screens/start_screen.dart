@@ -9,6 +9,7 @@ import 'ajuda_screen.dart';
 import 'modulos_screen.dart';
 import 'dashboard_screen.dart';
 import 'chat_screen.dart';
+import 'perfil_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -61,6 +62,10 @@ class _StartScreenState extends State<StartScreen>
     NavigationItem(
       icon: Icons.chat_rounded,
       label: 'Chat',
+    ),
+    NavigationItem(
+      icon: Icons.person,
+      label: 'Meu Perfil',
     ),
   ];
 
@@ -297,6 +302,8 @@ class _StartScreenState extends State<StartScreen>
         );
       case 3:
         return const ChatScreen(mode: ChatMode.general);
+      case 4:
+        return const PerfilScreen();
       default:
         return _buildMainContent(isTablet, isDesktop);
     }

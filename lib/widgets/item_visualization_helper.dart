@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'personagem_3d_widget.dart';
 
 class ItemVisualizationHelper {
   // Cores por categoria
@@ -90,88 +91,20 @@ class ItemVisualizationHelper {
     );
   }
 
-  // Widget para preview do personagem completo
+  // Widget para preview do personagem completo com visual 3D estilo Roblox
   static Widget buildPersonagemCompleto({
     required Map<String, String> itensEquipados,
     double width = 200,
     double height = 300,
+    String? nome,
+    bool interactive = true,
   }) {
-    return Container(
+    return Personagem3DWidget(
+      itensEquipados: itensEquipados,
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        color: AppTheme.darkBackgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.darkBorderColor,
-        ),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.1),
-            AppTheme.darkBackgroundColor,
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Personagem base
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Cabeça
-                buildItemPreview(
-                  categoria: 'cabeca',
-                  raridade: 'comum',
-                  size: 60,
-                ),
-                const SizedBox(height: 16),
-                // Corpo
-                buildItemPreview(
-                  categoria: 'corpo',
-                  raridade: 'comum',
-                  size: 80,
-                ),
-                const SizedBox(height: 16),
-                // Pernas
-                buildItemPreview(
-                  categoria: 'pernas',
-                  raridade: 'comum',
-                  size: 70,
-                ),
-              ],
-            ),
-          ),
-          // Acessórios (posicionados sobre o personagem)
-          if (itensEquipados.containsKey('acessorio'))
-            Positioned(
-              top: 40,
-              right: 20,
-              child: buildItemPreview(
-                categoria: 'acessorio',
-                raridade: 'raro',
-                size: 24,
-              ),
-            ),
-          // Informações do preview
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Text(
-              'Preview\nPersonagem',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.darkTextSecondaryColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
+      interactive: interactive,
+      nome: nome,
     );
   }
 

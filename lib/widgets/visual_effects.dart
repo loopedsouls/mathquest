@@ -137,7 +137,7 @@ class ParticlePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     for (var particle in particles) {
-      paint.color = color.withOpacity(particle.alpha * 0.7);
+      paint.color = color.withValues(alpha: particle.alpha * 0.7);
 
       canvas.drawCircle(
         Offset(
@@ -212,7 +212,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
               colors: widget.colors.map((color) {
                 return Color.lerp(
                   color,
-                  color.withOpacity(0.3),
+                  color.withValues(alpha: 0.3),
                   _animation.value,
                 )!;
               }).toList(),
@@ -245,7 +245,7 @@ class GlowEffect extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.6),
+            color: color.withValues(alpha: 0.6),
             blurRadius: blurRadius,
             spreadRadius: spreadRadius,
           ),

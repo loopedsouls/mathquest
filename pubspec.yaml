@@ -70,6 +70,7 @@ dependencies:
 
   # Para renderizar SVGs
   flutter_svg: ^2.0.9
+  vector_math: ^2.2.0
 
 dev_dependencies:
   flutter_test:

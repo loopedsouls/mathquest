@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:vector_math/vector_math_64.dart' as vm;
 import '../theme/app_theme.dart';
 import 'visual_effects.dart';
 
@@ -117,7 +118,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                 spreadRadius: 5,
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 15,
                 offset: const Offset(0, 10),
               ),
@@ -137,7 +138,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     alignment: Alignment.center,
                     transform: Matrix4.identity()
                       ..setEntry(3, 2, 0.001) // Perspectiva
-                      ..translate(0.0, _bobbingAnimation.value, 0.0)
+                      ..translateByVector3(vm.Vector3(0.0, _bobbingAnimation.value, 0.0))
                       ..rotateY(widget.interactive && !_isRotating
                           ? _rotationAnimation.value + _userRotation
                           : _userRotation),
@@ -181,7 +182,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             width: 80,
             height: 8,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(40),
             ),
           ),
@@ -212,11 +213,11 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.9),
+                color: AppTheme.primaryColor.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 8,
                   ),
                 ],
@@ -252,12 +253,12 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
           ),
           boxShadow: [
             BoxShadow(
-              color: corCabeca.withOpacity(0.6),
+              color: corCabeca.withValues(alpha: 0.6),
               blurRadius: 12,
               spreadRadius: 3,
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -267,8 +268,8 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             end: Alignment.bottomRight,
             colors: [
               corCabeca,
-              corCabeca.withOpacity(0.8),
-              corCabeca.withOpacity(0.6),
+              corCabeca.withValues(alpha: 0.8),
+              corCabeca.withValues(alpha: 0.6),
             ],
             stops: const [0.0, 0.5, 1.0],
           ),
@@ -284,7 +285,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -312,7 +313,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                   borderRadius: BorderRadius.circular(4),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 2,
                     ),
                   ],
@@ -344,7 +345,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _getCorSecundaria(itemCabeca).withOpacity(0.7),
+                        color: _getCorSecundaria(itemCabeca).withValues(alpha: 0.7),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
@@ -390,7 +391,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             borderRadius: shouldBlink ? BorderRadius.circular(1) : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 2,
               ),
             ],
@@ -422,17 +423,17 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: corCorpo.withOpacity(0.6),
+            color: corCorpo.withValues(alpha: 0.6),
             blurRadius: 12,
             spreadRadius: 2,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -442,8 +443,8 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
           end: Alignment.bottomRight,
           colors: [
             corCorpo,
-            corCorpo.withOpacity(0.9),
-            corCorpo.withOpacity(0.7),
+            corCorpo.withValues(alpha: 0.9),
+            corCorpo.withValues(alpha: 0.7),
           ],
           stops: const [0.0, 0.6, 1.0],
         ),
@@ -458,7 +459,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             child: Container(
               height: 15,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -478,7 +479,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     color: _getCorSecundaria(itemCorpo),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       width: 1,
                     ),
                   ),
@@ -528,7 +529,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 2,
                       ),
                     ],
@@ -547,7 +548,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                   width: 15,
                   height: 15,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(7.5),
                   ),
                 ),
@@ -574,7 +575,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             color: corBraco,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -588,7 +589,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             color: corBraco,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -612,12 +613,12 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             color: corPerna,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: corPerna.withOpacity(0.4),
+                color: corPerna.withValues(alpha: 0.4),
                 blurRadius: 6,
                 spreadRadius: 1,
               ),
@@ -651,12 +652,12 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
             color: corPerna,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: corPerna.withOpacity(0.4),
+                color: corPerna.withValues(alpha: 0.4),
                 blurRadius: 6,
                 spreadRadius: 1,
               ),
@@ -706,13 +707,13 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                   color: _getCorItem(itemAcessorio, Colors.amber),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: _getCorItem(itemAcessorio, Colors.amber)
-                          .withOpacity(0.6),
+                          .withValues(alpha: 0.6),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
@@ -743,7 +744,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                   height: 4,
                   decoration: BoxDecoration(
                     color: _getCorItem(itemAcessorio, Colors.amber)
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(

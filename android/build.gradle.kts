@@ -23,8 +23,12 @@ tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.15' // última versão
+        classpath("com.google.gms:google-services:4.3.15")
     }
 }
 apply plugin: 'com.google.gms.google-services'

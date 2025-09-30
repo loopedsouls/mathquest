@@ -62,6 +62,9 @@ class MathTutorApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Usar tema escuro como padrão
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      ],
       home: const ResponsiveWrapper(
         child: AuthWrapper(),
       ),

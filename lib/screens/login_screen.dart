@@ -13,7 +13,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isLogin = true;
   bool _isLoading = false;
@@ -175,7 +176,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             border: OutlineInputBorder(),
                           ),
                           obscureText: true,
-                          textInputAction: _isLogin ? TextInputAction.done : TextInputAction.next,
+                          textInputAction: _isLogin
+                              ? TextInputAction.done
+                              : TextInputAction.next,
                           onSubmitted: (_) => _isLogin ? _submitForm() : null,
                         ),
                         const SizedBox(height: 16),
@@ -203,7 +206,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: BoxDecoration(
                               color: Colors.red.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [
@@ -236,7 +240,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   )
                                 : Text(_isLogin ? 'Entrar' : 'Criar Conta'),
                           ),
@@ -298,7 +303,8 @@ class _LoginScreenState extends State<LoginScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Digite seu email para receber instruções de reset de senha.'),
+            const Text(
+                'Digite seu email para receber instruções de reset de senha.'),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
@@ -325,7 +331,8 @@ class _LoginScreenState extends State<LoginScreen> {
               }
 
               try {
-                await _authService.sendPasswordResetEmail(emailController.text.trim());
+                await _authService
+                    .sendPasswordResetEmail(emailController.text.trim());
                 if (!mounted) return;
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(

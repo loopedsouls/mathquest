@@ -9,10 +9,14 @@ class FirestoreService {
   String? get _userId => _auth.currentUser?.uid;
 
   // Referências das coleções
-  CollectionReference get _progressoCollection => _firestore.collection('progresso_usuario');
-  CollectionReference get _estatisticasCollection => _firestore.collection('estatisticas_modulo');
-  CollectionReference get _cacheIACollection => _firestore.collection('cache_ia');
-  CollectionReference get _conquistasCollection => _firestore.collection('conquistas_usuario');
+  CollectionReference get _progressoCollection =>
+      _firestore.collection('progresso_usuario');
+  CollectionReference get _estatisticasCollection =>
+      _firestore.collection('estatisticas_modulo');
+  CollectionReference get _cacheIACollection =>
+      _firestore.collection('cache_ia');
+  CollectionReference get _conquistasCollection =>
+      _firestore.collection('conquistas_usuario');
 
   // === MÉTODOS DE PROGRESSO ===
 
@@ -24,7 +28,8 @@ class FirestoreService {
       'modulosCompletos': progresso.modulosCompletos,
       'nivelUsuario': progresso.nivelUsuario.index,
       'pontosPorUnidade': progresso.pontosPorUnidade,
-      'exerciciosCorretosConsecutivos': progresso.exerciciosCorretosConsecutivos,
+      'exerciciosCorretosConsecutivos':
+          progresso.exerciciosCorretosConsecutivos,
       'taxaAcertoPorModulo': progresso.taxaAcertoPorModulo,
       'ultimaAtualizacao': progresso.ultimaAtualizacao.toIso8601String(),
       'totalExerciciosRespondidos': progresso.totalExerciciosRespondidos,
@@ -48,13 +53,17 @@ class FirestoreService {
     return ProgressoUsuario(
       modulosCompletos: Map<String, Map<String, bool>>.from(
         (data['modulosCompletos'] as Map<String, dynamic>?)?.map(
-          (key, value) => MapEntry(key, Map<String, bool>.from(value as Map<String, dynamic>)),
-        ) ?? {},
+              (key, value) => MapEntry(
+                  key, Map<String, bool>.from(value as Map<String, dynamic>)),
+            ) ??
+            {},
       ),
       nivelUsuario: NivelUsuario.values[data['nivelUsuario'] ?? 0],
       pontosPorUnidade: Map<String, int>.from(data['pontosPorUnidade'] ?? {}),
-      exerciciosCorretosConsecutivos: Map<String, int>.from(data['exerciciosCorretosConsecutivos'] ?? {}),
-      taxaAcertoPorModulo: Map<String, double>.from(data['taxaAcertoPorModulo'] ?? {}),
+      exerciciosCorretosConsecutivos:
+          Map<String, int>.from(data['exerciciosCorretosConsecutivos'] ?? {}),
+      taxaAcertoPorModulo:
+          Map<String, double>.from(data['taxaAcertoPorModulo'] ?? {}),
       ultimaAtualizacao: DateTime.parse(data['ultimaAtualizacao']),
       totalExerciciosRespondidos: data['totalExerciciosRespondidos'] ?? 0,
       totalExerciciosCorretos: data['totalExerciciosCorretos'] ?? 0,
@@ -93,10 +102,13 @@ class FirestoreService {
   Future<List<Map<String, dynamic>>> carregarEstatisticas() async {
     if (_userId == null) return [];
 
-    final query = _estatisticasCollection.where('usuarioId', isEqualTo: _userId);
+    final query =
+        _estatisticasCollection.where('usuarioId', isEqualTo: _userId);
     final snapshot = await query.get();
 
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return snapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
   }
 
   // === MÉTODOS DE CACHE IA ===
@@ -141,7 +153,10 @@ class FirestoreService {
     if (!snapshot.exists) return null;
 
     // Incrementar hits
-    await docRef.update({'hits': FieldValue.increment(1), 'lastUsed': FieldValue.serverTimestamp()});
+    await docRef.update({
+      'hits': FieldValue.increment(1),
+      'lastUsed': FieldValue.serverTimestamp()
+    });
 
     return snapshot.data() as Map<String, dynamic>?;
   }
@@ -161,7 +176,9 @@ class FirestoreService {
         .limit(10);
 
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return snapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
   }
 
   // === MÉTODOS DE CONQUISTAS ===
@@ -191,7 +208,9 @@ class FirestoreService {
     final query = _conquistasCollection.where('usuarioId', isEqualTo: _userId);
     final snapshot = await query.get();
 
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return snapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
   }
 
   // === MÉTODO DE MIGRAÇÃO ===

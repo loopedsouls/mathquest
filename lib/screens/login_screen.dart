@@ -339,16 +339,18 @@ class _LoginScreenState extends State<LoginScreen> {
               try {
                 await _authService
                     .sendPasswordResetEmail(emailController.text.trim());
-                if (!mounted) return;
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Email de reset enviado!')),
-                );
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Email de reset enviado!')),
+                  );
+                }
               } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erro: ${e.toString()}')),
-                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro: ${e.toString()}')),
+                  );
+                }
               }
             },
             child: const Text('Enviar'),

@@ -81,7 +81,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
     return Stack(
       children: [
         // Background com partículas
-        Container(
+        SizedBox(
           width: widget.width,
           height: widget.height,
           child: ParticleSystem(
@@ -482,7 +482,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                       width: 1,
                     ),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.flash_on,
                     color: Colors.white,
                     size: 12,
@@ -718,7 +718,7 @@ class _Personagem3DWidgetState extends State<Personagem3DWidget>
                     ),
                   ],
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.star,
                   color: Colors.white,
                   size: 20,

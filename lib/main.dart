@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'widgets/app_initializer.dart';
 import 'theme/app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Configurar orientações permitidas e UI overlay
   SystemChrome.setPreferredOrientations([
@@ -68,7 +73,7 @@ class ResponsiveWrapper extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.darkBackgroundColor,
-                AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+                AppTheme.darkSurfaceColor.withOpacity(0.5),
               ],
             ),
           ),

@@ -230,11 +230,11 @@ class ItemVisualizationHelper {
                       ),
                       if (!desbloqueado)
                         Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.black54,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.lock,
                             color: Colors.white70,
                             size: 24,
@@ -290,7 +290,7 @@ class ItemVisualizationHelper {
                           ? 'EQUIPAR'
                           : (desbloqueado ? '$preco 🪙' : 'BLOQUEADO')),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,

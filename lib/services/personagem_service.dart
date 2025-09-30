@@ -288,8 +288,9 @@ class PersonagemService {
       final item = _todosItens.firstWhere((i) => i.id == itemId);
 
       if (_perfilAtual!.possuiItem(itemId)) return false; // Já possui
-      if (!_perfilAtual!.podeComprarItem(item.preco))
+      if (!_perfilAtual!.podeComprarItem(item.preco)) {
         return false; // Sem dinheiro
+      }
 
       final novoInventario = List<String>.from(_perfilAtual!.itensInventario);
       novoInventario.add(itemId);

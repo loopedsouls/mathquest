@@ -340,16 +340,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 await _authService
                     .sendPasswordResetEmail(emailController.text.trim());
                 if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Email de reset enviado!')),
-                  );
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Email de reset enviado!')),
+                      );
+                    }
+                  });
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erro: ${e.toString()}')),
-                  );
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: ${e.toString()}')),
+                      );
+                    }
+                  });
                 }
               }
             },

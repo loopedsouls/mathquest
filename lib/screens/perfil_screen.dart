@@ -466,8 +466,10 @@ class _PerfilScreenState extends State<PerfilScreen>
           Center(
             child: ItemVisualizationHelper.buildPersonagemCompleto(
               itensEquipados: _perfil?.itensEquipados ?? {},
-              width: 200,
-              height: 300,
+              width: 220,
+              height: 320,
+              nome: _perfil?.nome ?? 'Matemático',
+              interactive: true,
             ),
           ),
         ],

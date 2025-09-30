@@ -10,6 +10,7 @@ import 'modulos_screen.dart';
 import 'dashboard_screen.dart';
 import 'chat_screen.dart';
 import 'perfil_screen.dart';
+import 'teste_personagem_3d_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -335,6 +336,20 @@ class _StartScreenState extends State<StartScreen>
             ),
       bottomNavigationBar:
           !isDesktop && !_isLoading ? _buildBottomNavigationBar() : null,
+      floatingActionButton: !_isLoading
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TestePersonagem3DScreen(),
+                  ),
+                );
+              },
+              backgroundColor: AppTheme.accentColor,
+              child: const Icon(Icons.person),
+            )
+          : null,
     );
   }
 

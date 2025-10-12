@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:vector_math/vector_math_64.dart' as vm;
 import '../../theme/app_theme.dart';
-import '../../../widgets/visual_effects.dart';
+import 'visual_effects.dart';
 
 class Personagem3DWidget extends StatefulWidget {
   final Map<String, String> itensEquipados;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import '../features/theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
 class LatexMarkdownWidget extends StatelessWidget {
   final String data;

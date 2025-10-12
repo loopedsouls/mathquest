@@ -9,7 +9,7 @@ import '../../user/models/progresso_user_model.dart';
 import '../conversa.dart';
 import '../../user/services/progresso_service.dart';
 import '../../theme/app_theme.dart';
-import '../../../widgets/latex_markdown_widget.dart';
+import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
 import '../../firebase/service/firebase_ai_service.dart';
 import '../services/conversa_service.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/firebase_ai_service.dart';
-import '../theme/app_theme.dart';
+import '../features/firebase/service/firebase_ai_service.dart';
+import '../features/theme/app_theme.dart';
 
 class QueueStatusIndicator extends StatefulWidget {
   const QueueStatusIndicator({super.key});

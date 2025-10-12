@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/gamificacao_service.dart';
-import '../theme/app_theme.dart';
+import '../features/games/service/gamificacao_service.dart';
+import '../features/theme/app_theme.dart';
 
 class StreakWidget extends StatefulWidget {
   const StreakWidget({super.key});

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
+import '../../../widgets/mixins.dart';
 import '../../ai_tutor/services/explicacao_service.dart';
 import '../service/quiz_helper_service.dart';
 import '../../firebase/service/firebase_ai_service.dart';
@@ -23,19 +24,17 @@ class QuizCompleteAFraseScreen extends StatefulWidget {
 }
 
 class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, QuizStateMixin, AnimationMixin {
   final TextEditingController _respostaController = TextEditingController();
 
+  // Estado específico do Quiz Complete a Frase
   String pergunta = '';
   String explicacao = '';
   String feedback = '';
-  bool carregando = false;
   bool? _respostaCorreta;
   List<Map<String, String>> historico = [];
   int _nivelDificuldade = 1;
   final List<String> _niveis = ['fácil', 'médio', 'difícil', 'expert'];
-  bool _useGemini = true;
-  String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
   Map<String, dynamic>? _exercicioAtual;
   int _exerciciosRespondidos = 0;
@@ -44,7 +43,7 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
   bool _carregandoAjuda = false;
   String _ajudaIA = '';
 
-  // Animações
+  // Animações específicas
   late AnimationController _cardAnimationController;
   late AnimationController _feedbackAnimationController;
   late Animation<double> _cardScaleAnimation;
@@ -116,10 +115,10 @@ class _QuizCompleteAFraseScreenState extends State<QuizCompleteAFraseScreen>
   Future<void> _carregarPreferencias() async {
     final prefs = await SharedPreferences.getInstance();
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+    final modeloOllamaPrefs = prefs.getString('modelo_ollama') ?? 'llama2';
     setState(() {
-      _useGemini = selectedAI == 'gemini';
-      _modeloOllama = modeloOllama;
+      useGemini = selectedAI == 'gemini';
+      modeloOllama = modeloOllamaPrefs;
     });
   }
 
@@ -683,10 +682,10 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
   String _buildSubtitle() {
     String nivel = 'Nível: ${_niveis[_nivelDificuldade].toUpperCase()}';
 
-    if (_useGemini) {
+    if (useGemini) {
       return '$nivel • IA: Gemini';
     } else {
-      return '$nivel • IA: Ollama ($_modeloOllama)';
+      return '$nivel • IA: Ollama ($modeloOllama)';
     }
   }
 
@@ -755,15 +754,13 @@ Seja didático, encorajador e específico para esta pergunta. Limite sua respost
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _useGemini
-                      ? Icons.auto_awesome_rounded
-                      : Icons.memory_rounded,
+                  useGemini ? Icons.auto_awesome_rounded : Icons.memory_rounded,
                   color: AppTheme.primaryColor,
                   size: isTablet ? 16 : 14,
                 ),
                 SizedBox(width: isTablet ? 6 : 4),
                 Text(
-                  '${_useGemini ? 'Gemini' : 'Ollama'} (${_useGemini ? 'Pro' : _modeloOllama})',
+                  '${useGemini ? 'Gemini' : 'Ollama'} (${useGemini ? 'Pro' : modeloOllama})',
                   style: TextStyle(
                     color: AppTheme.primaryColor,
                     fontSize: isTablet ? 12 : 10,

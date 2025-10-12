@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
+import '../../../widgets/mixins.dart';
 import '../../user/services/progresso_service.dart';
 import '../service/gamificacao_service.dart';
 import '../../ai_tutor/services/explicacao_service.dart';
@@ -27,32 +28,26 @@ class QuizMultiplaEscolhaScreen extends StatefulWidget {
 }
 
 class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
-    with TickerProviderStateMixin {
-  // Estado do Quiz
-  Map<String, dynamic>? perguntaAtual;
-  int perguntaIndex = 0;
+    with TickerProviderStateMixin, QuizStateMixin, AnimationMixin {
+  // Estado específico do Quiz de Múltipla Escolha
   int totalPerguntas = 10;
   String? respostaSelecionada;
-  bool carregando = false;
-  bool quizFinalizado = false;
-  bool _useGemini = true;
-  String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
 
-  // Resultados
+  // Resultados específicos
   List<Map<String, dynamic>> respostas = [];
   int pontuacao = 0;
-  Map<String, int> estatisticas = {
+  Map<String, int> estatisticasEspecificas = {
     'corretas': 0,
     'incorretas': 0,
     'tempo_total': 0,
   };
 
   // Controle de tempo
-  late DateTime inicioQuiz;
-  late DateTime inicioPergunta;
+  late DateTime _inicioQuiz;
+  late DateTime _inicioPergunta;
 
-  // Animações
+  // Animações específicas
   late AnimationController _cardAnimationController;
   late AnimationController _progressAnimationController;
   late Animation<double> _cardScaleAnimation;
@@ -107,7 +102,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     super.initState();
     _initializeAnimations();
     _initializeQuiz();
-    inicioQuiz = DateTime.now();
+    _inicioQuiz = DateTime.now();
   }
 
   void _initializeAnimations() {
@@ -199,10 +194,10 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   Future<void> _carregarPreferencias() async {
     final prefs = await SharedPreferences.getInstance();
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+    final modeloOllamaPrefs = prefs.getString('modelo_ollama') ?? 'llama2';
     setState(() {
-      _useGemini = selectedAI == 'gemini';
-      _modeloOllama = modeloOllama;
+      useGemini = selectedAI == 'gemini';
+      modeloOllama = modeloOllamaPrefs;
     });
   }
 
@@ -217,7 +212,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       respostaSelecionada = null;
     });
 
-    inicioPergunta = DateTime.now();
+    _inicioPergunta = DateTime.now();
 
     // Sempre usa o sistema de cache/IA, sem modo offline
     await _gerarPerguntaComIA();
@@ -320,7 +315,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   Future<void> _confirmarResposta() async {
     if (respostaSelecionada == null || perguntaAtual == null) return;
 
-    final tempoResposta = DateTime.now().difference(inicioPergunta).inSeconds;
+    final tempoResposta = DateTime.now().difference(_inicioPergunta).inSeconds;
     final isCorreta = respostaSelecionada == perguntaAtual!['resposta_correta'];
 
     // Registrar no sistema de progressão se tiver tópico e dificuldade
@@ -488,7 +483,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   }
 
   void _finalizarQuiz() {
-    final tempoTotal = DateTime.now().difference(inicioQuiz).inMinutes;
+    final tempoTotal = DateTime.now().difference(_inicioQuiz).inMinutes;
     estatisticas['tempo_total'] = tempoTotal;
 
     setState(() {
@@ -599,7 +594,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       respostaSelecionada = null;
     });
 
-    inicioQuiz = DateTime.now();
+    _inicioQuiz = DateTime.now();
     _progressAnimationController.reset();
     _carregarProximaPergunta();
   }
@@ -682,10 +677,10 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       return nivel;
     }
 
-    if (_useGemini) {
+    if (useGemini) {
       return '$nivel • IA: Gemini';
     } else {
-      return '$nivel • IA: Ollama ($_modeloOllama)';
+      return '$nivel • IA: Ollama ($modeloOllama)';
     }
   }
 
@@ -774,7 +769,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                 borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
               ),
               child: Text(
-                _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
+                useGemini ? 'Gemini' : 'Ollama: $modeloOllama',
                 style: TextStyle(
                   color: AppTheme.infoColor,
                   fontSize: isTablet ? 12 : 10,

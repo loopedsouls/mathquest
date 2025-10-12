@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
+import '../../../widgets/mixins.dart';
 import '../../ai_tutor/services/explicacao_service.dart';
 import '../service/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,30 +25,24 @@ class QuizVerdadeiroFalsoScreen extends StatefulWidget {
 }
 
 class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
-    with TickerProviderStateMixin {
-  // Estado do Quiz
-  Map<String, dynamic>? perguntaAtual;
-  int perguntaIndex = 0;
+    with TickerProviderStateMixin, QuizStateMixin, AnimationMixin {
+  // Estado específico do Quiz Verdadeiro/Falso
   int totalPerguntas = 10;
   bool? respostaSelecionada; // true para Verdadeiro, false para Falso
-  bool carregando = false;
-  bool quizFinalizado = false;
-  bool _useGemini = true;
-  String _modeloOllama = 'llama2';
   bool _perguntaDoCache = false;
 
-  // Resultados
+  // Resultados específicos
   List<Map<String, dynamic>> respostas = [];
   int pontuacao = 0;
-  Map<String, int> estatisticas = {
+  Map<String, int> estatisticasEspecificas = {
     'corretas': 0,
     'incorretas': 0,
     'tempo_total': 0,
   };
 
   // Controle de tempo
-  late DateTime inicioQuiz;
-  late DateTime inicioPergunta;
+  late DateTime _inicioQuiz;
+  late DateTime _inicioPergunta;
 
   // Animações
   late AnimationController _cardAnimationController;
@@ -123,7 +118,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
     super.initState();
     _initializeAnimations();
     _initializeQuiz();
-    inicioQuiz = DateTime.now();
+    _inicioQuiz = DateTime.now();
   }
 
   void _initializeAnimations() {
@@ -171,10 +166,10 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
   Future<void> _carregarPreferencias() async {
     final prefs = await SharedPreferences.getInstance();
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-    final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
+    final modeloOllamaPrefs = prefs.getString('modelo_ollama') ?? 'llama2';
     setState(() {
-      _useGemini = selectedAI == 'gemini';
-      _modeloOllama = modeloOllama;
+      useGemini = selectedAI == 'gemini';
+      modeloOllama = modeloOllamaPrefs;
     });
   }
 
@@ -189,7 +184,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
       respostaSelecionada = null;
     });
 
-    inicioPergunta = DateTime.now();
+    _inicioPergunta = DateTime.now();
 
     // Sempre usa o sistema de cache/IA, sem modo offline
     await _gerarPerguntaComIA();
@@ -295,7 +290,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
   Future<void> _confirmarResposta() async {
     if (respostaSelecionada == null || perguntaAtual == null) return;
 
-    final tempoResposta = DateTime.now().difference(inicioPergunta).inSeconds;
+    final tempoResposta = DateTime.now().difference(_inicioPergunta).inSeconds;
     final isCorreta = respostaSelecionada == perguntaAtual!['resposta_correta'];
 
     // Registrar resposta
@@ -435,7 +430,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
   }
 
   void _finalizarQuiz() {
-    final tempoTotal = DateTime.now().difference(inicioQuiz).inMinutes;
+    final tempoTotal = DateTime.now().difference(_inicioQuiz).inMinutes;
     estatisticas['tempo_total'] = tempoTotal;
 
     setState(() {
@@ -490,7 +485,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
       respostaSelecionada = null;
     });
 
-    inicioQuiz = DateTime.now();
+    _inicioQuiz = DateTime.now();
     _progressAnimationController.reset();
     _carregarProximaPergunta();
   }
@@ -579,10 +574,10 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
       return nivel;
     }
 
-    if (_useGemini) {
+    if (useGemini) {
       return '$nivel • IA: Gemini';
     } else {
-      return '$nivel • IA: Ollama ($_modeloOllama)';
+      return '$nivel • IA: Ollama ($modeloOllama)';
     }
   }
 
@@ -671,7 +666,7 @@ class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
                 borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
               ),
               child: Text(
-                _useGemini ? 'Gemini' : 'Ollama: $_modeloOllama',
+                useGemini ? 'Gemini' : 'Ollama: $modeloOllama',
                 style: TextStyle(
                   color: AppTheme.infoColor,
                   fontSize: isTablet ? 12 : 10,

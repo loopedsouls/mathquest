@@ -14,7 +14,7 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen>
-    with TickerProviderStateMixin, LoadingStateMixin {
+    with TickerProviderStateMixin, LoadingStateMixin, AnimationMixin {
   final PersonagemService _personagemService = PersonagemService();
   PerfilPersonagem? _perfil;
   List<ItemPersonalizacao> _todosItens = [];
@@ -23,20 +23,11 @@ class _PerfilScreenState extends State<PerfilScreen>
   String _categoriaFiltro = 'todos'; // Para filtrar itens por categoria
 
   late TabController _tabController;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
 
     _inicializar();
   }
@@ -44,7 +35,6 @@ class _PerfilScreenState extends State<PerfilScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -55,7 +45,7 @@ class _PerfilScreenState extends State<PerfilScreen>
       _todosItens = _personagemService.getTodosItens();
       _inventario = _personagemService.getInventario();
 
-      _animationController.forward();
+      animationController.forward();
     }, 'Erro ao carregar perfil');
   }
 
@@ -180,7 +170,7 @@ class _PerfilScreenState extends State<PerfilScreen>
 
   Widget _buildContent() {
     return FadeTransition(
-      opacity: _fadeAnimation,
+      opacity: fadeAnimation,
       child: Column(
         children: [
           _buildHeader(),

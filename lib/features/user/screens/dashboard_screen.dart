@@ -16,25 +16,18 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin, LoadingStateMixin {
+    with TickerProviderStateMixin, LoadingStateMixin, AnimationMixin {
   Map<String, dynamic> _dadosProgresso = {};
   List<Conquista> _conquistas = [];
-
-  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
     _carregarDados();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -77,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         );
       }).toList();
 
-      _animationController.forward();
+      animationController.forward();
     }, 'Erro ao carregar dados');
   }
 

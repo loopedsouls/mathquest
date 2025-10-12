@@ -11,8 +11,8 @@ import '../ai_tutor/screens/modulos_screen.dart';
 import 'screens/dashboard_screen.dart';
 import '../ai_tutor/screens/chat_screen.dart';
 import 'screens/perfil_screen.dart';
-import '../../../test/teste_personagem_3d_screen.dart';
-import '../../../test/teste_firebase_ai_screen.dart';
+import 'screens/teste_personagem_3d_screen.dart';
+import 'screens/teste_firebase_ai_screen.dart';
 import '../auth/login_screen.dart';
 
 class NavigationItem {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../service/auth_service.dart';
 import '../../theme/app_theme.dart';
+import '../../../widgets/mixins.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,7 +10,8 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with FormMixin, LoadingStateMixin {
   final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -17,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController();
 
   bool _isLogin = true;
-  bool _isLoading = false;
   String? _errorMessage;
 
   @override
@@ -32,11 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_validateForm()) return;
 
     setState(() {
-      _isLoading = true;
       _errorMessage = null;
     });
 
-    try {
+    await executeWithLoadingAndError(() async {
       if (_isLogin) {
         await _authService.signInWithEmailAndPassword(
           _emailController.text.trim(),
@@ -48,10 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         if (_passwordController.text != _confirmPasswordController.text) {
-          setState(() {
-            _errorMessage = 'As senhas não coincidem.';
-            _isLoading = false;
-          });
+          setState(() => _errorMessage = 'As senhas não coincidem.');
           return;
         }
 
@@ -64,12 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pop(true);
         }
       }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
+    }, 'Erro na autenticação');
   }
 
   bool _validateForm() {
@@ -241,14 +233,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _submitForm,
+                            onPressed: isLoading ? null : _submitForm,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: _isLoading
+                            child: isLoading
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,

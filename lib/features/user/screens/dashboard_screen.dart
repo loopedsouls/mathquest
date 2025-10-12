@@ -26,11 +26,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _carregarDados();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Future<void> _carregarDados() async {
     await executeWithLoadingAndError(() async {
       // Carregar progresso do usuário

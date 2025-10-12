@@ -1,22 +1,39 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../user/models/progresso_user_model.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseFirestore? _firestore;
+  FirebaseAuth? _auth;
 
-  String? get _userId => _auth.currentUser?.uid;
+  FirebaseFirestore get _firestoreInstance {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firestore não está disponível no Linux');
+    }
+    _firestore ??= FirebaseFirestore.instance;
+    return _firestore!;
+  }
+
+  FirebaseAuth get _authInstance {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
+    _auth ??= FirebaseAuth.instance;
+    return _auth!;
+  }
+
+  String? get _userId => _authInstance.currentUser?.uid;
 
   // Referências das coleções
   CollectionReference get _progressoCollection =>
-      _firestore.collection('progresso_usuario');
+      _firestoreInstance.collection('progresso_usuario');
   CollectionReference get _estatisticasCollection =>
-      _firestore.collection('estatisticas_modulo');
+      _firestoreInstance.collection('estatisticas_modulo');
   CollectionReference get _cacheIACollection =>
-      _firestore.collection('cache_ia');
+      _firestoreInstance.collection('cache_ia');
   CollectionReference get _conquistasCollection =>
-      _firestore.collection('conquistas_usuario');
+      _firestoreInstance.collection('conquistas_usuario');
 
   // === MÉTODOS DE PROGRESSO ===
 

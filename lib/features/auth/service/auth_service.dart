@@ -1,21 +1,43 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? _auth;
+
+  FirebaseAuth get _authInstance {
+    if (!Platform.isLinux) {
+      _auth ??= FirebaseAuth.instance;
+    }
+    return _auth!;
+  }
 
   // Stream para ouvir mudanças no estado de autenticação
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges {
+    if (Platform.isLinux) {
+      // Retornar stream vazio no Linux
+      return Stream.value(null);
+    }
+    return _authInstance.authStateChanges();
+  }
 
   // Usuário atual
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser {
+    if (Platform.isLinux) {
+      return null;
+    }
+    return _authInstance.currentUser;
+  }
 
   // Login com email e senha
   Future<UserCredential> signInWithEmailAndPassword(
     String email,
     String password,
   ) async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
-      return await _auth.signInWithEmailAndPassword(
+      return await _authInstance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -29,8 +51,11 @@ class AuthService {
     String email,
     String password,
   ) async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      return await _authInstance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -41,13 +66,19 @@ class AuthService {
 
   // Logout
   Future<void> signOut() async {
-    await _auth.signOut();
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
+    await _authInstance.signOut();
   }
 
   // Resetar senha
   Future<void> sendPasswordResetEmail(String email) async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _authInstance.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -55,8 +86,11 @@ class AuthService {
 
   // Atualizar senha
   Future<void> updatePassword(String newPassword) async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
-      await _auth.currentUser?.updatePassword(newPassword);
+      await _authInstance.currentUser?.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -64,12 +98,15 @@ class AuthService {
 
   // Reautenticar usuário (para operações sensíveis)
   Future<void> reauthenticateUser(String email, String password) async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
       AuthCredential credential = EmailAuthProvider.credential(
         email: email,
         password: password,
       );
-      await _auth.currentUser?.reauthenticateWithCredential(credential);
+      await _authInstance.currentUser?.reauthenticateWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -77,8 +114,11 @@ class AuthService {
 
   // Deletar conta
   Future<void> deleteAccount() async {
+    if (Platform.isLinux) {
+      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    }
     try {
-      await _auth.currentUser?.delete();
+      await _authInstance.currentUser?.delete();
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }

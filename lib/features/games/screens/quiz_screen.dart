@@ -2574,7 +2574,7 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.darkBorderColor),
             ),
-            child: const Center(child: CircularProgressIndicator()),
+            child: const LoadingWidget(),
           );
         }
 

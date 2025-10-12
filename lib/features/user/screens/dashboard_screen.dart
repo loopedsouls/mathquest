@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
+import '../../../widgets/mixins.dart';
 import '../conquista.dart';
 import '../services/progresso_service.dart';
 import 'conquista_screen.dart';
@@ -15,11 +16,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, LoadingStateMixin {
   Map<String, dynamic> _dadosProgresso = {};
   List<Conquista> _conquistas = [];
 
-  bool _carregando = true;
   late AnimationController _animationController;
 
   @override
@@ -39,9 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _carregarDados() async {
-    setState(() => _carregando = true);
-
-    try {
+    await executeWithLoadingAndError(() async {
       // Carregar progresso do usuário
       final progresso = await ProgressoService.carregarProgresso();
 
@@ -79,21 +77,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         );
       }).toList();
 
-      setState(() {
-        _carregando = false;
-      });
       _animationController.forward();
-    } catch (e) {
-      setState(() => _carregando = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao carregar dados: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
+    }, 'Erro ao carregar dados');
   }
 
   @override
@@ -113,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
         child: SafeArea(
-          child: _carregando
+          child: isLoading
               ? _buildLoadingScreen()
               : Column(
                   children: [

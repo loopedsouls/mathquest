@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mathquest/widgets/personagem_3d_widget.dart';
+import '../widgets/personagem_3d_widget.dart';
 import 'package:mathquest/features/theme/app_theme.dart';
 
 class TestePersonagem3DScreen extends StatelessWidget {

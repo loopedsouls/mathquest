@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/app_theme.dart';
+import '../../../widgets/mixins.dart';
 import '../conquista.dart';
 import '../../games/service/gamificacao_service.dart';
 
@@ -12,10 +13,9 @@ class ConquistasScreen extends StatefulWidget {
 }
 
 class _ConquistasScreenState extends State<ConquistasScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, LoadingStateMixin {
   List<Conquista> _conquistas = [];
 
-  bool _carregando = true;
   late TabController _tabController;
   late AnimationController _animationController;
 
@@ -65,9 +65,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
   }
 
   Future<void> _carregarDados() async {
-    setState(() => _carregando = true);
-
-    try {
+    await executeWithLoadingAndError(() async {
       // Carrega conquistas reais do serviço de gamificação
       final conquistasDesbloqueadas =
           await GamificacaoService.obterConquistasDesbloqueadas();
@@ -79,19 +77,8 @@ class _ConquistasScreenState extends State<ConquistasScreen>
         ...conquistasBloqueadas,
       ];
 
-      setState(() => _carregando = false);
       _animationController.forward();
-    } catch (e) {
-      setState(() => _carregando = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao carregar conquistas: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
+    }, 'Erro ao carregar conquistas');
   }
 
   @override
@@ -117,7 +104,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
           ],
         ),
       ),
-      body: _carregando
+      body: isLoading
           ? Center(
               child: CircularProgressIndicator(
                 color: AppTheme.primaryColor,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import '../../../widgets/item_visualization_helper.dart';
+import '../widgets/item_visualization_helper.dart';
+import '../../../widgets/mixins.dart';
 import '../services/personagem_service.dart';
 import '../models/personagem_model.dart';
 
@@ -13,13 +14,12 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, LoadingStateMixin {
   final PersonagemService _personagemService = PersonagemService();
   PerfilPersonagem? _perfil;
   List<ItemPersonalizacao> _todosItens = [];
   List<ItemPersonalizacao> _inventario = [];
 
-  bool _carregando = true;
   String _categoriaFiltro = 'todos'; // Para filtrar itens por categoria
 
   late TabController _tabController;
@@ -49,22 +49,14 @@ class _PerfilScreenState extends State<PerfilScreen>
   }
 
   Future<void> _inicializar() async {
-    setState(() => _carregando = true);
-
-    try {
+    await executeWithLoadingAndError(() async {
       await _personagemService.inicializar();
       _perfil = _personagemService.perfilAtual;
       _todosItens = _personagemService.getTodosItens();
       _inventario = _personagemService.getInventario();
 
-      setState(() => _carregando = false);
       _animationController.forward();
-    } catch (e) {
-      setState(() => _carregando = false);
-      if (mounted) {
-        AppTheme.showErrorSnackBar(context, 'Erro ao carregar perfil: $e');
-      }
-    }
+    }, 'Erro ao carregar perfil');
   }
 
   Future<void> _equiparItem(ItemPersonalizacao item) async {
@@ -161,7 +153,7 @@ class _PerfilScreenState extends State<PerfilScreen>
           ),
         ),
         child: SafeArea(
-          child: _carregando ? _buildLoadingScreen() : _buildContent(),
+          child: isLoading ? _buildLoadingScreen() : _buildContent(),
         ),
       ),
     );

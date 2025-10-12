@@ -1,53 +1,96 @@
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/pubspec.yaml#30-30), lines 30 to 50
+# MathQuest - Funcionalidades Faltantes para MVP
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/lib/services)
+## 🎯 **PRIORIDADE ALTA - Essencial para MVP**
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/lib/screens)
+### 1. **Fluxo Interativo de Lições** 📚
+**Status:** ❌ PENDENTE
+**Descrição:** Implementar o sistema de lições com introdução por IA e opções clicáveis
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/lib/main.dart#1-1), lines 1 to 25
+#### Tarefas:
+- [ ] Gerar mensagem inicial por IA ao iniciar módulo
+- [ ] Definir dinamicamente quantidade de aulas por módulo
+- [ ] Criar 3 botões interativos: Quiz, Aula, Curiosidades
+- [ ] Integrar progresso de aulas na appbar e dashboard
+- [ ] Marcar módulo como completo após todas as aulas
 
-Searched text for `AuthWrapper` (`**/*.dart`), 3 results
+**Arquivo referência:** `docs/paraimplementar.md`
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/lib)
+### 2. **Banco de Questões Offline** 📱
+**Status:** ❌ PENDENTE
+**Descrição:** Criar base de questões pré-definidas para funcionamento sem IA
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/android/app)
+#### Tarefas:
+- [ ] Definir mínimo 10 questões por módulo BNCC
+- [ ] Implementar variedade de dificuldades
+- [ ] Cobrir todos os tópicos principais
+- [ ] Sistema de cache inteligente
+- [ ] Fallback automático para offline
 
-Read [](file:///c%3A/Users/luann/Documents/GitHub/adaptivecheck/ios/Runner)
+## 🎯 **PRIORIDADE MÉDIA - Melhorias**
 
-Searched text for `firebase` (`**/web/index.html`), no results
+### 3. **Onboarding do Usuário** 👋
+**Status:** ❌ PENDENTE
+**Descrição:** Experiência inicial para novos usuários
 
-## ✅ **Status Completo da Integração Firebase**
+#### Tarefas:
+- [ ] Tutorial de primeiros passos
+- [ ] Seleção de ano escolar
+- [ ] Explicação do sistema de progressão
+- [ ] Configuração inicial de preferências
 
-Com base no estado atual do projeto, aqui está tudo que **JÁ FOI IMPLEMENTADO**:
+### 4. **Animações Avançadas** ✨
+**Status:** ⚠️ PARCIAL (30%)
+**Descrição:** Melhorar UX com animações sofisticadas
 
-### 🔧 **Infraestrutura Firebase**
-- ✅ **Projeto Firebase configurado** - firebase_options.dart presente com configurações para Android/iOS/Web
-- ✅ **Firebase Core inicializado** - main.dart inicializa Firebase corretamente
-- ✅ **Todas dependências adicionadas** ao pubspec.yaml:
-  - `firebase_core: ^3.0.0`
-  - `firebase_auth: ^5.0.0`
-  - `cloud_firestore: ^5.0.0`
-  - `firebase_analytics: ^11.0.0`
-  - `firebase_crashlytics: ^4.0.0`
-  - `firebase_remote_config: ^5.0.0`
+#### Tarefas:
+- [ ] Animações de entrada/saída de elementos
+- [ ] Micro-interações (hover, focus)
+- [ ] Loading states mais elaborados
+- [ ] Hero animations entre telas
+- [ ] Feedback visual aprimorado
 
-### 🔐 **Autenticação Completa**
-- ✅ **AuthService criado** (auth_service.dart) com métodos:
-  - Login/cadastro com email/senha
-  - Logout
-  - Reset de senha
-  - Reautenticação
-  - Tratamento completo de erros
-- ✅ **Tela de Login implementada** (login_screen.dart) com:
-  - Interface moderna e responsiva
-  - Validação de formulários
-  - Alternância login/cadastro
-  - Recuperação de senha
-- ✅ **Controle de autenticação** - `AuthWrapper` em main.dart redireciona usuários não autenticados para login
+## 🎯 **PRIORIDADE BAIXA - Futuras Versões**
 
-### ☁️ **Firestore Implementado**
-- ✅ **FirestoreService criado** (firestore_service.dart) com métodos para:
-  - Salvar/carregar progresso do usuário
+### 5. **Modo Professor** 👩‍🏫
+**Status:** ❌ PENDENTE
+**Descrição:** Ferramentas para professores
+
+#### Tarefas:
+- [ ] Geração de PDFs de exercícios
+- [ ] Gabaritos separados
+- [ ] Relatórios de turma
+- [ ] Material de estudo offline
+
+### 6. **Sistema de Backup** ☁️
+**Status:** ❌ PENDENTE
+**Descrição:** Backup e sincronização de dados
+
+#### Tarefas:
+- [ ] Exportação/importação de dados
+- [ ] Sincronização entre dispositivos
+- [ ] Backup na nuvem
+
+---
+
+## 📊 **Status Atual do MVP**
+
+### ✅ **IMPLEMENTADO (Estrutura Core)**
+- ✅ Arquitetura Flutter com Material 3
+- ✅ Sistema de módulos BNCC
+- ✅ Progressão e gamificação básica
+- ✅ Múltiplos tipos de quiz
+- ✅ Persistência SQLite
+- ✅ Modo offline (sem Firebase)
+- ✅ Interface responsiva
+
+### ❌ **FALTANDO (Funcionalidades Core)**
+- ❌ Sistema de lições interativas
+- ❌ Conteúdo offline pré-definido
+- ❌ Onboarding do usuário
+
+**🎯 Conclusão:** MVP tem estrutura sólida, mas precisa do fluxo de conteúdo educacional para ser funcional.
+
+**📅 Atualizado em:** 12 de outubro de 2025
   - Estatísticas por módulo
   - Cache de IA
   - Conquistas

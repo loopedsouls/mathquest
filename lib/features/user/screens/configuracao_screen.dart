@@ -7,9 +7,9 @@ import '../../ai_tutor/services/preload_service.dart';
 import '../../firebase/service/firebase_ai_service.dart';
 import '../../theme/app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import '../../auth/auth_service.dart';
+import '../../auth/service/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../auth/login_screen.dart';
+import '../../auth/screen/login_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});

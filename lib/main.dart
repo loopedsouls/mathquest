@@ -4,7 +4,7 @@ import 'features/user/widgets/app_initializer.dart';
 import 'features/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'features/auth/auth_service.dart';
+import 'features/auth/service/auth_service.dart';
 import 'features/firebase/service/firebase_ai_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';

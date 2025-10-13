@@ -7,10 +7,15 @@ class ModulosConfigService {
   /// Lista de todos os módulos disponíveis por categoria
   static const Map<String, List<String>> modulosDisponiveis = {
     'Dashboard': ['dashboard'],
-    'Módulos': ['modulos'],
+    'Módulos BNCC': ['modulos'],
     'Quiz': ['quiz'],
-    'Chat': ['chat'],
+    'Chat IA': ['chat'],
     'Perfil': ['perfil'],
+    'Recursos Educacionais': ['recursos'],
+    'Comunidade': ['comunidade'],
+    'Ferramentas Matemáticas': ['ferramentas'],
+    'Exercícios': ['exercicios'],
+    'Conquistas': ['conquistas'],
     'Ajuda': ['ajuda'],
     'Relatórios': ['relatorios'],
     'Firebase AI Test': ['teste_firebase_ai'],

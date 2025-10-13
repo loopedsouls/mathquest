@@ -15,6 +15,12 @@ import 'perfil_screen.dart';
 import 'teste_personagem_3d_screen.dart';
 import 'teste_firebase_ai_screen.dart';
 import 'login_screen.dart';
+import '../../educational_content/resources_screen.dart';
+import '../../community/community_screen.dart';
+import '../../math_tools/representation_editor_screen.dart';
+import '../../learning/exercise_bank_screen.dart';
+import 'conquista_screen.dart';
+import 'relatorios_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -75,10 +81,41 @@ class _StartScreenState extends State<StartScreen>
   List<NavigationItem> _buildNavigationItems() {
     final allItems = [
       {'id': 'dashboard', 'icon': Icons.dashboard, 'label': 'Dashboard'},
-      {'id': 'modulos', 'icon': Icons.play_arrow_rounded, 'label': 'Módulos'},
+      {
+        'id': 'modulos',
+        'icon': Icons.play_arrow_rounded,
+        'label': 'Módulos BNCC'
+      },
       {'id': 'quiz', 'icon': Icons.quiz_rounded, 'label': 'Quiz'},
-      {'id': 'chat', 'icon': Icons.chat_rounded, 'label': 'Chat'},
+      {'id': 'chat', 'icon': Icons.chat_rounded, 'label': 'Chat IA'},
       {'id': 'perfil', 'icon': Icons.person, 'label': 'Meu Perfil'},
+      {
+        'id': 'recursos',
+        'icon': Icons.library_books_rounded,
+        'label': 'Recursos'
+      },
+      {'id': 'comunidade', 'icon': Icons.groups_rounded, 'label': 'Comunidade'},
+      {
+        'id': 'ferramentas',
+        'icon': Icons.calculate_rounded,
+        'label': 'Ferramentas'
+      },
+      {
+        'id': 'exercicios',
+        'icon': Icons.fitness_center_rounded,
+        'label': 'Exercícios'
+      },
+      {
+        'id': 'conquistas',
+        'icon': Icons.emoji_events_rounded,
+        'label': 'Conquistas'
+      },
+      {'id': 'ajuda', 'icon': Icons.help_outline_rounded, 'label': 'Ajuda'},
+      {
+        'id': 'relatorios',
+        'icon': Icons.analytics_rounded,
+        'label': 'Relatórios'
+      },
     ];
 
     return allItems
@@ -270,6 +307,7 @@ class _StartScreenState extends State<StartScreen>
       // Verificar se ainda está montado antes de verificar serviços de IA
       if (mounted) {
         _checkAIServices();
+        _carregarModulosConfig(); // Recarrega configuração de módulos
       }
     });
   }
@@ -328,24 +366,45 @@ class _StartScreenState extends State<StartScreen>
   }
 
   Widget _getCurrentScreen(bool isTablet, bool isDesktop) {
-    switch (_selectedIndex) {
-      case 0:
+    // Mapeia os índices para os IDs dos módulos
+    if (_selectedIndex < 0 || _selectedIndex >= _modulosHabilitados.length) {
+      return _buildMainContent(isTablet, isDesktop);
+    }
+
+    final moduloId = _modulosHabilitados[_selectedIndex];
+
+    switch (moduloId) {
+      case 'dashboard':
         return const DashboardScreen();
-      case 1:
+      case 'modulos':
         return ModulosScreen(
           isOfflineMode: _isOfflineMode,
           exerciciosOffline: _exerciciosOffline,
         );
-      case 2:
+      case 'quiz':
         return QuizAlternadoScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'números e operações',
           dificuldade: 'médio',
         );
-      case 3:
+      case 'chat':
         return const ChatScreen(mode: ChatMode.general);
-      case 4:
+      case 'perfil':
         return const PerfilScreen();
+      case 'recursos':
+        return const ResourcesScreen();
+      case 'comunidade':
+        return const CommunityScreen();
+      case 'ferramentas':
+        return const RepresentationEditorScreen();
+      case 'exercicios':
+        return const ExerciseBankScreen();
+      case 'conquistas':
+        return const ConquistasScreen();
+      case 'ajuda':
+        return const AjudaScreen();
+      case 'relatorios':
+        return const RelatoriosScreen();
       default:
         return _buildMainContent(isTablet, isDesktop);
     }

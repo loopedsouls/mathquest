@@ -2517,7 +2517,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     Switch(
                       value: isHabilitado,
                       onChanged: (_) => _toggleModulo(moduloId),
-                      activeColor: AppTheme.primaryColor,
+                      activeThumbColor: AppTheme.primaryColor,
                       activeTrackColor:
                           AppTheme.primaryColor.withValues(alpha: 0.5),
                       inactiveThumbColor: AppTheme.darkTextSecondaryColor,
@@ -2536,14 +2536,24 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     switch (categoria) {
       case 'Dashboard':
         return Icons.dashboard_rounded;
-      case 'Módulos':
+      case 'Módulos BNCC':
         return Icons.school_rounded;
       case 'Quiz':
         return Icons.quiz_rounded;
-      case 'Chat':
+      case 'Chat IA':
         return Icons.chat_rounded;
       case 'Perfil':
         return Icons.person_rounded;
+      case 'Recursos Educacionais':
+        return Icons.library_books_rounded;
+      case 'Comunidade':
+        return Icons.groups_rounded;
+      case 'Ferramentas Matemáticas':
+        return Icons.calculate_rounded;
+      case 'Exercícios':
+        return Icons.fitness_center_rounded;
+      case 'Conquistas':
+        return Icons.emoji_events_rounded;
       case 'Ajuda':
         return Icons.help_outline_rounded;
       case 'Relatórios':
@@ -2561,14 +2571,24 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     switch (categoria) {
       case 'Dashboard':
         return 'Visão geral do progresso';
-      case 'Módulos':
+      case 'Módulos BNCC':
         return 'Conteúdo de aprendizado BNCC';
       case 'Quiz':
         return 'Exercícios e desafios';
-      case 'Chat':
+      case 'Chat IA':
         return 'Assistente de IA';
       case 'Perfil':
         return 'Informações do usuário';
+      case 'Recursos Educacionais':
+        return 'Artigos e materiais de estudo';
+      case 'Comunidade':
+        return 'Fórum e discussões';
+      case 'Ferramentas Matemáticas':
+        return 'Calculadoras e editores';
+      case 'Exercícios':
+        return 'Banco de exercícios';
+      case 'Conquistas':
+        return 'Troféus e medalhas';
       case 'Ajuda':
         return 'Suporte e tutorial';
       case 'Relatórios':

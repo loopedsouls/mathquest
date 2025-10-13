@@ -8,6 +8,7 @@ import '../../data/service/firebase_ai_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import '../services/auth_service.dart';
+import '../services/modulos_config_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 
@@ -31,6 +32,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   List<String> _ollamaModels = [];
   bool _loadingModels = false;
+
+  // Configuração de módulos
+  Map<String, bool> _modulosHabilitados = {};
+  bool _loadingModulos = false;
 
   // Estado de autenticação
   User? _currentUser;
@@ -110,6 +115,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     final credits = await PreloadService.getCredits();
     final quantity = await PreloadService.getPreloadQuantity();
 
+    // Carregar configuração de módulos
+    await _carregarModulosConfig();
+
     if (kDebugMode) {
       print(
           '🔧 Configurações carregadas - Créditos: $credits, Preload: $preloadEnabled');
@@ -158,6 +166,74 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       });
     }
     setState(() => _loadingModels = false);
+  }
+
+  Future<void> _carregarModulosConfig() async {
+    setState(() => _loadingModulos = true);
+    try {
+      final habilitados = await ModulosConfigService.getModulosHabilitados();
+      final todosModulos = ModulosConfigService.todosModulosIds;
+
+      setState(() {
+        _modulosHabilitados = {
+          for (var moduloId in todosModulos)
+            moduloId: habilitados.contains(moduloId)
+        };
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro ao carregar configuração de módulos: $e');
+      }
+    } finally {
+      setState(() => _loadingModulos = false);
+    }
+  }
+
+  Future<void> _toggleModulo(String moduloId) async {
+    await ModulosConfigService.toggleModulo(moduloId);
+    await _carregarModulosConfig();
+
+    setState(() {
+      status = _modulosHabilitados[moduloId] == true
+          ? '✅ Módulo habilitado'
+          : '⚠️ Módulo desabilitado';
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
+  }
+
+  Future<void> _habilitarTodosModulos() async {
+    await ModulosConfigService.habilitarTodos();
+    await _carregarModulosConfig();
+
+    setState(() {
+      status = '✅ Todos os módulos habilitados';
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
+  }
+
+  Future<void> _desabilitarTodosModulos() async {
+    await ModulosConfigService.desabilitarTodos();
+    await _carregarModulosConfig();
+
+    setState(() {
+      status = '⚠️ Todos os módulos desabilitados';
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => status = '');
+      }
+    });
   }
 
   Future<void> _salvarConfiguracoes() async {
@@ -713,6 +789,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _buildModulosConfig(false, false, true),
+                            const SizedBox(height: 24),
                             _buildPreloadConfig(false, false, true),
                             const SizedBox(height: 24),
                             _buildInfoSection(false, false, true),
@@ -786,6 +864,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                       _buildFlutterGemmaConfig(isMobile, isTablet, false),
                       SizedBox(height: isMobile ? 16 : 20),
                     ],
+
+                    // Configuração de Módulos
+                    _buildModulosConfig(isMobile, isTablet, false),
+                    SizedBox(height: isMobile ? 16 : 20),
 
                     // Configurações de Precarregamento
                     _buildPreloadConfig(isMobile, isTablet, false),
@@ -2292,6 +2374,212 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         ),
       ],
     );
+  }
+
+  Widget _buildModulosConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.infoColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.widgets_rounded,
+                  color: AppTheme.infoColor,
+                  size: iconSize,
+                ),
+              ),
+              SizedBox(width: spacing),
+              Expanded(
+                child: Text(
+                  'Módulos Visíveis',
+                  style: AppTheme.headingMedium.copyWith(
+                    color: AppTheme.darkTextPrimaryColor,
+                    fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing),
+          Text(
+            'Selecione quais módulos aparecerão na tela inicial',
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextSecondaryColor,
+              fontSize: isMobile ? 12 : 14,
+            ),
+          ),
+          SizedBox(height: spacing * 1.5),
+
+          // Botões de ação rápida
+          Row(
+            children: [
+              Expanded(
+                child: ModernButton(
+                  text: 'Habilitar Todos',
+                  onPressed: _habilitarTodosModulos,
+                  isPrimary: false,
+                  icon: Icons.check_circle_outline_rounded,
+                ),
+              ),
+              SizedBox(width: spacing),
+              Expanded(
+                child: ModernButton(
+                  text: 'Desabilitar Todos',
+                  onPressed: _desabilitarTodosModulos,
+                  isPrimary: false,
+                  icon: Icons.remove_circle_outline_rounded,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing * 1.5),
+
+          // Lista de módulos
+          if (_loadingModulos)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(spacing * 2),
+                child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                ),
+              ),
+            )
+          else
+            ...ModulosConfigService.modulosDisponiveis.entries.map((entry) {
+              final categoria = entry.key;
+              final moduloId = entry.value.first;
+              final isHabilitado = _modulosHabilitados[moduloId] ?? true;
+
+              return Container(
+                margin: EdgeInsets.only(bottom: spacing),
+                padding: EdgeInsets.all(spacing),
+                decoration: BoxDecoration(
+                  color: isHabilitado
+                      ? AppTheme.primaryColor.withValues(alpha: 0.05)
+                      : AppTheme.darkSurfaceColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isHabilitado
+                        ? AppTheme.primaryColor.withValues(alpha: 0.3)
+                        : AppTheme.darkBorderColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getModuloIcon(categoria),
+                      color: isHabilitado
+                          ? AppTheme.primaryColor
+                          : AppTheme.darkTextSecondaryColor,
+                      size: iconSize,
+                    ),
+                    SizedBox(width: spacing),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            categoria,
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: isHabilitado
+                                  ? AppTheme.darkTextPrimaryColor
+                                  : AppTheme.darkTextSecondaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: isMobile ? 13 : 14,
+                            ),
+                          ),
+                          if (!isMobile) ...[
+                            SizedBox(height: spacing * 0.25),
+                            Text(
+                              _getModuloDescricao(categoria),
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.darkTextSecondaryColor,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: isHabilitado,
+                      onChanged: (_) => _toggleModulo(moduloId),
+                      activeColor: AppTheme.primaryColor,
+                      activeTrackColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.5),
+                      inactiveThumbColor: AppTheme.darkTextSecondaryColor,
+                      inactiveTrackColor: AppTheme.darkSurfaceColor,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+        ],
+      ),
+    );
+  }
+
+  IconData _getModuloIcon(String categoria) {
+    switch (categoria) {
+      case 'Dashboard':
+        return Icons.dashboard_rounded;
+      case 'Módulos':
+        return Icons.school_rounded;
+      case 'Quiz':
+        return Icons.quiz_rounded;
+      case 'Chat':
+        return Icons.chat_rounded;
+      case 'Perfil':
+        return Icons.person_rounded;
+      case 'Ajuda':
+        return Icons.help_outline_rounded;
+      case 'Relatórios':
+        return Icons.analytics_rounded;
+      case 'Firebase AI Test':
+        return Icons.science_rounded;
+      case 'Personagem 3D':
+        return Icons.person_pin_rounded;
+      default:
+        return Icons.extension_rounded;
+    }
+  }
+
+  String _getModuloDescricao(String categoria) {
+    switch (categoria) {
+      case 'Dashboard':
+        return 'Visão geral do progresso';
+      case 'Módulos':
+        return 'Conteúdo de aprendizado BNCC';
+      case 'Quiz':
+        return 'Exercícios e desafios';
+      case 'Chat':
+        return 'Assistente de IA';
+      case 'Perfil':
+        return 'Informações do usuário';
+      case 'Ajuda':
+        return 'Suporte e tutorial';
+      case 'Relatórios':
+        return 'Análise de desempenho';
+      case 'Firebase AI Test':
+        return 'Testes de IA';
+      case 'Personagem 3D':
+        return 'Avatar personalizado';
+      default:
+        return 'Funcionalidade adicional';
+    }
   }
 
   Future<Map<String, dynamic>> _getFlutterGemmaStatus() async {

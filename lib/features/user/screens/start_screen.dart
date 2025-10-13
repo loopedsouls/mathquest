@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // removed unused SharedPreferences import
 import '../../ai/services/ia_service.dart';
 import '../services/auth_service.dart';
+import '../services/modulos_config_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import 'configuracao_screen.dart';
@@ -51,36 +52,42 @@ class _StartScreenState extends State<StartScreen>
 
   // Navegação
   int _selectedIndex = 0;
-
-  final List<NavigationItem> _navigationItems = [
-    NavigationItem(
-      icon: Icons.dashboard,
-      label: 'Dashboard',
-    ),
-    NavigationItem(
-      icon: Icons.play_arrow_rounded,
-      label: 'Módulos',
-    ),
-    NavigationItem(
-      icon: Icons.quiz_rounded,
-      label: 'Quiz',
-    ),
-    NavigationItem(
-      icon: Icons.chat_rounded,
-      label: 'Chat',
-    ),
-    NavigationItem(
-      icon: Icons.person,
-      label: 'Meu Perfil',
-    ),
-  ];
+  List<NavigationItem> _navigationItems = [];
+  List<String> _modulosHabilitados = [];
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
+    _carregarModulosConfig();
     _initializeApp();
     _checkAuthState();
+  }
+
+  Future<void> _carregarModulosConfig() async {
+    final habilitados = await ModulosConfigService.getModulosHabilitados();
+    setState(() {
+      _modulosHabilitados = habilitados;
+      _navigationItems = _buildNavigationItems();
+    });
+  }
+
+  List<NavigationItem> _buildNavigationItems() {
+    final allItems = [
+      {'id': 'dashboard', 'icon': Icons.dashboard, 'label': 'Dashboard'},
+      {'id': 'modulos', 'icon': Icons.play_arrow_rounded, 'label': 'Módulos'},
+      {'id': 'quiz', 'icon': Icons.quiz_rounded, 'label': 'Quiz'},
+      {'id': 'chat', 'icon': Icons.chat_rounded, 'label': 'Chat'},
+      {'id': 'perfil', 'icon': Icons.person, 'label': 'Meu Perfil'},
+    ];
+
+    return allItems
+        .where((item) => _modulosHabilitados.contains(item['id']))
+        .map((item) => NavigationItem(
+              icon: item['icon'] as IconData,
+              label: item['label'] as String,
+            ))
+        .toList();
   }
 
   void _initializeAnimations() {

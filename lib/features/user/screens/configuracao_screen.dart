@@ -7,7 +7,7 @@ import '../../ai/services/preload_service.dart';
 import '../../data/service/firebase_ai_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
-import '../service/auth_service.dart';
+import '../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screen/login_screen.dart';
 

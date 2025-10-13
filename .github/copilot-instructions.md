@@ -2,303 +2,332 @@
 
 ## Project Overview
 
-**MathQuest** is a Flutter-based adaptive mathematics tutoring system for Brazilian middle school students (6th-9th grade), aligned with BNCC (Brazilian National Common Curricular Base) standards. The app provides intelligent quiz generation, progress tracking, gamification, and both online (Firebase AI/Gemini) and offline capabilities.
+**MathQuest** is a Flutter adaptive mathematics tutoring system for Brazilian middle school students (6º-9º ano), aligned with BNCC curriculum standards. Supports Web, Desktop (Windows/Linux/macOS), and Mobile with online (Firebase AI/Gemini) and offline capabilities.
 
-## Core Architecture
+## Architecture: Feature-Based Structure
 
-### Tech Stack
-
-- **Frontend**: Flutter 3.1.3+ (cross-platform: Web, Desktop, Mobile)
-- **Backend**: Firebase suite (Auth, Firestore, Analytics, Crashlytics, Remote Config, App Check)
-- **AI**: Firebase AI (Gemini 1.5 Flash) for exercise generation and explanations
-- **Local Storage**: SQLite (via sqflite_common_ffi) with migration from SharedPreferences
-- **Theme**: Material 3 with custom dark theme as default
-
-### Key Services Architecture
-
-Services are located in `lib/services/` and follow singleton patterns:
-
-1. **FirebaseAIService** (`firebase_ai_service.dart`): Gemini integration for generating exercises, explanations, hints, and feedback. All prompts are contextualized for BNCC standards and age-appropriate language.
-
-2. **DatabaseService** (`database_service.dart`): SQLite operations with automatic desktop support (Windows/Linux/macOS via sqflite_ffi). Handles progress, statistics, AI cache, and achievements.
-
-3. **ProgressoServiceV2** (`progresso_service.dart`): Manages user progress with automatic migration from SharedPreferences to SQLite. Tracks module completion, user level, and accuracy rates.
-
-4. **GamificacaoService** (`gamificacao_service.dart`): Achievement system with streaks, time-based rewards, and module completion tracking.
-
-5. **AuthService** (`auth_service.dart`): Firebase Authentication wrapper with error handling in Portuguese.
-
-6. **FirestoreService** (`firestore_service.dart`): Cloud persistence layer for syncing local SQLite data.
-
-### BNCC Module Structure
-
-All content follows `ModuloBNCC` model (`lib/models/modulo_bncc.dart`):
-
-- **5 Thematic Units**: Números, Álgebra, Geometria, Grandezas e Medidas, Probabilidade e Estatística
-- **Hierarchical**: Unit → Subcategory → Sub-subcategory → Year (6º-9º)
-- **Prerequisites**: Modules can declare dependencies on earlier year modules
-- **Progression**: User level advances based on completed modules per year
-
-### Data Flow Pattern
+### Directory Organization
 
 ```
-User Action → Screen → Service → DatabaseService (SQLite) → (Optional) FirestoreService (Cloud)
-                           ↓
-                    FirebaseAIService (for AI features)
+lib/features/
+  ├── ai/              # BNCC module definitions, AI services
+  ├── analytics/       # Analytics tracking
+  ├── community/       # Community features
+  ├── core/            # Theme (app_theme.dart), shared widgets
+  ├── data/            # Data layer: DatabaseService, FirebaseAIService, FirestoreService
+  ├── educational_content/  # Educational resources (arXiv, concepts)
+  ├── learning/        # Quiz logic, gamification, exercises
+  ├── math_tools/      # Math utilities
+  ├── navigation/      # Navigation screens
+  └── user/            # Auth, progress tracking, user models
 ```
 
-## Critical Conventions
+**Key pattern**: Services are in `features/*/service/`, models in `features/*/models/`, screens throughout features.
 
-### File Organization
+### Core Services (Singletons)
 
-- **Screens**: `lib/screens/` - All UI screens with `*_screen.dart` naming
-- **Models**: `lib/models/` - Data structures (ProgressoUsuario, ModuloBNCC, Conquista, etc.)
-- **Services**: `lib/services/` - Business logic and external integrations
-- **Widgets**: `lib/widgets/` - Reusable UI components (e.g., app_initializer.dart, modern_components.dart)
-- **Theme**: `lib/theme/app_theme.dart` - Centralized color scheme and text styles
-- **Unused**: `lib/unused/` - Deprecated code kept for reference
+1. **FirebaseAIService** (`features/data/service/firebase_ai_service.dart`)
+   - Gemini 1.5 Flash integration for exercises, explanations, hints
+   - Always check `FirebaseAIService.isAvailable` before use
+   - Returns `null` on Linux or if Firebase unavailable
 
-### State Management
+2. **DatabaseService** (`features/data/service/database_service.dart`)
+   - SQLite with automatic desktop support via `sqflite_common_ffi`
+   - Tables: `progresso_usuario`, `estatisticas_modulo`, `cache_ia`, `conquistas_usuario`
+   - Platform detection: `_initializeDatabaseFactory()` handles Windows/Linux/macOS
 
-- **StatefulWidgets** with local state for screens
-- **Service singletons** for shared state (cached in memory, persisted to SQLite)
-- **SharedPreferences** for simple config (AI preferences, last sync time)
-- **No external state management** library (no Provider, Riverpod, BLoC)
+3. **ProgressoServiceV2** (`features/user/services/progresso_service.dart`)
+   - Migrates SharedPreferences → SQLite automatically (one-time via `_migratedKey`)
+   - Caches `ProgressoUsuario` in memory (`_progressoCache`)
+   - Core method: `carregarProgresso()` - always use this, not direct DB access
 
-### Firebase Integration
+4. **GamificacaoService** (`features/learning/service/gamificacao_service.dart`)
+   - Streak tracking, achievement unlocking
+   - Uses SharedPreferences for lightweight data + DatabaseService for persistence
 
-- Initialized in `main.dart` with error handling for platforms where services may fail (Windows)
-- **App Check**: Activated with graceful degradation
-- **Crashlytics**: Enabled but doesn't block on failure
-- **Remote Config**: Configured with 1-hour minimum fetch interval
-- **FirebaseAIService**: Always check `isAvailable` before use; fallback to offline mode
+5. **AuthService** (`features/user/service/auth_service.dart`)
+   - Wraps Firebase Auth with Linux platform checks
+   - All methods return gracefully on unsupported platforms
 
-### SQLite Migration Pattern
+### BNCC Content Structure
 
-When adding new tables or columns:
-
-1. Update `_databaseVersion` in `database_service.dart`
-2. Implement migration in `_onUpgrade` method
-3. Add corresponding service methods
-4. Test migration from previous version
-
-### AI Integration
-
-- **Primary**: Firebase AI (Gemini 1.5 Flash) for personalized content
-- **Prompt structure**: Always include year, BNCC unit, difficulty level, and age-appropriate language instruction
-- **Caching**: Store generated questions in SQLite (`cache_ia` table) to reduce API calls
-- **Fallback**: If Firebase AI unavailable, use cached questions or pre-defined content
-
-### Theme Usage
-
-- **Always dark theme** by default (`ThemeMode.dark` in main.dart)
-- Use `AppTheme` constants for colors: `AppTheme.primaryColor`, `AppTheme.darkBackgroundColor`, etc.
-- Modern design with glassmorphism (`modernGlassCard`), shadows (`cardShadow`), and gradients
-- **Avoid `withOpacity`**: Use `withValues(alpha: 0.0-1.0)` for Flutter 3.x compatibility
-- Snackbars: Use `AppTheme.showSuccessSnackBar()`, `showErrorSnackBar()`, etc.
-
-### Error Handling
-
-- **User-facing errors**: Display in Portuguese with `AppTheme.showErrorSnackBar()`
-- **Debug logging**: Use `if (kDebugMode) { print(...) }` from `package:flutter/foundation.dart`
-- **Firebase failures**: Wrap in try-catch with graceful degradation
-- **SQLite errors**: Log but don't crash; fallback to in-memory data
-
-## Development Workflows
-
-### Running the App
-
-```powershell
-# Web (GitHub Pages compatible)
-flutter run -d chrome
-
-# Desktop (Windows)
-flutter run -d windows
-
-# Build APK
-flutter build apk --debug
-```
-
-### Deployment to GitHub Pages
-
-Use `deploy.ps1` script (PowerShell):
-
-```powershell
-.\deploy.ps1
-```
-
-- Builds web with `--base-href /mathquest/`
-- Uses git worktree to avoid branch switching
-- Only commits if changes detected
-
-### Code Quality
-
-```powershell
-# Always run before committing
-flutter analyze
-```
-
-- `analysis_options.yaml` extends `package:flutter_lints/flutter.yaml`
-- `avoid_print` is ignored (intentional for debugging)
-
-### Firebase Setup (Manual)
-
-- **Web**: Add Firebase config snippet to `web/index.html`
-- **iOS**: Add `GoogleService-Info.plist` to `ios/Runner/`
-- **Android**: Already configured with `google-services.json`
-
-## Common Patterns & Examples
-
-### Creating a New Quiz Screen
+**Definition**: `features/ai/modulo_bncc.dart` (`ModuloBNCC` class + `ModulosBNCCData` static data)
 
 ```dart
-// 1. Extend StatefulWidget in lib/screens/
-class MyQuizScreen extends StatefulWidget {
-  final String unidade;
-  final String ano;
-  const MyQuizScreen({super.key, required this.unidade, required this.ano});
-  @override
-  State<MyQuizScreen> createState() => _MyQuizScreenState();
+ModuloBNCC {
+  unidadeTematica: 'Números' | 'Álgebra' | 'Geometria' | 'Grandezas e Medidas' | 'Probabilidade e Estatística'
+  subcategoria: e.g., 'Números Naturais e Inteiros'
+  subSubcategoria: e.g., 'Números Naturais e Inteiros'
+  anoEscolar: '6º ano' | '7º ano' | '8º ano' | '9º ano'
+  prerequisitos: ['unidade_subcategoria_ano'] // Enforces sequential learning
+  codigoBNCC: e.g., 'EF06MA'
+}
+```
+
+**User Progression**: `ProgressoUsuario` (`features/user/models/progresso_user_model.dart`) tracks:
+- `modulosCompletos`: Map<unidade, Map<ano, bool>>
+- `nivelUsuario`: Calculated from sequential completion (iniciante → especialista)
+
+## Platform-Specific Patterns
+
+### Firebase Initialization (main.dart)
+
+```dart
+bool firebaseAvailable = !Platform.isLinux; // Global flag
+
+void main() async {
+  if (firebaseAvailable) {
+    await Firebase.initializeApp(...);
+    // Try-catch all Firebase services (AppCheck, Crashlytics, RemoteConfig)
+    // App continues if any fail
+  }
+}
+```
+
+**Critical**: Always wrap Firebase calls in platform checks or `isAvailable` checks.
+
+### SQLite Desktop Support
+
+```dart
+// DatabaseService pattern
+static Future<void> _initializeDatabaseFactory() async {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+}
+```
+
+**When adding tables/columns**:
+1. Increment `_databaseVersion` in `database_service.dart`
+2. Add migration in `_onUpgrade(Database db, int oldVersion, int newVersion)`
+3. Test migration from previous version
+
+## Theme System (features/core/app_theme.dart)
+
+**Default**: Dark theme (`ThemeMode.dark` in main.dart)
+
+### Critical Color Usage
+
+```dart
+// ✅ Correct (Flutter 3.x)
+Color.fromRGBO(255, 255, 255, 0.8).withValues(alpha: 0.5)
+
+// ❌ Incorrect (deprecated)
+Color.fromRGBO(255, 255, 255, 0.8).withOpacity(0.5)
+```
+
+### Common UI Patterns
+
+```dart
+// Modern card
+Container(decoration: AppTheme.modernCardDark, ...)
+
+// Gradients
+LinearGradient(colors: AppTheme.modernGradient1, ...)
+
+// Shadows
+boxShadow: AppTheme.softShadow
+
+// Snackbars
+AppTheme.showSuccessSnackBar(context, 'Mensagem')
+AppTheme.showErrorSnackBar(context, 'Erro')
+```
+
+## AI Integration Workflow
+
+```dart
+// 1. Check availability
+if (!FirebaseAIService.isAvailable) {
+  // Use cached questions from DatabaseService or fallback content
+  return;
 }
 
-// 2. Load progress in initState
-@override
-void initState() {
-  super.initState();
-  _carregarProgresso();
-}
-
-Future<void> _carregarProgresso() async {
-  final progresso = await ProgressoServiceV2.carregarProgresso();
-  setState(() { /* update UI */ });
-}
-
-// 3. Use FirebaseAIService for questions
+// 2. Generate with BNCC context
 final exercicio = await FirebaseAIService.gerarExercicioPersonalizado(
-  unidade: widget.unidade,
-  ano: widget.ano,
-  dificuldade: 'médio',
-  tipo: 'multipla_escolha',
+  unidade: 'Números',
+  ano: '6º ano',
+  dificuldade: 'médio', // fácil | médio | difícil
+  tipo: 'multipla_escolha', // verdadeiro_falso | completar
 );
 
-// 4. Cache in SQLite
+// 3. Cache result
 if (exercicio != null) {
   await DatabaseService.salvarPerguntaCache(
-    unidade: widget.unidade,
-    ano: widget.ano,
-    tipoQuiz: 'multipla_escolha',
-    dificuldade: 'médio',
+    chaveCache: '${unidade}_${ano}_${tipo}_${dificuldade}_${timestamp}',
+    unidade: unidade,
+    ano: ano,
+    tipoQuiz: tipo,
+    dificuldade: dificuldade,
     pergunta: exercicio['pergunta'],
-    opcoes: exercicio['opcoes'],
+    opcoes: jsonEncode(exercicio['opcoes']),
     respostaCorreta: exercicio['resposta_correta'],
     fonteIA: 'firebase_ai',
   );
 }
 ```
 
-### Adding a New Achievement
+**Prompt structure** (always include):
+- Year level (6º-9º ano)
+- BNCC unit
+- Difficulty level
+- Age-appropriate language instruction ("linguagem apropriada para a idade")
 
+## State Management Pattern
+
+**No external libraries** (no Provider, BLoC, Riverpod).
+
+### Screen pattern
 ```dart
-// 1. Define in lib/models/conquista.dart (add to static list)
-static final Conquista minhaConquista = Conquista(
-  id: 'minha_conquista',
+class MyScreen extends StatefulWidget {
+  @override
+  State<MyScreen> createState() => _MyScreenState();
+}
+
+class _MyScreenState extends State<MyScreen> {
+  ProgressoUsuario? _progresso;
+  
+  @override
+  void initState() {
+    super.initState();
+    _carregarDados();
+  }
+  
+  Future<void> _carregarDados() async {
+    final progresso = await ProgressoServiceV2.carregarProgresso();
+    setState(() => _progresso = progresso);
+  }
+}
+```
+
+## Deployment
+
+### GitHub Pages (Web)
+
+```bash
+# Run PowerShell script (handles everything)
+./deploy.ps1
+```
+
+**What it does**:
+1. Builds web with `--base-href /mathquest/`
+2. Uses git worktree to avoid branch switching
+3. Only commits if changes detected (checks `git status --porcelain`)
+
+### Before Committing
+
+```bash
+flutter analyze  # Always run - catches common issues
+```
+
+**Note**: `avoid_print` is disabled in `analysis_options.yaml` (intentional for debugging).
+
+## Common Tasks
+
+### Adding New Achievement
+
+1. Define in `features/user/conquista.dart` static list:
+```dart
+static final Conquista novaConquista = Conquista(
+  id: 'id_unico',
   titulo: 'Título',
   descricao: 'Descrição',
   icone: Icons.star,
-  categoria: 'progresso',
-  condicao: 'Complete X módulos',
+  categoria: 'progresso', // progresso | streak | tempo | modulos
+  condicao: 'Condição legível',
 );
+```
 
-// 2. Check in GamificacaoService
-static Future<List<Conquista>> _verificarMinhaConquista() async {
+2. Add check in `GamificacaoService`:
+```dart
+static Future<List<Conquista>> _verificarNovaConquista() async {
   final progresso = await ProgressoServiceV2.carregarProgresso();
-  if (progresso != null && /* condição */) {
-    return [Conquista.minhaConquista];
-  }
+  if (/* condição */) return [Conquista.novaConquista];
   return [];
 }
-
-// 3. Call in registrarRespostaCorreta or verificarConquistasModuloCompleto
-novasConquistas.addAll(await _verificarMinhaConquista());
 ```
 
-### Styling with AppTheme
+3. Call in `registrarRespostaCorreta()` or `verificarConquistasModuloCompleto()`
+
+### Creating New Quiz Screen
 
 ```dart
-// Card with modern styling
-Container(
-  decoration: AppTheme.modernCardDark, // or modernCard for light
-  padding: EdgeInsets.all(AppTheme.padding),
-  child: Text(
-    'Conteúdo',
-    style: AppTheme.headingMedium.copyWith(color: AppTheme.darkTextPrimary),
-  ),
-)
+// 1. Load progress in initState
+final progresso = await ProgressoServiceV2.carregarProgresso();
 
-// Button
-ElevatedButton(
-  style: AppTheme.elevatedButtonStyle,
-  onPressed: () {},
-  child: Text('Botão'),
-)
+// 2. Generate or retrieve questions
+final exercicio = await FirebaseAIService.gerarExercicioPersonalizado(...);
 
-// Gradient background
-Container(
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      colors: AppTheme.modernGradient1,
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-  ),
-)
+// 3. Track answer
+await ProgressoServiceV2.registrarResposta(
+  unidade: 'Números',
+  ano: '6º ano',
+  correta: true,
+);
+
+// 4. Check achievements
+final conquistas = await GamificacaoService.registrarRespostaCorreta(
+  unidade: 'Números',
+  ano: '6º ano',
+  tempoResposta: 10, // seconds
+);
 ```
 
-## Testing Strategy
+## Error Handling
 
-- **Manual testing**: Primary approach for UI flows
-- **Firebase AI testing**: Use `teste_firebase_ai_screen.dart` (accessible from main menu)
-- **Unit tests**: Not currently implemented (add to `test/` if needed)
-- **Platform testing**: Always test on Windows (desktop) and Web (GitHub Pages) before deploying
-
-## Key Files to Reference
-
-- **Entry point**: `lib/main.dart` - Firebase initialization, theme setup, auth wrapper
-- **Navigation**: `lib/screens/start_screen.dart` - Main dashboard after login
-- **Module data**: `lib/models/modulo_bncc.dart` - All BNCC curriculum content
-- **Progress tracking**: `lib/services/progresso_service.dart` - Core progression logic
-- **DB schema**: `lib/services/database_service.dart` - SQLite table definitions
-- **Theme system**: `lib/theme/app_theme.dart` - All colors, text styles, shadows
-
-## Don't Do
-
-- Don't use `withOpacity()` - use `withValues(alpha:)` instead
-- Don't add new state management libraries - use existing patterns
-- Don't execute `flutter run` or `flutter build` in response to user requests (per modus.instructions.md)
-- Don't bypass SQLite migration - always increment version and add migration code
-- Don't assume Firebase AI is available - always check and provide fallback
-- Don't modify BNCC module structure without understanding prerequisites and progression logic
-
-## Quick Reference Commands
-
-```powershell
-# Analyze code quality (always run this!)
-flutter analyze
-
-# Deploy to GitHub Pages
-.\deploy.ps1
-
-# Clean build
-flutter clean; flutter pub get
-
-# Check SQLite database stats
-# (Use DatabaseService.obterEstatisticasGerais() in code)
+### User-facing errors (Portuguese)
+```dart
+try {
+  await operation();
+} catch (e) {
+  if (context.mounted) {
+    AppTheme.showErrorSnackBar(context, 'Erro ao realizar operação');
+  }
+}
 ```
 
-## Questions to Ask When Stuck
+### Debug logging
+```dart
+import 'package:flutter/foundation.dart';
 
-1. Does this screen need Firebase Auth? (Most do - check `AuthWrapper`)
-2. Should this data be cached in SQLite? (Quiz questions, progress - yes; temporary UI state - no)
-3. Is this BNCC-aligned? (Check against `ModuloBNCC` definitions)
-4. Does this work offline? (Firebase AI requires fallback; SQLite works always)
-5. Is the theme consistent? (Use `AppTheme` constants, not hardcoded colors)
+if (kDebugMode) {
+  print('Debug info: $data');
+}
+```
+
+### Firebase graceful degradation
+```dart
+try {
+  await FirebaseCrashlytics.instance.recordError(...);
+} catch (e) {
+  // Firebase services may fail on Windows/Linux - continue execution
+  if (kDebugMode) print('Firebase error: $e');
+}
+```
+
+## Anti-Patterns (Don't Do)
+
+- ❌ Don't use `withOpacity()` → Use `withValues(alpha:)`
+- ❌ Don't call `flutter run`/`flutter build` in agent responses (per modus.instructions.md)
+- ❌ Don't add state management libraries → Use existing patterns
+- ❌ Don't skip SQLite migrations → Always increment version
+- ❌ Don't assume Firebase AI availability → Check `isAvailable`
+- ❌ Don't hardcode colors → Use `AppTheme` constants
+- ❌ Don't modify BNCC modules without checking prerequisites chain
+
+## Quick Debugging
+
+**Problem**: Firebase not working
+- Check `firebaseAvailable` flag in main.dart
+- Verify platform is not Linux (Firebase disabled)
+- Check console for initialization errors (wrapped in try-catch)
+
+**Problem**: Progress not saving
+- Verify migration ran (`_migratedKey` in SharedPreferences)
+- Check `DatabaseService.database` initialized
+- Confirm `ProgressoServiceV2.salvarProgresso()` called
+
+**Problem**: AI not generating questions
+- Check `FirebaseAIService.isAvailable`
+- Fallback to `DatabaseService.buscarPerguntaCache()` or pre-defined content
+- Verify prompt includes all required context (year, unit, difficulty)

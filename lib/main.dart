@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart'
     if (Platform.isLinux) 'package:flutter/foundation.dart';
 import 'firebase_options.dart' if (Platform.isLinux) 'dart:ui';
-import 'features/user/service/auth_service.dart';
+import 'features/user/services/auth_service.dart';
 import 'features/data/service/firebase_ai_service.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     if (Platform.isLinux) 'dart:ui';

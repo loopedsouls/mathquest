@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../service/auth_service.dart';
+import '../services/auth_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/mixins.dart';
 

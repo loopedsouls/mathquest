@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // removed unused SharedPreferences import
 import '../ai/services/ia_service.dart';
-import 'service/auth_service.dart';
+import 'services/auth_service.dart';
 import '../core/app_theme.dart';
 import '../core/widgets/modern_components.dart';
 import 'screens/configuracao_screen.dart';

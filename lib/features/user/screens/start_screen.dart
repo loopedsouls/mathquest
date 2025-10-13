@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-
-import '../ai/gemini_service.dart';
-import '../ai/screens/ajuda_screen.dart';
-import '../ai/screens/chat_screen.dart';
-import '../ai/screens/modulos_screen.dart';
-import '../analytics/dashboard_screen.dart';
-import '../core/app_theme.dart';
-import '../core/widgets/modern_components.dart';
-import '../learning/screens/quiz_alternado_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/configuracao_screen.dart';
-import 'screens/perfil_screen.dart';
-import 'screens/teste_firebase_ai_screen.dart';
-import 'screens/teste_personagem_3d_screen.dart';
-import 'services/auth_service.dart';
+// removed unused SharedPreferences import
+import '../../ai/services/ia_service.dart';
+import '../services/auth_service.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets/modern_components.dart';
+import 'configuracao_screen.dart';
+import '../../learning/screens/quiz_screen.dart';
+import '../../ai/screens/ajuda_screen.dart';
+import '../../ai/screens/modulos_screen.dart';
+import 'dashboard_screen.dart';
+import '../../ai/screens/chat_screen.dart';
+import 'perfil_screen.dart';
+import 'teste_personagem_3d_screen.dart';
+import 'teste_firebase_ai_screen.dart';
+import 'login_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -235,7 +235,7 @@ class _StartScreenState extends State<StartScreen>
     try {
       // Firebase AI é o único serviço disponível
       final geminiService = GeminiService();
-      _aiAvailable = await geminiService.isGeminiWorking();
+      _aiAvailable = await geminiService.isServiceAvailable();
 
       if (mounted) {
         setState(() {

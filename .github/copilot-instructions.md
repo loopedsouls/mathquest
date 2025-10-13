@@ -22,7 +22,9 @@ lib/features/
   └── user/            # Auth, progress tracking, user models
 ```
 
-**Key pattern**: Services are in `features/*/service/`, models in `features/*/models/`, screens throughout features.
+**Key pattern**: Services are in `features/*/services/` (plural), models in `features/*/models/`, screens throughout features.
+
+**⚠️ Service Directory Standard**: Always use `services/` (plural) not `service/` (singular). This was standardized across the codebase.
 
 ### Core Services (Singletons)
 
@@ -45,9 +47,18 @@ lib/features/
    - Streak tracking, achievement unlocking
    - Uses SharedPreferences for lightweight data + DatabaseService for persistence
 
-5. **AuthService** (`features/user/service/auth_service.dart`)
+5. **AuthService** (`features/user/services/auth_service.dart`)
    - Wraps Firebase Auth with Linux platform checks
    - All methods return gracefully on unsupported platforms
+
+6. **ArxivService** (`features/educational_content/arxiv_service.dart`)
+   - Searches arXiv.org for mathematics research papers
+   - Returns `ArxivArticle` objects with title, summary, authors, PDF link, categories
+   - Configures SSL certificate handling via custom `HttpOverrides`
+
+7. **SavedArticlesService** (`features/educational_content/saved_articles_service.dart`)
+   - Persists saved arXiv articles in SharedPreferences
+   - Serializes/deserializes articles to/from JSON
 
 ### BNCC Content Structure
 
@@ -315,6 +326,106 @@ try {
 - ❌ Don't hardcode colors → Use `AppTheme` constants
 - ❌ Don't modify BNCC modules without checking prerequisites chain
 
+## Educational Content Integration (arXiv)
+
+### ArxivService Workflow
+
+MathQuest integrates with arXiv.org to provide access to mathematics research papers.
+
+**Key features**:
+- Search by topic: `searchArticles(String query, {int maxResults = 20})`
+- Get recent papers: `getRecentArticles({int maxResults = 10})`
+- Parse XML Atom feed into `ArxivArticle` objects
+- Handle SSL certificate issues with custom `HttpOverrides`
+
+**Article structure**:
+```dart
+ArxivArticle {
+  id: 'arxiv.org/abs/...'
+  title: 'Paper title'
+  summary: 'Abstract'
+  authors: 'Author 1, Author 2'
+  link: 'PDF link'
+  published: DateTime
+  categories: ['math.NT', 'math.AG']
+}
+```
+
+**Usage pattern**:
+```dart
+final arxiv = ArxivService();
+final articles = await arxiv.searchArticles('number theory');
+
+// Save article
+await SavedArticlesService().saveArticle(articles.first);
+
+// Retrieve saved
+final saved = await SavedArticlesService().getSavedArticles();
+```
+
+**Access in UI**:
+- `ResourcesScreen`: Educational materials hub
+- `ArticleViewer`: Display article details
+- `PdfViewer`: View arXiv PDFs
+- `ConceptLibraryScreen`: Math concepts with examples
+
+## Community Features (Planned)
+
+**Current Status**: Basic implementation with placeholder UI
+
+**What exists**:
+- `CommunityScreen`: ListView of forum posts
+- `ForumPost`: Simple widget with author/content fields
+- Currently hardcoded sample posts
+
+**Planned expansions** (not yet implemented):
+- User-generated discussion threads
+- Q&A functionality
+- Peer tutoring system
+- Collaborative problem solving
+- Integration with user progress tracking
+
+**To contribute**: Community features are intentionally minimal - designed for future expansion based on user feedback.
+
+## Testing Strategy
+
+### Current Approach
+
+**Primary**: Manual testing across platforms (Web, Windows, Linux)
+
+**Key test scenarios**:
+1. **Firebase degradation**: Test on Linux where Firebase is disabled
+2. **Offline mode**: Disconnect network, verify SQLite fallback works
+3. **AI availability**: Mock `FirebaseAIService.isAvailable = false`
+4. **Progress migration**: Delete app data, verify SharedPreferences → SQLite migration
+5. **Cross-platform UI**: Test responsive layouts on mobile (portrait) and desktop (landscape)
+
+### Running Tests
+
+```bash
+# Run existing widget tests (currently minimal)
+flutter test
+
+# Analyze code quality
+flutter analyze
+
+# Check for outdated dependencies
+flutter pub outdated
+```
+
+**Widget test pattern** (example from `test/widget_test.dart`):
+```dart
+testWidgets('Screen renders correctly', (WidgetTester tester) async {
+  await tester.pumpWidget(const MathTutorApp());
+  expect(find.byType(SomeWidget), findsOneWidget);
+});
+```
+
+**Note**: Test suite is intentionally minimal. Focus is on:
+- Manual platform testing (Web, Windows, Linux, Android)
+- Real device testing for touch interactions
+- `flutter analyze` as primary quality gate
+
 ## Quick Debugging
 
 **Problem**: Firebase not working
@@ -331,3 +442,9 @@ try {
 - Check `FirebaseAIService.isAvailable`
 - Fallback to `DatabaseService.buscarPerguntaCache()` or pre-defined content
 - Verify prompt includes all required context (year, unit, difficulty)
+
+**Problem**: arXiv search failing
+- Check network connectivity
+- Verify SSL certificate handling (custom `HttpOverrides` configured)
+- Try `getRecentArticles()` instead of search to isolate issue
+- Check arXiv.org API status (http://export.arxiv.org/api/query)

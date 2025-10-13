@@ -9,7 +9,7 @@ import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import '../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../screen/login_screen.dart';
+import 'login_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});

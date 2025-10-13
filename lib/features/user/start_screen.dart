@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 // removed unused SharedPreferences import
-import '../ai_tutor/services/ia_service.dart';
-import '../auth/service/auth_service.dart';
-import '../theme/app_theme.dart';
-import '../../widgets/modern_components.dart';
+import '../ai/services/ia_service.dart';
+import 'service/auth_service.dart';
+import '../core/app_theme.dart';
+import '../core/widgets/modern_components.dart';
 import 'screens/configuracao_screen.dart';
-import '../games/screens/quiz_screen.dart';
-import '../ai_tutor/screens/ajuda_screen.dart';
-import '../ai_tutor/screens/modulos_screen.dart';
+import '../learning/screens/quiz_screen.dart';
+import '../ai/screens/ajuda_screen.dart';
+import '../ai/screens/modulos_screen.dart';
 import 'screens/dashboard_screen.dart';
-import '../ai_tutor/screens/chat_screen.dart';
+import '../ai/screens/chat_screen.dart';
 import 'screens/perfil_screen.dart';
 import 'screens/teste_personagem_3d_screen.dart';
 import 'screens/teste_firebase_ai_screen.dart';
-import '../auth/screen/login_screen.dart';
+import 'screen/login_screen.dart';
 
 class NavigationItem {
   final IconData icon;

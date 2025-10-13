@@ -1,8 +1,8 @@
 import 'dart:math';
 import '../models/progresso_user_model.dart';
-import '../../ai_tutor/modulo_bncc.dart';
+import '../../ai/modulo_bncc.dart';
 import 'progresso_service.dart';
-import '../../games/service/gamificacao_service.dart';
+import '../../learning/service/gamificacao_service.dart';
 
 class RelatorioService {
   // Gera relatório completo de progresso

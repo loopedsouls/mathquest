@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mathquest/features/exercise_system/exercise_screen.dart';
-import 'package:mathquest/features/dashboard/dashboard_screen.dart';
-import 'package:mathquest/features/matrix_tools/matrix_conversion_screen.dart';
+import 'package:mathquest/features/learning/exercise_screen.dart';
+import 'package:mathquest/features/analytics/dashboard_screen.dart';
+import 'package:mathquest/features/math_tools/matrix_conversion_screen.dart';
 
 void main() {
   runApp(const MyApp());

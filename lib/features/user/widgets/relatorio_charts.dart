@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../theme/app_theme.dart';
+import '../../core/app_theme.dart';
 
 class ProgressChart extends StatelessWidget {
   final Map<String, double> data;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../../core/app_theme.dart';
 
 /// Header responsivo
 class ResponsiveHeader extends StatelessWidget {

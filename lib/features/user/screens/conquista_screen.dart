@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../theme/app_theme.dart';
-import '../../../widgets/mixins.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets/mixins.dart';
 import '../conquista.dart';
-import '../../games/service/gamificacao_service.dart';
+import '../../learning/service/gamificacao_service.dart';
 
 class ConquistasScreen extends StatefulWidget {
   const ConquistasScreen({super.key});

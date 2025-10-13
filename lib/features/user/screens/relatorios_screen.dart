@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
-import '../../../widgets/modern_components.dart';
-import '../../../widgets/mixins.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets/modern_components.dart';
+import '../../core/widgets/mixins.dart';
 import '../conquista.dart';
 
 class RelatoriosScreen extends StatefulWidget {

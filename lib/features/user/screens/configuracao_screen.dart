@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
-import '../../ai_tutor/services/ia_service.dart';
-import '../../ai_tutor/services/preload_service.dart';
-import '../../firebase/service/firebase_ai_service.dart';
-import '../../theme/app_theme.dart';
-import '../../../widgets/modern_components.dart';
-import '../../auth/service/auth_service.dart';
+import '../../ai/services/ia_service.dart';
+import '../../ai/services/preload_service.dart';
+import '../../data/service/firebase_ai_service.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets/modern_components.dart';
+import '../service/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../auth/screen/login_screen.dart';
+import '../screen/login_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../theme/app_theme.dart';
-import '../../../widgets/modern_components.dart';
-import '../../../widgets/mixins.dart';
+import '../../core/app_theme.dart';
+import '../../core/widgets/modern_components.dart';
+import '../../core/widgets/mixins.dart';
 import '../conquista.dart';
 import '../services/progresso_service.dart';
 import 'conquista_screen.dart';

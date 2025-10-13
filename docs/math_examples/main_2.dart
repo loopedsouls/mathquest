@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mathquest/features/research/mathstateofart.dart';
+import 'package:mathquest/features/ai/mathstateofart.dart';
 
 void main() {
   runApp(const MyApp());

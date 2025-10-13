@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:mathquest/features/community/community_screen.dart';
-import 'package:mathquest/features/concept_library/concept_library_screen.dart';
-import 'package:mathquest/features/exercise_system/exercise_bank_screen.dart';
-import 'package:mathquest/features/interactive_simulator/interactive_simulator_screen.dart';
-import 'package:mathquest/features/representation_editor/representation_editor_screen.dart';
+import 'package:mathquest/features/educational_content/concept_library_screen.dart';
+import 'package:mathquest/features/learning/exercise_bank_screen.dart';
+import 'package:mathquest/features/math_tools/interactive_simulator_screen.dart';
+import 'package:mathquest/features/math_tools/representation_editor_screen.dart';
 
 class MapeamentoSistematico extends StatefulWidget {
   const MapeamentoSistematico({super.key});

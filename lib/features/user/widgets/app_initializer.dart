@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../ai_tutor/services/preload_service.dart';
+import '../../ai/services/preload_service.dart';
 import '../services/personagem_service.dart';
 import '../start_screen.dart';
 

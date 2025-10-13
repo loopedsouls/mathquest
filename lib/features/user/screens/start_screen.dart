@@ -12,7 +12,6 @@ import '../../ai/screens/modulos_screen.dart';
 import 'dashboard_screen.dart';
 import '../../ai/screens/chat_screen.dart';
 import 'perfil_screen.dart';
-import 'teste_personagem_3d_screen.dart';
 import 'teste_firebase_ai_screen.dart';
 import 'login_screen.dart';
 import '../../educational_content/resources_screen.dart';
@@ -436,18 +435,11 @@ class _StartScreenState extends State<StartScreen>
             ),
       bottomNavigationBar:
           !isDesktop && !_isLoading ? _buildBottomNavigationBar() : null,
-      floatingActionButton: !_isLoading
+      floatingActionButton: !_isLoading && !isDesktop
           ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const TestePersonagem3DScreen(),
-                  ),
-                );
-              },
-              backgroundColor: AppTheme.accentColor,
-              child: const Icon(Icons.person),
+              onPressed: _goToConfig,
+              backgroundColor: AppTheme.primaryColor,
+              child: const Icon(Icons.settings_rounded, color: Colors.white),
             )
           : null,
     );
@@ -564,9 +556,9 @@ class _StartScreenState extends State<StartScreen>
             ),
           ),
 
-          // Navegação principal
+          // Navegação principal com scroll
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,6 +632,63 @@ class _StartScreenState extends State<StartScreen>
                       ),
                     );
                   }),
+
+                  // Separador
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8, bottom: 8, top: 8),
+                    child: Text(
+                      'CONFIGURAÇÕES',
+                      style: TextStyle(
+                        color: AppTheme.darkTextSecondaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+
+                  // Opção de Configuração
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _goToConfig,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.settings_rounded,
+                                color: AppTheme.darkTextSecondaryColor,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  'Configurações',
+                                  style: TextStyle(
+                                    color: AppTheme.darkTextPrimaryColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

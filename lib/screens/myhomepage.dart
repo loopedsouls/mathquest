@@ -4,6 +4,7 @@ import 'community_screen.dart';
 import 'concept_library_screen.dart';
 import 'exercise_bank_screen.dart';
 import 'interactive_simulator_screen.dart';
+import 'profile_screen.dart';
 import 'representation_editor_screen.dart';
 import 'resources_screen.dart';
 
@@ -74,7 +75,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PerfilScreen()),
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 );
               },
               child: const Text('Perfil de Aprendizagem'),

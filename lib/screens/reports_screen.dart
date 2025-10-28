@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
+import '../../../features/user/achievement.dart';
 
 class RelatoriosScreen extends StatefulWidget {
   const RelatoriosScreen({super.key});
@@ -13,7 +14,7 @@ class RelatoriosScreen extends StatefulWidget {
 class _RelatoriosScreenState extends State<RelatoriosScreen>
     with TickerProviderStateMixin, LoadingStateMixin {
   Map<String, dynamic> _dadosProgresso = {};
-  List<Conquista> _conquistas = [];
+  List<Achievement> _conquistas = [];
 
   late TabController _tabController;
   late AnimationController _animationController;
@@ -53,48 +54,48 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
 
       // Simula conquistas
       _conquistas = [
-        Conquista(
+        Achievement(
           id: '1',
-          titulo: 'Primeiro Passo',
-          descricao: 'Complete seu primeiro exercício',
+          title: 'Primeiro Passo',
+          description: 'Complete seu primeiro exercício',
           emoji: '⭐',
-          tipo: TipoConquista.moduloCompleto,
-          criterios: {'completar_primeiro_exercicio': true},
-          pontosBonus: 50,
-          dataConquista: DateTime.now().subtract(const Duration(days: 7)),
-          desbloqueada: true,
+          type: AchievementType.moduleComplete,
+          criteria: {'completar_primeiro_exercicio': true},
+          bonusPoints: 50,
+          unlockDate: DateTime.now().subtract(const Duration(days: 7)),
+          unlocked: true,
         ),
-        Conquista(
+        Achievement(
           id: '2',
-          titulo: 'Dedicado',
-          descricao: 'Estude por 7 dias consecutivos',
+          title: 'Dedicado',
+          description: 'Estude por 7 dias consecutivos',
           emoji: '🔥',
-          tipo: TipoConquista.streakExercicios,
-          criterios: {'dias_consecutivos': 7},
-          pontosBonus: 100,
-          dataConquista: DateTime.now(),
-          desbloqueada: true,
+          type: AchievementType.exerciseStreak,
+          criteria: {'dias_consecutivos': 7},
+          bonusPoints: 100,
+          unlockDate: DateTime.now(),
+          unlocked: true,
         ),
-        Conquista(
+        Achievement(
           id: '3',
-          titulo: 'Matemático',
-          descricao: 'Domine 10 tópicos diferentes',
+          title: 'Matemático',
+          description: 'Domine 10 tópicos diferentes',
           emoji: '🎓',
-          tipo: TipoConquista.unidadeCompleta,
-          criterios: {'topicos_dominados': 10},
-          pontosBonus: 200,
-          dataConquista: DateTime.now().subtract(const Duration(days: 2)),
-          desbloqueada: true,
+          type: AchievementType.unitComplete,
+          criteria: {'topicos_dominados': 10},
+          bonusPoints: 200,
+          unlockDate: DateTime.now().subtract(const Duration(days: 2)),
+          unlocked: true,
         ),
-        Conquista(
+        Achievement(
           id: '4',
-          titulo: 'Perfeccionista',
-          descricao: 'Obtenha 100% em 20 exercícios',
+          title: 'Perfeccionista',
+          description: 'Obtenha 100% em 20 exercícios',
           emoji: '🏆',
-          tipo: TipoConquista.perfeccionista,
-          criterios: {'exercicios_100_porcento': 20},
-          pontosBonus: 300,
-          desbloqueada: false,
+          type: AchievementType.perfectionist,
+          criteria: {'exercicios_100_porcento': 20},
+          bonusPoints: 300,
+          unlocked: false,
         ),
       ];
 
@@ -160,7 +161,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
 
   Widget _buildConquistasDesbloqueadas() {
     final conquistasDesbloqueadas =
-        _conquistas.where((c) => c.desbloqueada).toList();
+        _conquistas.where((c) => c.unlocked).toList();
 
     if (conquistasDesbloqueadas.isEmpty) {
       return Center(
@@ -208,15 +209,15 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
               style: const TextStyle(fontSize: 32),
             ),
             title: Text(
-              conquista.titulo,
+              conquista.title,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
-            subtitle: Text(conquista.descricao),
+            subtitle: Text(conquista.description),
             trailing: Text(
-              '+${conquista.pontosBonus} XP',
+              '+${conquista.bonusPoints} XP',
               style: TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
@@ -230,7 +231,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
 
   Widget _buildConquistasBloqueadas() {
     final conquistasBloqueadas =
-        _conquistas.where((c) => !c.desbloqueada).toList();
+        _conquistas.where((c) => !c.unlocked).toList();
 
     if (conquistasBloqueadas.isEmpty) {
       return Center(
@@ -271,7 +272,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
               size: 32,
             ),
             title: Text(
-              conquista.titulo,
+              conquista.title,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontWeight: FontWeight.bold,
@@ -279,7 +280,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
               ),
             ),
             subtitle: Text(
-              conquista.descricao,
+              conquista.description,
               style: TextStyle(color: Colors.grey[500]),
             ),
           ),
@@ -290,7 +291,7 @@ class _RelatoriosScreenState extends State<RelatoriosScreen>
 
   Widget _buildEstatisticasConquistas() {
     final conquistasDesbloqueadas =
-        _conquistas.where((c) => c.desbloqueada).toList();
+        _conquistas.where((c) => c.unlocked).toList();
     final totalConquistas = _conquistas.length;
     final porcentagem = totalConquistas > 0
         ? (conquistasDesbloqueadas.length / totalConquistas) * 100

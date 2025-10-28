@@ -3,13 +3,13 @@ import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
 import '../../../services/progresso_service.dart';
+import '../features/user/achievement.dart';
 import '../services/gamificacao_service.dart';
 import '../../../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-import 'achievement.dart';
 
 class QuizMultiplaEscolhaScreen extends StatefulWidget {
   final bool isOfflineMode;

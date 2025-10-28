@@ -4,6 +4,7 @@ import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
 import '../../../services/progresso_service.dart';
+import '../../../features/user/achievement.dart';
 import 'conquista_screen.dart';
 import 'settings_screen.dart';
 
@@ -17,7 +18,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin, LoadingStateMixin, AnimationMixin {
   Map<String, dynamic> _dadosProgresso = {};
-  List<Conquista> _conquistas = [];
+  List<Achievement> _conquistas = [];
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       };
 
       // Carrega conquistas reais do ConquistasData
-      final todasConquistas = ConquistasData.obterTodasConquistas();
+      final todasConquistas = AchievementsData.getAllAchievements();
 
       // Simula algumas conquistas desbloqueadas (3 primeiras)
       List<String> idsDesbloqueadas = [
@@ -56,8 +57,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       _conquistas = todasConquistas.map((c) {
         final desbloqueada = idsDesbloqueadas.contains(c.id);
         return c.copyWith(
-          desbloqueada: desbloqueada,
-          dataConquista: desbloqueada
+          unlocked: desbloqueada,
+          unlockDate: desbloqueada
               ? DateTime.now()
                   .subtract(Duration(days: idsDesbloqueadas.indexOf(c.id) * 2))
               : null,
@@ -479,9 +480,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   // Achievement section with detailed view
   Widget _buildAchievementCard() {
     final unlockedAchievements =
-        _conquistas.where((c) => c.desbloqueada).toList();
+        _conquistas.where((c) => c.unlocked).toList();
     final lockedAchievements =
-        _conquistas.where((c) => !c.desbloqueada).toList();
+        _conquistas.where((c) => !c.unlocked).toList();
 
     return GestureDetector(
       onTap: () {
@@ -549,7 +550,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     .withValues(alpha: 0.2),
                                 child: _buildConquistaIcon(conquista.emoji)),
                             const SizedBox(height: 8),
-                            Text(conquista.titulo,
+                            Text(conquista.title,
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -557,7 +558,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis),
-                            Text('+${conquista.pontosBonus} XP',
+                            Text('+${conquista.bonusPoints} XP',
                                 style: TextStyle(
                                     color: AppTheme.accentColor,
                                     fontSize: 10,
@@ -620,7 +621,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   ],
                                 )),
                             const SizedBox(height: 8),
-                            Text(conquista.titulo,
+                            Text(conquista.title,
                                 style: TextStyle(
                                     color: AppTheme.darkTextSecondaryColor,
                                     fontSize: 12,

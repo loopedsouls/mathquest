@@ -251,7 +251,7 @@ class ProgressoServiceV2 {
       for (final conquista in novasConquistas) {
         await DatabaseService.salvarConquista(
           conquistaId: conquista.id,
-          dataConquista: conquista.dataConquista ?? DateTime.now(),
+          dataConquista: conquista.unlockDate ?? DateTime.now(),
         );
       }
 
@@ -265,7 +265,7 @@ class ProgressoServiceV2 {
         for (final conquista in conquistasNivel) {
           await DatabaseService.salvarConquista(
             conquistaId: conquista.id,
-            dataConquista: conquista.dataConquista ?? DateTime.now(),
+            dataConquista: conquista.unlockDate ?? DateTime.now(),
           );
         }
       }

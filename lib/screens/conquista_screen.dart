@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/mixins.dart';
+import '../../../features/user/achievement.dart';
 import '../../../services/gamificacao_service.dart';
 
 class ConquistasScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class ConquistasScreen extends StatefulWidget {
 
 class _ConquistasScreenState extends State<ConquistasScreen>
     with TickerProviderStateMixin, LoadingStateMixin {
-  List<Conquista> _conquistas = [];
+  List<Achievement> _conquistas = [];
 
   late TabController _tabController;
   late AnimationController _animationController;
@@ -121,7 +122,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
 
   Widget _buildConquistasDesbloqueadas() {
     final conquistasDesbloqueadas =
-        _conquistas.where((c) => c.desbloqueada).toList();
+        _conquistas.where((c) => c.unlocked).toList();
 
     if (conquistasDesbloqueadas.isEmpty) {
       return Center(
@@ -262,7 +263,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  conquista.titulo,
+                                  conquista.title,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
@@ -271,7 +272,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  conquista.descricao,
+                                  conquista.description,
                                   style: TextStyle(
                                     color: AppTheme.darkTextSecondaryColor,
                                     fontSize: 14,
@@ -300,7 +301,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                                   ],
                                 ),
                                 child: Text(
-                                  '+${conquista.pontosBonus} XP',
+                                  '+${conquista.bonusPoints} XP',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -308,10 +309,10 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                                   ),
                                 ),
                               ),
-                              if (conquista.dataConquista != null) ...[
+                              if (conquista.unlockDate != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  _formatarData(conquista.dataConquista!),
+                                  _formatarData(conquista.unlockDate!),
                                   style: TextStyle(
                                     color: AppTheme.darkTextSecondaryColor,
                                     fontSize: 10,
@@ -338,7 +339,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                               ),
                             ),
                             child: Text(
-                              _obterTipoConquista(conquista.tipo),
+                              _obterTipoConquista(conquista.type),
                               style: TextStyle(
                                 color: AppTheme.darkTextSecondaryColor,
                                 fontSize: 11,
@@ -376,7 +377,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
 
   Widget _buildConquistasBloqueadas() {
     final conquistasBloqueadas =
-        _conquistas.where((c) => !c.desbloqueada).toList();
+        _conquistas.where((c) => !c.unlocked).toList();
 
     if (conquistasBloqueadas.isEmpty) {
       return Center(
@@ -482,7 +483,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            conquista.titulo,
+                            conquista.title,
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontWeight: FontWeight.bold,
@@ -491,7 +492,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            conquista.descricao,
+                            conquista.description,
                             style: TextStyle(
                               color: Colors.grey[500],
                               fontSize: 14,
@@ -510,7 +511,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '+${conquista.pontosBonus} XP',
+                        '+${conquista.bonusPoints} XP',
                         style: TextStyle(
                           color: Colors.grey[400],
                           fontWeight: FontWeight.bold,
@@ -531,7 +532,7 @@ class _ConquistasScreenState extends State<ConquistasScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _obterTipoConquista(conquista.tipo),
+                    _obterTipoConquista(conquista.type),
                     style: TextStyle(
                       color: Colors.grey[500],
                       fontSize: 11,
@@ -549,26 +550,26 @@ class _ConquistasScreenState extends State<ConquistasScreen>
     );
   }
 
-  Widget _buildProgresoConquista(Conquista conquista) {
+  Widget _buildProgresoConquista(Achievement conquista) {
     // Simula progresso baseado no tipo de conquista
     double progresso = 0.0;
     String textoProgresso = '';
 
-    switch (conquista.tipo) {
-      case TipoConquista.streakExercicios:
-        final streakRequerida = (conquista.criterios['streak'] as int?) ?? 5;
+    switch (conquista.type) {
+      case AchievementType.exerciseStreak:
+        final streakRequerida = (conquista.criteria['streak'] as int?) ?? 5;
         progresso = 0.3; // 30% de progresso simulado
         textoProgresso = 'Sequência: 2/$streakRequerida';
         break;
-      case TipoConquista.moduloCompleto:
+      case AchievementType.moduleComplete:
         final quantidadeRequerida =
-            (conquista.criterios['quantidade'] as int?) ?? 3;
+            (conquista.criteria['quantity'] as int?) ?? 3;
         progresso = 0.2;
         textoProgresso = 'Módulos: 2/$quantidadeRequerida';
         break;
-      case TipoConquista.pontuacaoTotal:
+      case AchievementType.totalScore:
         final pontosRequeridos =
-            (conquista.criterios['pontos'] as int?) ?? 1000;
+            (conquista.criteria['pontos'] as int?) ?? 1000;
         progresso = 0.45;
         textoProgresso =
             'Pontos: ${(pontosRequeridos * 0.45).round()}/$pontosRequeridos';
@@ -632,23 +633,23 @@ class _ConquistasScreenState extends State<ConquistasScreen>
     }
   }
 
-  String _obterTipoConquista(TipoConquista tipo) {
+  String _obterTipoConquista(AchievementType tipo) {
     switch (tipo) {
-      case TipoConquista.moduloCompleto:
+      case AchievementType.moduleComplete:
         return 'Módulo Completo';
-      case TipoConquista.unidadeCompleta:
+      case AchievementType.unitComplete:
         return 'Unidade Completa';
-      case TipoConquista.nivelAlcancado:
+      case AchievementType.levelReached:
         return 'Nível Alcançado';
-      case TipoConquista.streakExercicios:
+      case AchievementType.exerciseStreak:
         return 'Sequência';
-      case TipoConquista.pontuacaoTotal:
+      case AchievementType.totalScore:
         return 'Pontuação';
-      case TipoConquista.tempoRecord:
+      case AchievementType.recordTime:
         return 'Tempo Record';
-      case TipoConquista.perfeccionista:
+      case AchievementType.perfectionist:
         return 'Perfeição';
-      case TipoConquista.persistente:
+      case AchievementType.persistent:
         return 'Persistência';
     }
   }

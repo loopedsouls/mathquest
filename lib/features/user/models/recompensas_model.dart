@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../services/personagem_service.dart';
 import '../services/progresso_service.dart';
-import '../../learning/service/gamificacao_service.dart';
+import '../../learning/services/gamificacao_service.dart';
 
 /// Helper class para integrar recompensas do personagem com o progresso do usuário
 class RecompensasIntegration {

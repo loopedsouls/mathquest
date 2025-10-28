@@ -1,7 +1,8 @@
 // Firebase AI Service - Único serviço de IA do MathQuest
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../features/data/service/firebase_ai_service.dart';
+
+import 'firebase_ai_service.dart';
 
 /// Interface para serviços de IA
 abstract class AIService {

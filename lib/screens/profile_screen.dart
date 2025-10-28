@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import '../widgets/item_visualization_helper.dart';
+import '../../../widgets/item_visualization_helper.dart';
 import '../../../widgets/mixins.dart';
-import '../services/personagem_service.dart';
+import '../../../services/personagem_service.dart';
 import '../../../models/personagem_model.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../features/data/service/database_service.dart';
 import 'dart:convert';
+
+import 'database_service.dart';
 
 class ExplicacaoService {
   static const String _tableName = 'historico_explicacoes';

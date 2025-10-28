@@ -4,12 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../../../services/ia_service.dart';
 import '../../../services/preload_service.dart';
-import '../../data/service/firebase_ai_service.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import '../services/auth_service.dart';
-import '../services/modulos_config_service.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/modulos_config_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/firebase_ai_service.dart';
 import 'login_screen.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {

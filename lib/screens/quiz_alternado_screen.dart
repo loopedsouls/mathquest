@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../features/learning/quizzes/core/app_theme.dart';
-import '../features/learning/quizzes/core/widgets/modern_components.dart';
-// import '../services/ia_service.dart'; // Removed - deprecated services replaced with Firebase AI
+import '../app_theme.dart';
 import '../services/quiz_helper_service.dart';
-// import '../services/firebase_ai_service.dart'; // Not directly used - accessed through QuizHelperService
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../widgets/modern_components.dart';
 
 class QuizAlternadoScreen extends StatefulWidget {
   final bool isOfflineMode;

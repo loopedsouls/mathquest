@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../features/data/service/database_service.dart';
 import '../models/quiz_model.dart';
+import 'database_service.dart';
 import 'quiz_helper_service.dart';
 
 /// Serviço para gerenciar lógica de quizzes

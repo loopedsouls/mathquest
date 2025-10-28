@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mathquest/features/data/service/firebase_ai_service.dart';
 import 'package:mathquest/app_theme.dart';
 import 'package:mathquest/widgets/modern_components.dart';
+
+import '../services/firebase_ai_service.dart';
 
 class FirebaseAiTestScreen extends StatefulWidget {
   const FirebaseAiTestScreen({super.key});

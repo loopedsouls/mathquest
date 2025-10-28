@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../features/data/service/database_service.dart';
+import 'database_service.dart';
 import 'ia_service.dart';
 
 class PreloadService {

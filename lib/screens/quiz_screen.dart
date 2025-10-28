@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../features/learning/quizzes/core/app_theme.dart';
-import '../features/learning/quizzes/core/widgets/modern_components.dart';
+import '../app_theme.dart';
+import '../models/personagem_model.dart';
+import '../services/performance_service.dart';
+import '../services/personagem_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../features/learning/quizzes/user/services/performance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../features/learning/quizzes/core/screens/quiz_snake.dart';
-import '../features/learning/quizzes/user/services/personagem_service.dart';
-import '../features/learning/quizzes/user/models/personagem_model.dart';
+
+import '../widgets/modern_components.dart';
+import 'quiz_snake.dart';
 
 class QuizAlternadoScreen extends StatefulWidget {
   final bool isOfflineMode;

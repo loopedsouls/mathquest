@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/conversation_model.dart';
-import '../features/data/service/firebase_ai_service.dart';
+import 'firebase_ai_service.dart';
 
 class ConversaService {
   static const String _chaveConversas = 'conversas_salvas';

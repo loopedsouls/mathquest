@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-import '../features/achievement.dart';
-import '../models/progresso_user_model.dart';
-import 'progresso_service.dart';
+import '../../../models/progresso_user_model.dart';
+import '../../../services/progresso_service.dart';
+import '../screens/achievement.dart';
 
 class GamificacaoService {
   static const String _conquistasKey = 'conquistas_desbloqueadas';

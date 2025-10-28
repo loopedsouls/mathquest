@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../features/learning/quizzes/core/app_theme.dart';
-import '../features/learning/quizzes/core/widgets/modern_components.dart';
-import '../features/learning/quizzes/core/widgets/mixins.dart';
-import '../features/learning/quizzes/user/services/progresso_service.dart';
+import '../../../app_theme.dart';
+import '../../../widgets/modern_components.dart';
+import '../../../widgets/mixins.dart';
+import '../../../services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
-import '../features/learning/quizzes/ai/services/explicacao_service.dart';
+import '../../../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../features/learning/quizzes/user/achievement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+
+import 'achievement.dart';
 
 class QuizMultiplaEscolhaScreen extends StatefulWidget {
   final bool isOfflineMode;

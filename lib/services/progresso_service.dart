@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/progresso_user_model.dart';
 import '../models/bncc_module_model.dart';
+import 'database_service.dart';
 import 'gamificacao_service.dart';
-import '../features/data/service/database_service.dart';
 
 class ProgressoServiceV2 {
   static const String _migratedKey = 'migrated_to_sqlite';

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../features/data/service/firebase_ai_service.dart';
+
+import 'firebase_ai_service.dart';
 
 class QuizHelperService {
   /// Gera pergunta inteligente usando Firebase AI

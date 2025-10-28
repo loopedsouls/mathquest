@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../user/models/progresso_user_model.dart';
+
+import '../models/progresso_user_model.dart';
 
 class FirestoreService {
   FirebaseFirestore? _firestore;

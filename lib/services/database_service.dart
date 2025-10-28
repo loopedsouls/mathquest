@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
-import '../../user/models/progresso_user_model.dart';
+
+import '../models/progresso_user_model.dart';
 
 class DatabaseService {
   static Database? _database;

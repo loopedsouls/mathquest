@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
-import '../features/learning/quizzes/core/widgets/modern_components.dart';
-import '../features/learning/quizzes/core/widgets/mixins.dart';
-import '../features/learning/quizzes/ai/services/explicacao_service.dart';
+import '../services/explicacao_service.dart';
+import '../services/firebase_ai_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../features/learning/quizzes/data/service/firebase_ai_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+
+import '../widgets/mixins.dart';
+import '../widgets/modern_components.dart';
 
 class QuizCompleteAFraseScreen extends StatefulWidget {
   final String? topico;

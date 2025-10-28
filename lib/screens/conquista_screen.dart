@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/mixins.dart';
 import '../../../services/gamificacao_service.dart';
-import '../achievement.dart';
 
 class ConquistasScreen extends StatefulWidget {
   const ConquistasScreen({super.key});

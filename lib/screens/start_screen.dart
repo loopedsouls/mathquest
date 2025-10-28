@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../services/auth_service.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
-import '../services/gemini_ai_service.dart';
+import '../services/ai_service.dart';
 import '../services/modules_config_service.dart';
 import 'help_screen.dart';
 import 'modules_screen.dart';
@@ -399,7 +399,7 @@ class _StartScreenState extends State<StartScreen>
       case 'exercicios':
         return const ExerciseBankScreen();
       case 'conquistas':
-        return const ConquistasScreen();
+        return const AchievementScreen();
       case 'ajuda':
         return const AjudaScreen();
       case 'relatorios':

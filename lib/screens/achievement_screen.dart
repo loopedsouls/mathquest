@@ -5,14 +5,14 @@ import '../../../widgets/mixins.dart';
 import '../models/achievement.dart';
 import '../../../services/gamification_service.dart';
 
-class ConquistasScreen extends StatefulWidget {
-  const ConquistasScreen({super.key});
+class AchievementScreen extends StatefulWidget {
+  const AchievementScreen({super.key});
 
   @override
-  State<ConquistasScreen> createState() => _ConquistasScreenState();
+  State<AchievementScreen> createState() => _AchievementScreenState();
 }
 
-class _ConquistasScreenState extends State<ConquistasScreen>
+class _AchievementScreenState extends State<AchievementScreen>
     with TickerProviderStateMixin, LoadingStateMixin {
   List<Achievement> _conquistas = [];
 

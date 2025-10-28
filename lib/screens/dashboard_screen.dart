@@ -488,7 +488,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ConquistasScreen()),
+          MaterialPageRoute(builder: (_) => const AchievementScreen()),
         );
       },
       child: ModernCard(

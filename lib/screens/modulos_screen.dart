@@ -3,7 +3,7 @@ import '../app_theme.dart';
 import '../widgets/modern_components.dart';
 import '../models/progresso_user_model.dart';
 import '../models/bncc_module_model.dart';
-import '../data/math_course_data.dart';
+import '../models/math_course_data.dart';
 import '../services/progresso_service.dart';
 import 'chat_screen.dart';
 

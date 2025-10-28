@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/math_course_data.dart';
+import '../models/math_course_data.dart';
 import '../app_theme.dart';
 
 class CursoStatsWidget extends StatelessWidget {

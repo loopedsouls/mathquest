@@ -1,6 +1,6 @@
 import 'dart:math';
 import '../models/progresso_user_model.dart';
-import '../../ai/modulo_bncc.dart';
+import '../../ai/models/bncc_module_model.dart';
 import 'progresso_service.dart';
 import '../../learning/services/gamificacao_service.dart';
 

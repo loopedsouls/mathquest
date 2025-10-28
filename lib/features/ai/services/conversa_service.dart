@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../conversa.dart';
+import '../models/conversation_model.dart';
 import '../../data/service/firebase_ai_service.dart';
 
 class ConversaService {

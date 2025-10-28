@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
-import 'image_classification_service.dart';
+import '../services/image_classification_ai_service.dart';
 
 class ImageClassificationScreen extends StatefulWidget {
   const ImageClassificationScreen({super.key});

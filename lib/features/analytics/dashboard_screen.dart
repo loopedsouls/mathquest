@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../learning/exercise_screen.dart';
-import '../ai/image_classification_screen.dart';
+import '../ai/screens/image_classification_screen.dart';
 import '../math_tools/matrix_conversion_screen.dart';
 
 class DashboardScreen extends StatefulWidget {

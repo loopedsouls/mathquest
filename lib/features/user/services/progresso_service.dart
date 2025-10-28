@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/progresso_user_model.dart';
-import '../../ai/modulo_bncc.dart';
+import '../../ai/models/bncc_module_model.dart';
 import '../../learning/services/gamificacao_service.dart';
 import '../../data/service/database_service.dart';
 

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import '../../user/models/progresso_user_model.dart';
-import '../modulo_bncc.dart';
-import '../matematica.dart';
+import '../models/bncc_module_model.dart';
+import '../data/math_course_data.dart';
 import '../../user/services/progresso_service.dart';
 import 'chat_screen.dart';
 

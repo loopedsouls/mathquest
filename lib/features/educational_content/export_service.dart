@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import 'arxiv_service.dart';
-import 'package:mathquest/features/ai/ollama_service.dart';
-import 'package:mathquest/features/ai/gemini_service.dart';
+import 'package:mathquest/features/ai/services/ollama_ai_service.dart';
+import 'package:mathquest/features/ai/services/gemini_ai_service.dart';
 
 class ExportService {
   static final OllamaService _ollamaService = OllamaService();

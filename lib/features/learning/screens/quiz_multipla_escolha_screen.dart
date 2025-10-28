@@ -6,7 +6,7 @@ import '../../user/services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
 import '../../ai/services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../../user/conquista.dart';
+import '../../user/achievement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -328,7 +328,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
         await ProgressoService.registrarRespostaCorreta(unidade, ano);
 
         // Registrar no sistema de gamificação
-        final novasConquistas =
+        final novasAchievements =
             await GamificacaoService.registrarRespostaCorreta(
           unidade: unidade,
           ano: ano,
@@ -336,8 +336,8 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
         );
 
         // Mostrar conquistas desbloqueadas
-        if (novasConquistas.isNotEmpty) {
-          _mostrarNovasConquistas(novasConquistas);
+        if (novasAchievements.isNotEmpty) {
+          _mostrarNovasAchievements(novasAchievements);
         }
       } else {
         await ProgressoService.registrarRespostaIncorreta(unidade, ano);
@@ -526,7 +526,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     await prefs.setString('historico_quiz', jsonEncode(historico));
   }
 
-  void _mostrarNovasConquistas(List<Conquista> conquistas) {
+  void _mostrarNovasAchievements(List<Achievement> conquistas) {
     for (final conquista in conquistas) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -552,20 +552,20 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      '🏆 Nova Conquista!',
+                      '🏆 Nova Achievement!',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
-                      conquista.titulo,
+                      conquista.title,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
                 ),
               ),
-              //TODO: Removido bonusPoints pois não existe na classe Conquista
+              //TODO: Removido bonusPoints pois não existe na classe Achievement
               // Se desejar mostrar pontos, adicione uma propriedade válida
             ],
           ),
@@ -1191,7 +1191,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   }
 
   Widget _buildStatCard(
-      String titulo, String valor, IconData icon, Color cor, bool isTablet) {
+      String title, String valor, IconData icon, Color cor, bool isTablet) {
     return ModernCard(
       child: Column(
         children: [
@@ -1218,7 +1218,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
           ),
           SizedBox(height: isTablet ? 4 : 2),
           Text(
-            titulo,
+            title,
             style: AppTheme.bodySmall.copyWith(
               color: AppTheme.darkTextSecondaryColor,
             ),

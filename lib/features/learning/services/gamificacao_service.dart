@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-import '../../user/conquista.dart';
+import '../../user/achievement.dart';
 import '../../user/models/progresso_user_model.dart';
 import '../../user/services/progresso_service.dart';
 
@@ -38,14 +38,14 @@ class GamificacaoService {
   }
 
   // Registra resposta correta e verifica conquistas
-  static Future<List<Conquista>> registrarRespostaCorreta({
+  static Future<List<Achievement>> registrarRespostaCorreta({
     required String unidade,
     required String ano,
     required int tempoResposta,
   }) async {
     await carregarDados();
 
-    List<Conquista> novasConquistas = [];
+    List<Achievement> novasConquistas = [];
 
     // Incrementa streak
     _streakAtual++;
@@ -75,14 +75,14 @@ class GamificacaoService {
   }
 
   // Verifica conquistas quando um módulo é completado
-  static Future<List<Conquista>> verificarConquistasModuloCompleto(
+  static Future<List<Achievement>> verificarConquistasModuloCompleto(
     String unidade,
     String ano,
     double taxaAcerto,
   ) async {
     await carregarDados();
 
-    List<Conquista> novasConquistas = [];
+    List<Achievement> novasConquistas = [];
 
     // Conquistas por quantidade de módulos
     novasConquistas.addAll(await _verificarConquistasModulos());
@@ -100,24 +100,24 @@ class GamificacaoService {
   }
 
   // Verifica conquistas quando nível muda
-  static Future<List<Conquista>> verificarConquistasNivel(
+  static Future<List<Achievement>> verificarConquistasNivel(
       NivelUsuario nivel) async {
     await carregarDados();
 
-    List<Conquista> novasConquistas = [];
+    List<Achievement> novasConquistas = [];
 
     final conquistas =
-        ConquistasData.obterConquistasPorTipo(TipoConquista.nivelAlcancado);
+        AchievementsData.getAchievementsByType(AchievementType.levelReached);
 
     for (final conquista in conquistas) {
       if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-      final nivelRequerido = conquista.criterios['nivel'] as int;
+      final nivelRequerido = conquista.criteria['nivel'] as int;
       if (nivel.index >= nivelRequerido) {
         await _desbloquearConquista(conquista.id);
         novasConquistas.add(conquista.copyWith(
-          desbloqueada: true,
-          dataConquista: DateTime.now(),
+          unlocked: true,
+          unlockDate: DateTime.now(),
         ));
       }
     }
@@ -127,21 +127,21 @@ class GamificacaoService {
   }
 
   // Verifica conquistas de streak
-  static Future<List<Conquista>> _verificarConquistasStreak() async {
-    List<Conquista> novasConquistas = [];
+  static Future<List<Achievement>> _verificarConquistasStreak() async {
+    List<Achievement> novasConquistas = [];
 
     final conquistas =
-        ConquistasData.obterConquistasPorTipo(TipoConquista.streakExercicios);
+        AchievementsData.getAchievementsByType(AchievementType.exerciseStreak);
 
     for (final conquista in conquistas) {
       if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-      final streakRequerida = conquista.criterios['streak'] as int;
+      final streakRequerida = conquista.criteria['streak'] as int;
       if (_streakAtual >= streakRequerida) {
         await _desbloquearConquista(conquista.id);
         novasConquistas.add(conquista.copyWith(
-          desbloqueada: true,
-          dataConquista: DateTime.now(),
+          unlocked: true,
+          unlockDate: DateTime.now(),
         ));
       }
     }
@@ -150,22 +150,22 @@ class GamificacaoService {
   }
 
   // Verifica conquistas de tempo
-  static Future<List<Conquista>> _verificarConquistasTempo(
+  static Future<List<Achievement>> _verificarConquistasTempo(
       int tempoResposta) async {
-    List<Conquista> novasConquistas = [];
+    List<Achievement> novasConquistas = [];
 
     final conquistas =
-        ConquistasData.obterConquistasPorTipo(TipoConquista.tempoRecord);
+        AchievementsData.getAchievementsByType(AchievementType.recordTime);
 
     for (final conquista in conquistas) {
       if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-      final tempoMaximo = conquista.criterios['tempo_maximo'] as int;
+      final tempoMaximo = conquista.criteria['tempo_maximo'] as int;
       if (tempoResposta <= tempoMaximo) {
         await _desbloquearConquista(conquista.id);
         novasConquistas.add(conquista.copyWith(
-          desbloqueada: true,
-          dataConquista: DateTime.now(),
+          unlocked: true,
+          unlockDate: DateTime.now(),
         ));
       }
     }
@@ -174,26 +174,26 @@ class GamificacaoService {
   }
 
   // Verifica conquistas gerais (pontuação, etc.)
-  static Future<List<Conquista>> _verificarConquistasGerais() async {
-    List<Conquista> novasConquistas = [];
+  static Future<List<Achievement>> _verificarConquistasGerais() async {
+    List<Achievement> novasConquistas = [];
 
-    final progresso = await ProgressoService.carregarProgresso();
+    final progresso = await ProgressoServiceV2.carregarProgresso();
     final pontosTotais =
         progresso.pontosPorUnidade.values.fold(0, (a, b) => a + b);
 
     // Conquistas por pontuação
     final conquistasPontos =
-        ConquistasData.obterConquistasPorTipo(TipoConquista.pontuacaoTotal);
+        AchievementsData.getAchievementsByType(AchievementType.totalScore);
 
     for (final conquista in conquistasPontos) {
       if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-      final pontosRequeridos = conquista.criterios['pontos'] as int;
+      final pontosRequeridos = conquista.criteria['pontos'] as int;
       if (pontosTotais >= pontosRequeridos) {
         await _desbloquearConquista(conquista.id);
         novasConquistas.add(conquista.copyWith(
-          desbloqueada: true,
-          dataConquista: DateTime.now(),
+          unlocked: true,
+          unlockDate: DateTime.now(),
         ));
       }
     }
@@ -202,10 +202,10 @@ class GamificacaoService {
   }
 
   // Verifica conquistas por quantidade de módulos
-  static Future<List<Conquista>> _verificarConquistasModulos() async {
-    List<Conquista> novasConquistas = [];
+  static Future<List<Achievement>> _verificarConquistasModulos() async {
+    List<Achievement> novasConquistas = [];
 
-    final progresso = await ProgressoService.carregarProgresso();
+    final progresso = await ProgressoServiceV2.carregarProgresso();
 
     // Conta módulos completos
     int modulosCompletos = 0;
@@ -216,17 +216,17 @@ class GamificacaoService {
     }
 
     final conquistas =
-        ConquistasData.obterConquistasPorTipo(TipoConquista.moduloCompleto);
+        AchievementsData.getAchievementsByType(AchievementType.moduleComplete);
 
     for (final conquista in conquistas) {
       if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-      final quantidadeRequerida = conquista.criterios['quantidade'] as int;
+      final quantidadeRequerida = conquista.criteria['quantidade'] as int;
       if (modulosCompletos >= quantidadeRequerida) {
         await _desbloquearConquista(conquista.id);
         novasConquistas.add(conquista.copyWith(
-          desbloqueada: true,
-          dataConquista: DateTime.now(),
+          unlocked: true,
+          unlockDate: DateTime.now(),
         ));
       }
     }
@@ -235,11 +235,11 @@ class GamificacaoService {
   }
 
   // Verifica conquistas por unidade completa
-  static Future<List<Conquista>> _verificarConquistasUnidade(
+  static Future<List<Achievement>> _verificarConquistasUnidade(
       String unidade) async {
-    List<Conquista> novasConquistas = [];
+    List<Achievement> novasConquistas = [];
 
-    final progresso = await ProgressoService.carregarProgresso();
+    final progresso = await ProgressoServiceV2.carregarProgresso();
 
     // Verifica se a unidade está completa
     bool unidadeCompleta = true;
@@ -256,17 +256,17 @@ class GamificacaoService {
 
     if (unidadeCompleta) {
       final conquistas =
-          ConquistasData.obterConquistasPorTipo(TipoConquista.unidadeCompleta);
+          AchievementsData.getAchievementsByType(AchievementType.unitComplete);
 
       for (final conquista in conquistas) {
         if (_conquistasDesbloqueadas.contains(conquista.id)) continue;
 
-        final unidadeRequerida = conquista.criterios['unidade'] as String;
+        final unidadeRequerida = conquista.criteria['unidade'] as String;
         if (unidade == unidadeRequerida) {
           await _desbloquearConquista(conquista.id);
           novasConquistas.add(conquista.copyWith(
-            desbloqueada: true,
-            dataConquista: DateTime.now(),
+            unlocked: true,
+            unlockDate: DateTime.now(),
           ));
         }
       }
@@ -276,15 +276,15 @@ class GamificacaoService {
   }
 
   // Verifica conquista perfeccionista
-  static Future<List<Conquista>> _verificarConquistaPerfeccionista() async {
-    List<Conquista> novasConquistas = [];
+  static Future<List<Achievement>> _verificarConquistaPerfeccionista() async {
+    List<Achievement> novasConquistas = [];
 
-    final conquista = ConquistasData.obterConquistaPorId('perfeccionista');
+    final conquista = AchievementsData.getAchievementById('perfeccionista');
     if (conquista != null && !_conquistasDesbloqueadas.contains(conquista.id)) {
       await _desbloquearConquista(conquista.id);
       novasConquistas.add(conquista.copyWith(
-        desbloqueada: true,
-        dataConquista: DateTime.now(),
+        unlocked: true,
+        unlockDate: DateTime.now(),
       ));
     }
 
@@ -297,29 +297,29 @@ class GamificacaoService {
       _conquistasDesbloqueadas.add(conquistaId);
 
       // Adiciona pontos bônus
-      final conquista = ConquistasData.obterConquistaPorId(conquistaId);
-      if (conquista != null && conquista.pontosBonus > 0) {
+      final conquista = AchievementsData.getAchievementById(conquistaId);
+      if (conquista != null && conquista.bonusPoints > 0) {
         // Aqui poderia implementar lógica para adicionar pontos bônus
         // Por simplicidade, vamos deixar para implementação futura
       }
 
       if (kDebugMode) {
-        print('🏆 Conquista desbloqueada: ${conquista?.titulo}');
+        print('🏆 Conquista desbloqueada: ${conquista?.title}');
       }
     }
   }
 
   // Obtém conquistas desbloqueadas
-  static Future<List<Conquista>> obterConquistasDesbloqueadas() async {
+  static Future<List<Achievement>> obterConquistasDesbloqueadas() async {
     await carregarDados();
-    return ConquistasData.obterConquistasDesbloqueadas(
+    return AchievementsData.getUnlockedAchievements(
         _conquistasDesbloqueadas);
   }
 
   // Obtém conquistas bloqueadas
-  static Future<List<Conquista>> obterConquistasBloqueadas() async {
+  static Future<List<Achievement>> obterConquistasBloqueadas() async {
     await carregarDados();
-    return ConquistasData.obterConquistasBloqueadas(_conquistasDesbloqueadas);
+    return AchievementsData.getLockedAchievements(_conquistasDesbloqueadas);
   }
 
   // Obtém estatísticas de gamificação
@@ -327,10 +327,10 @@ class GamificacaoService {
     await carregarDados();
 
     final conquistasDesbloqueadas = await obterConquistasDesbloqueadas();
-    final conquistasTotais = ConquistasData.obterTodasConquistas();
+    final conquistasTotais = AchievementsData.getAllAchievements();
 
     final pontosBonus = conquistasDesbloqueadas.fold<int>(
-        0, (total, conquista) => total + conquista.pontosBonus);
+        0, (total, conquista) => total + conquista.bonusPoints);
 
     return {
       'conquistas_desbloqueadas': conquistasDesbloqueadas.length,

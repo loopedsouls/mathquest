@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/personagem_model.dart';
+import 'dart:math';
 
 class PersonagemService {
   static const String _keyPerfil = 'perfil_personagem';
@@ -13,6 +14,15 @@ class PersonagemService {
   PerfilPersonagem? _perfilAtual;
   List<ItemPersonalizacao> _todosItens = [];
 
+  // Novos campos para sistema de personagens gacha
+  static const String _personagensKey = 'personagens_colecao';
+  static const String _personagemSelecionadoKey = 'personagem_selecionado';
+  static const String _gachaTentativasKey = 'gacha_tentativas';
+
+  List<Personagem> _personagens = [];
+  Personagem? _personagemSelecionado;
+  int _gachaTentativas = 0;
+
   // Getter para o perfil atual
   PerfilPersonagem? get perfilAtual => _perfilAtual;
 
@@ -20,7 +30,334 @@ class PersonagemService {
   Future<void> inicializar() async {
     await _carregarPerfil();
     _inicializarItensBase();
+    await _carregarPersonagensGacha();
   }
+
+  /// Carrega dados dos personagens gacha
+  Future<void> _carregarPersonagensGacha() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Carrega tentativas gacha
+    _gachaTentativas = prefs.getInt(_gachaTentativasKey) ?? 0;
+
+    // Carrega personagens da coleção
+    final personagensJson = prefs.getStringList(_personagensKey) ?? [];
+    _personagens = personagensJson
+        .map((json) => Personagem.fromJson(Map<String, dynamic>.from(
+            Map<String, dynamic>.from(Uri.splitQueryString(json)))))
+        .toList();
+
+    // Carrega personagem selecionado
+    final selecionadoJson = prefs.getString(_personagemSelecionadoKey);
+    if (selecionadoJson != null) {
+      _personagemSelecionado = Personagem.fromJson(
+          Map<String, dynamic>.from(Uri.splitQueryString(selecionadoJson)));
+    }
+  }
+
+  /// Salva dados dos personagens gacha
+  Future<void> _salvarPersonagensGacha() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setInt(_gachaTentativasKey, _gachaTentativas);
+
+    // Salva personagens
+    final personagensJson = _personagens
+        .map((p) => Uri(queryParameters: p.toJson()).query)
+        .toList();
+    await prefs.setStringList(_personagensKey, personagensJson);
+
+    // Salva personagem selecionado
+    if (_personagemSelecionado != null) {
+      final selecionadoJson = Uri(queryParameters: _personagemSelecionado!.toJson()).query;
+      await prefs.setString(_personagemSelecionadoKey, selecionadoJson);
+    } else {
+      await prefs.remove(_personagemSelecionadoKey);
+    }
+  }
+
+  // === MÉTODOS PARA PERSONAGENS GACHA ===
+
+  /// Obtém todos os personagens disponíveis no jogo
+  List<Personagem> obterPersonagensDisponiveis() {
+    return _personagensBase;
+  }
+
+  /// Obtém personagens da coleção do jogador
+  List<Personagem> obterColecaoPersonagens() {
+    return List.from(_personagens);
+  }
+
+  /// Obtém personagem selecionado
+  Personagem? obterPersonagemSelecionado() {
+    return _personagemSelecionado;
+  }
+
+  /// Seleciona um personagem
+  Future<bool> selecionarPersonagem(String personagemId) async {
+    final personagem = _personagens.firstWhere(
+      (p) => p.id == personagemId,
+      orElse: () => throw Exception('Personagem não encontrado na coleção'),
+    );
+
+    _personagemSelecionado = personagem;
+    await _salvarPersonagensGacha();
+    return true;
+  }
+
+  /// Adiciona personagem à coleção
+  Future<void> adicionarPersonagem(Personagem personagem) async {
+    // Verifica se já possui
+    final existente = _personagens.indexWhere((p) => p.id == personagem.id);
+    if (existente >= 0) {
+      // Já possui, aumenta nível ou evolui
+      final atual = _personagens[existente];
+      if (atual.nivel < 10) {
+        // Aumenta nível
+        final novoNivel = atual.nivel + 1;
+        const novaExperiencia = 0; // Reset experiência ao subir nível
+        _personagens[existente] = atual.copyWith(
+          nivel: novoNivel,
+          experiencia: novaExperiencia,
+        );
+      } else if (atual.podeEvoluir) {
+        // Evolui
+        _personagens[existente] = atual.copyWith(evoluido: true);
+      }
+      // Se não pode fazer nada, apenas mantém
+    } else {
+      // Novo personagem
+      _personagens.add(personagem);
+    }
+
+    await _salvarPersonagensGacha();
+  }
+
+  /// Gacha - obtém personagem aleatório
+  Future<Personagem?> fazerGacha() async {
+    if (_perfilAtual == null || _perfilAtual!.moedas < 50) return null; // Custo do gacha
+
+    _perfilAtual = _perfilAtual!.copyWith(moedas: _perfilAtual!.moedas - 50);
+    await salvarPerfil();
+
+    _gachaTentativas++;
+
+    // Sistema de raridade ponderada
+    final random = Random();
+    final chance = random.nextDouble();
+
+    RaridadePersonagem raridadeSelecionada;
+    if (chance < RaridadePersonagem.mitico.chanceGacha) {
+      raridadeSelecionada = RaridadePersonagem.mitico;
+    } else if (chance < RaridadePersonagem.mitico.chanceGacha + RaridadePersonagem.lendario.chanceGacha) {
+      raridadeSelecionada = RaridadePersonagem.lendario;
+    } else if (chance < RaridadePersonagem.mitico.chanceGacha + RaridadePersonagem.lendario.chanceGacha + RaridadePersonagem.epico.chanceGacha) {
+      raridadeSelecionada = RaridadePersonagem.epico;
+    } else if (chance < RaridadePersonagem.mitico.chanceGacha + RaridadePersonagem.lendario.chanceGacha + RaridadePersonagem.epico.chanceGacha + RaridadePersonagem.raro.chanceGacha) {
+      raridadeSelecionada = RaridadePersonagem.raro;
+    } else {
+      raridadeSelecionada = RaridadePersonagem.comum;
+    }
+
+    // Filtra personagens por raridade
+    final candidatos = _personagensBase
+        .where((p) => p.raridade == raridadeSelecionada)
+        .toList();
+
+    if (candidatos.isEmpty) return null;
+
+    final personagemSorteado = candidatos[random.nextInt(candidatos.length)];
+
+    // Adiciona à coleção
+    await adicionarPersonagem(personagemSorteado);
+
+    return personagemSorteado;
+  }
+
+  /// Ganha experiência para personagem selecionado
+  Future<void> ganharExperiencia(int experiencia) async {
+    if (_personagemSelecionado == null) return;
+
+    final personagem = _personagemSelecionado!;
+    final novaExperiencia = personagem.experiencia + experiencia;
+
+    if (novaExperiencia >= personagem.experienciaParaProximoNivel) {
+      // Sobe de nível
+      final experienciaRestante = novaExperiencia - personagem.experienciaParaProximoNivel;
+      final novoNivel = personagem.nivel + 1;
+
+      _personagemSelecionado = personagem.copyWith(
+        nivel: novoNivel,
+        experiencia: experienciaRestante,
+      );
+    } else {
+      _personagemSelecionado = personagem.copyWith(
+        experiencia: novaExperiencia,
+      );
+    }
+
+    // Atualiza na coleção também
+    final index = _personagens.indexWhere((p) => p.id == personagem.id);
+    if (index >= 0) {
+      _personagens[index] = _personagemSelecionado!;
+    }
+
+    await _salvarPersonagensGacha();
+  }
+
+  /// Evolui personagem
+  Future<bool> evoluirPersonagem(String personagemId) async {
+    final index = _personagens.indexWhere((p) => p.id == personagemId);
+    if (index < 0) return false;
+
+    final personagem = _personagens[index];
+    if (!personagem.podeEvoluir) return false;
+
+    // Custo de evolução: 1000 moedas
+    if (_perfilAtual == null || _perfilAtual!.moedas < 1000) return false;
+
+    _perfilAtual = _perfilAtual!.copyWith(moedas: _perfilAtual!.moedas - 1000);
+    await salvarPerfil();
+
+    _personagens[index] = personagem.copyWith(evoluido: true);
+
+    // Se era o selecionado, atualiza
+    if (_personagemSelecionado?.id == personagemId) {
+      _personagemSelecionado = _personagens[index];
+    }
+
+    await _salvarPersonagensGacha();
+    return true;
+  }
+
+  /// Obtém estatísticas dos personagens
+  Map<String, dynamic> obterEstatisticasPersonagens() {
+    final totalPersonagens = _personagens.length;
+    final porRaridade = <RaridadePersonagem, int>{};
+    final porTipo = <TipoPersonagem, int>{};
+
+    for (final personagem in _personagens) {
+      porRaridade[personagem.raridade] = (porRaridade[personagem.raridade] ?? 0) + 1;
+      porTipo[personagem.tipo] = (porTipo[personagem.tipo] ?? 0) + 1;
+    }
+
+    return {
+      'total_personagens': totalPersonagens,
+      'gacha_tentativas': _gachaTentativas,
+      'personagem_selecionado': _personagemSelecionado?.nome ?? 'Nenhum',
+      'por_raridade': porRaridade.map((k, v) => MapEntry(k.nome, v)),
+      'por_tipo': porTipo.map((k, v) => MapEntry(k.nome, v)),
+    };
+  }
+
+  /// Reseta dados dos personagens gacha (para testes)
+  Future<void> resetarPersonagensGacha() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_personagensKey);
+    await prefs.remove(_personagemSelecionadoKey);
+    await prefs.remove(_gachaTentativasKey);
+
+    _personagens.clear();
+    _personagemSelecionado = null;
+    _gachaTentativas = 0;
+  }
+
+  // Base de dados dos personagens disponíveis
+  static final List<Personagem> _personagensBase = [
+    // Guerreiros
+    const Personagem(
+      id: 'rex_guerreiro',
+      nome: 'Rex',
+      descricao: 'Guerreiro Lógico',
+      historia: 'Um cavaleiro que encontrou a lógica nas batalhas matemáticas.',
+      imagem: 'assets/personagens/rex.png',
+      tipo: TipoPersonagem.guerreiro,
+      raridade: RaridadePersonagem.raro,
+      atributosBase: AtributosPersonagem(
+        forca: 15, inteligencia: 8, velocidade: 10, sorte: 7,
+      ),
+      habilidades: [
+        HabilidadePersonagem(
+          id: 'bonus_pontos_rex',
+          nome: 'Força Lógica',
+          descricao: '+15% pontos por resposta certa',
+          icone: '⚔️',
+          efeito: {'tipo': 'bonus_pontos', 'valor': 0.15},
+        ),
+      ],
+    ),
+
+    // Magos
+    const Personagem(
+      id: 'luna_maga',
+      nome: 'Luna',
+      descricao: 'Maga do Tempo',
+      historia: 'Uma feiticeira que manipula o tempo para resolver equações complexas.',
+      imagem: 'assets/personagens/luna.png',
+      tipo: TipoPersonagem.mago,
+      raridade: RaridadePersonagem.epico,
+      atributosBase: AtributosPersonagem(
+        forca: 6, inteligencia: 18, velocidade: 12, sorte: 9,
+      ),
+      habilidades: [
+        HabilidadePersonagem(
+          id: 'tempo_extra_luna',
+          nome: 'Manipulação Temporal',
+          descricao: '+10% tempo extra para responder',
+          icone: '⏰',
+          efeito: {'tipo': 'tempo_extra', 'valor': 0.10},
+        ),
+      ],
+    ),
+
+    // Comerciantes
+    const Personagem(
+      id: 'viciado_porcentagens',
+      nome: 'Mercador',
+      descricao: 'Comerciante viciado em porcentagens',
+      historia: 'Um negociante que vê oportunidades matemáticas em toda transação.',
+      imagem: 'assets/personagens/mercador.png',
+      tipo: TipoPersonagem.comerciante,
+      raridade: RaridadePersonagem.comum,
+      atributosBase: AtributosPersonagem(
+        forca: 8, inteligencia: 12, velocidade: 8, sorte: 15,
+      ),
+      habilidades: [
+        HabilidadePersonagem(
+          id: 'bonus_porcentagem',
+          nome: 'Olho para Negócios',
+          descricao: '+20% chance de itens raros',
+          icone: '💰',
+          efeito: {'tipo': 'chance_item_raro', 'valor': 0.20},
+        ),
+      ],
+    ),
+
+    // Agiotas
+    const Personagem(
+      id: 'agiota_juros',
+      nome: 'Financista',
+      descricao: 'Agiota especialista em juros',
+      historia: 'Um banqueiro implacável que calcula juros compostos na mente.',
+      imagem: 'assets/personagens/financista.png',
+      tipo: TipoPersonagem.agiota,
+      raridade: RaridadePersonagem.lendario,
+      atributosBase: AtributosPersonagem(
+        forca: 10, inteligencia: 16, velocidade: 6, sorte: 13,
+      ),
+      habilidades: [
+        HabilidadePersonagem(
+          id: 'juros_compostos',
+          nome: 'Cálculo Financeiro',
+          descricao: '+25% pontos em questões de matemática financeira',
+          icone: '💹',
+          efeito: {'tipo': 'bonus_financeiro', 'valor': 0.25},
+        ),
+      ],
+    ),
+
+    // Adicione mais personagens conforme necessário...
+  ];
 
   /// Carrega o perfil do usuário do SharedPreferences
   Future<PerfilPersonagem> _carregarPerfil() async {
@@ -430,5 +767,26 @@ class PersonagemService {
     }
 
     return novosItens;
+  }
+
+  /// Calcula o bônus de pontos baseado no personagem selecionado
+  double calcularBonusPontos(Personagem? personagem) {
+    if (personagem == null) return 0.0;
+
+    double bonusTotal = 0.0;
+
+    // Bônus baseado em atributos (força aumenta pontos)
+    final atributos = personagem.atributosAtuais;
+    bonusTotal += atributos.forca * 0.01; // 1% por ponto de força
+
+    // Bônus baseado em habilidades
+    for (final habilidade in personagem.habilidades) {
+      final efeito = habilidade.efeito;
+      if (efeito['tipo'] == 'bonus_pontos') {
+        bonusTotal += efeito['valor'] ?? 0.0;
+      }
+    }
+
+    return bonusTotal;
   }
 }

@@ -6,6 +6,8 @@ import '../service/quiz_helper_service.dart';
 import '../../user/services/performance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'quiz_snake.dart';
+import '../../user/services/personagem_service.dart';
+import '../../user/models/personagem_model.dart';
 
 class QuizAlternadoScreen extends StatefulWidget {
   final bool isOfflineMode;
@@ -25,6 +27,18 @@ class QuizAlternadoScreen extends StatefulWidget {
 
 class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     with TickerProviderStateMixin {
+  // ... existing fields ...
+
+  // Character system
+  late PersonagemService _personagemService;
+  Personagem? _personagemSelecionado;
+
+  // Quiz configuration
+  late String ano;
+  late String topico;
+  late String dificuldade;
+
+  // ... rest of existing fields ...
   // Estado do Quiz
   Map<String, dynamic>? perguntaAtual;
   String tipoAtual = '';
@@ -90,11 +104,6 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
   int _gridSize = 20;
   double _cellSize = 15;
 
-  // Configurações visuais
-  late String ano;
-  late String topico;
-  late String dificuldade;
-
   // Sistema de dificuldade adaptiva
   String _dificuldadeAdaptiva = 'fácil';
 
@@ -112,6 +121,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     ano = '1º ano';
     topico = widget.topico ?? 'números e operações';
     dificuldade = widget.dificuldade ?? 'fácil';
+
+    // Inicializar serviços
+    _personagemService = PersonagemService();
 
     _initializeAnimations();
     _initializeSnakeGame();
@@ -391,6 +403,9 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       _showErrorDialog('API Key do Gemini não configurada');
       return;
     }
+
+    // Carregar personagem selecionado
+    _personagemSelecionado = _personagemService.obterPersonagemSelecionado();
 
     // Usar Firebase AI Service
 
@@ -679,7 +694,12 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
     }
 
     if (acertou) {
-      pontuacao += 10;
+      // Calcular bônus do personagem
+      int bonusPontos = 0;
+      if (_personagemSelecionado != null) {
+        bonusPontos = (_personagemService.calcularBonusPontos(_personagemSelecionado!) * 10).round();
+      }
+      pontuacao += 10 + bonusPontos;
       estatisticas['corretas'] = estatisticas['corretas']! + 1;
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;

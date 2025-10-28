@@ -7,13 +7,14 @@ import '../../user/models/progresso_user_model.dart';
 class DatabaseService {
   static Database? _database;
   static const String _databaseName = 'mathquest.db';
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
 
   // Tabelas
   static const String _tableProgresso = 'progresso_usuario';
   static const String _tableEstatisticas = 'estatisticas_modulo';
   static const String _tableCacheIA = 'cache_ia';
   static const String _tableConquistas = 'conquistas_usuario';
+  static const String _tablePersonagens = 'personagens_usuario';
 
   // Inicialização do banco para desktop
   static Future<void> _initializeDatabaseFactory() async {
@@ -114,6 +115,27 @@ class DatabaseService {
       )
     ''');
 
+    // Tabela de personagens do usuário
+    await db.execute('''
+      CREATE TABLE $_tablePersonagens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id TEXT NOT NULL DEFAULT 'default',
+        personagem_id TEXT NOT NULL,
+        nome TEXT NOT NULL,
+        tipo INTEGER NOT NULL,
+        raridade INTEGER NOT NULL,
+        atributos_base TEXT NOT NULL,
+        habilidades TEXT NOT NULL,
+        nivel INTEGER NOT NULL DEFAULT 1,
+        experiencia INTEGER NOT NULL DEFAULT 0,
+        evoluido INTEGER NOT NULL DEFAULT 0,
+        data_obtencao TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(usuario_id, personagem_id)
+      )
+    ''');
+
     // Índices para performance
     await db.execute(
         'CREATE INDEX idx_cache_ia_chave ON $_tableCacheIA(chave_cache)');
@@ -128,8 +150,27 @@ class DatabaseService {
   static Future<void> _onUpgrade(
       Database db, int oldVersion, int newVersion) async {
     // Implementar migração de dados quando necessário
-    if (oldVersion < newVersion) {
-      // Futuras migrações aqui
+    if (oldVersion < 2) {
+      // Migração para versão 2: adicionar tabela de personagens
+      await db.execute('''
+        CREATE TABLE $_tablePersonagens (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          usuario_id TEXT NOT NULL DEFAULT 'default',
+          personagem_id TEXT NOT NULL,
+          nome TEXT NOT NULL,
+          tipo INTEGER NOT NULL,
+          raridade INTEGER NOT NULL,
+          atributos_base TEXT NOT NULL,
+          habilidades TEXT NOT NULL,
+          nivel INTEGER NOT NULL DEFAULT 1,
+          experiencia INTEGER NOT NULL DEFAULT 0,
+          evoluido INTEGER NOT NULL DEFAULT 0,
+          data_obtencao TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(usuario_id, personagem_id)
+        )
+      ''');
     }
   }
 
@@ -486,5 +527,93 @@ class DatabaseService {
       await _database!.close();
       _database = null;
     }
+  }
+
+  // === MÉTODOS DE PERSONAGENS ===
+
+  static Future<void> salvarPersonagem({
+    required String personagemId,
+    required String nome,
+    required int tipo,
+    required int raridade,
+    required String atributosBase,
+    required String habilidades,
+    int nivel = 1,
+    int experiencia = 0,
+    bool evoluido = false,
+    String usuarioId = 'default',
+  }) async {
+    final db = await database;
+
+    final dados = {
+      'usuario_id': usuarioId,
+      'personagem_id': personagemId,
+      'nome': nome,
+      'tipo': tipo,
+      'raridade': raridade,
+      'atributos_base': atributosBase,
+      'habilidades': habilidades,
+      'nivel': nivel,
+      'experiencia': experiencia,
+      'evoluido': evoluido ? 1 : 0,
+      'data_obtencao': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+
+    await db.insert(
+      _tablePersonagens,
+      dados,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> carregarPersonagens(
+      {String usuarioId = 'default'}) async {
+    final db = await database;
+
+    final results = await db.query(
+      _tablePersonagens,
+      where: 'usuario_id = ?',
+      whereArgs: [usuarioId],
+      orderBy: 'data_obtencao DESC',
+    );
+
+    return results;
+  }
+
+  static Future<void> atualizarPersonagem({
+    required String personagemId,
+    int? nivel,
+    int? experiencia,
+    bool? evoluido,
+    String usuarioId = 'default',
+  }) async {
+    final db = await database;
+
+    final dados = <String, dynamic>{};
+    if (nivel != null) dados['nivel'] = nivel;
+    if (experiencia != null) dados['experiencia'] = experiencia;
+    if (evoluido != null) dados['evoluido'] = evoluido ? 1 : 0;
+    dados['updated_at'] = DateTime.now().toIso8601String();
+
+    await db.update(
+      _tablePersonagens,
+      dados,
+      where: 'usuario_id = ? AND personagem_id = ?',
+      whereArgs: [usuarioId, personagemId],
+    );
+  }
+
+  static Future<void> deletarPersonagem({
+    required String personagemId,
+    String usuarioId = 'default',
+  }) async {
+    final db = await database;
+
+    await db.delete(
+      _tablePersonagens,
+      where: 'usuario_id = ? AND personagem_id = ?',
+      whereArgs: [usuarioId, personagemId],
+    );
   }
 }

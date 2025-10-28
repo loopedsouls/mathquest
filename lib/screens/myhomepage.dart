@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'community_screen.dart';
 import 'concept_library_screen.dart';
 import 'exercise_bank_screen.dart';
-import '../features/math_tools/interactive_simulator_screen.dart';
+import 'interactive_simulator_screen.dart';
 import '../features/user/screens/profile_screen.dart';
-import '../features/math_tools/representation_editor_screen.dart';
+import 'representation_editor_screen.dart';
 import 'resources_screen.dart';
 
 class MyHomePage extends StatelessWidget {

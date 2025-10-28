@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'exercise_screen.dart';
 import 'image_classification_screen.dart';
-import '../features/math_tools/matrix_conversion_screen.dart';
+import 'matrix_conversion_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

@@ -16,7 +16,7 @@ import 'firebase_ai_test_screen.dart';
 import 'login_screen.dart';
 import '../../../screens/resources_screen.dart';
 import '../../../screens/community_screen.dart';
-import '../../math_tools/representation_editor_screen.dart';
+import '../../../screens/representation_editor_screen.dart';
 import '../../../screens/exercise_bank_screen.dart';
 import 'conquista_screen.dart';
 import 'reports_screen.dart';

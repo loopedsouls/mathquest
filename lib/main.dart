@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'features/user/widgets/app_initializer.dart';
+import 'widgets/app_initializer.dart';
 import 'app_theme.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart'

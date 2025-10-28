@@ -6,7 +6,7 @@ import '../../../services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
 import '../../../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../../user/achievement.dart';
+import '../../achievement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 

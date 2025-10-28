@@ -4,22 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ModulosConfigService {
   static const String _modulosHabilitadosKey = 'modulos_habilitados';
 
-  /// Lista de todos os módulos disponíveis por categoria
+  /// Lista de todos os módulos disponíveis por categoria baseada nas features do projeto
   static const Map<String, List<String>> modulosDisponiveis = {
-    'Dashboard': ['dashboard'],
-    'Módulos BNCC': ['modulos'],
-    'Quiz': ['quiz'],
-    'Chat IA': ['chat'],
-    'Perfil': ['perfil'],
-    'Recursos Educacionais': ['recursos'],
-    'Comunidade': ['comunidade'],
-    'Ferramentas Matemáticas': ['ferramentas'],
-    'Exercícios': ['exercicios'],
-    'Conquistas': ['conquistas'],
-    'Ajuda': ['ajuda'],
-    'Relatórios': ['relatorios'],
-    'Firebase AI Test': ['teste_firebase_ai'],
-    'Personagem 3D': ['personagem_3d'],
+    'Dashboard': ['navigation_dashboard'],
+    'Módulos BNCC': ['ai_modulos_bncc'],
+    'Quiz': ['learning_quiz'],
+    'Chat IA': ['ai_chat'],
+    'Perfil': ['user_perfil'],
+    'Recursos Educacionais': ['educational_content_recursos'],
+    'Comunidade': ['community_comunidade'],
+    'Ferramentas Matemáticas': ['math_tools_ferramentas'],
+    'Exercícios': ['learning_exercicios'],
+    'Conquistas': ['user_conquistas'],
+    'Ajuda': ['ai_ajuda'],
+    'Relatórios': ['analytics_relatorios'],
+    'Firebase AI Test': ['ai_firebase_ai_test'],
+    'Personagem 3D': ['user_personagem_3d'],
   };
 
   /// Retorna todos os IDs de módulos disponíveis

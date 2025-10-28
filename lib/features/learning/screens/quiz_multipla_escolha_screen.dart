@@ -6,7 +6,7 @@ import '../../user/services/progresso_service.dart';
 import '../services/gamificacao_service.dart';
 import '../../ai/services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../../user/achievement.dart';
+import '../../user/conquista.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -526,7 +526,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     await prefs.setString('historico_quiz', jsonEncode(historico));
   }
 
-  void _mostrarNovasConquistas(List<Achievement> conquistas) {
+  void _mostrarNovasConquistas(List<Conquista> conquistas) {
     for (final conquista in conquistas) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -559,20 +559,14 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                       ),
                     ),
                     Text(
-                      conquista.title,
+                      conquista.titulo,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
                 ),
               ),
-              Text(
-                '+${conquista.bonusPoints}',
-                style: TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              //TODO: Removido bonusPoints pois não existe na classe Conquista
+              // Se desejar mostrar pontos, adicione uma propriedade válida
             ],
           ),
           backgroundColor: AppTheme.primaryColor,

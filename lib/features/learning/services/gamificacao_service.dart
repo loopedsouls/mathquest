@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-import '../../user/achievement.dart';
+import '../../user/conquista.dart';
 import '../../user/models/progresso_user_model.dart';
 import '../../user/services/progresso_service.dart';
 

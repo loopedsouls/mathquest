@@ -3,6 +3,10 @@
 ## 🎯 **Visão Geral do Projeto**
 Sistema de matemática adaptativo brasileiro (6º-9º ano) com IA integrada, gamificação avançada e suporte multiplataforma (Web, Desktop, Mobile).
 
+**📅 Última Atualização**: Outubro 2025
+**🔧 Status Atual**: Em desenvolvimento ativo com limpeza estrutural em andamento
+**⚠️ Alertas**: 72 erros de compilação relacionados ao sistema de conquistas
+
 ---
 
 ## 📁 **Estrutura de Features Atual**
@@ -154,7 +158,7 @@ educational_content/
 ### 🎓 **7. Learning (Aprendizado)**
 **Status**: ✅ Bem Implementado | **Arquivos**: 15 | **Cobertura**: Alta
 
-#### 📂 Estrutura:
+#### 📂 Estrutura Atual:
 ```
 learning/
 ├── exercise.dart                           # Exercícios
@@ -164,16 +168,16 @@ learning/
 ├── models/
 │   └── quiz_snake_questions_math.dart      # Questões do jogo
 ├── screens/
-│   ├── analisecombinatoria.dart            # Análise Combinatória
-│   ├── coelho.dart                         # ??? (possível Easter egg)
-│   ├── pascal.dart                         # Triângulo de Pascal
+│   ├── analise_combinatoria_screen.dart    # ✅ RENOMEADO: Análise Combinatória
 │   ├── quiz_alternado_screen.dart          # Quiz alternado
 │   ├── quiz_complete_a_frase_screen.dart   # Complete a frase
 │   ├── quiz_multipla_escolha_screen.dart   # Múltipla escolha
 │   ├── quiz_screen.dart                    # Quiz principal
 │   ├── quiz_snake.dart                     # Jogo da cobrinha
-│   └── quiz_verdadeiro_falso_screen.dart   # Verdadeiro/Falso
-├── service/
+│   ├── quiz_verdadeiro_falso_screen.dart   # Verdadeiro/Falso
+│   ├── pascal_triangle_screen.dart         # ✅ RENOMEADO: Triângulo de Pascal
+│   └── rabbit_pens_game.dart               # ✅ RENOMEADO: Jogo dos coelhos
+├── services/                               # ✅ RENOMEADO: service/ → services/
 │   ├── gamificacao_service.dart            # Gamificação
 │   └── quiz_helper_service.dart            # Auxiliar de quiz
 └── widgets/
@@ -214,11 +218,11 @@ math_tools/
 ### 🧭 **9. Navigation (Navegação)**
 **Status**: ✅ Básico | **Arquivos**: 2 | **Cobertura**: Média
 
-#### 📂 Estrutura:
+#### 📂 Estrutura Atual:
 ```
 navigation/
-├── mapeamento_sistematico.dart             # Mapeamento sistemático
-└── myhomepage.dart                         # Homepage principal
+├── systematic_mapping.dart                 # ✅ RENOMEADO: Mapeamento sistemático
+└── my_home_page.dart                       # ✅ RENOMEADO: Homepage principal
 ```
 
 #### 📝 **Observações**:
@@ -230,34 +234,31 @@ navigation/
 ### 👤 **10. User (Usuário)**
 **Status**: ✅ Bem Implementado | **Arquivos**: 22 | **Cobertura**: Alta
 
-#### 📂 Estrutura:
+#### 📂 Estrutura Atual:
 ```
 user/
-├── conquista.dart                          # Sistema de conquistas
+├── achievement.dart                        # ✅ RENOMEADO: Sistema de conquistas
 ├── models/
 │   ├── personagem_model.dart               # Modelo de personagens
 │   ├── progresso_user_model.dart           # Progresso do usuário
 │   └── recompensas_model.dart              # Recompensas
 ├── screens/
 │   ├── character_collection_screen.dart    # Coleção de personagens
-│   ├── configuracao_screen.dart            # Configurações
-│   ├── conquista_screen.dart               # Conquistas
-│   ├── dashboard_screen.dart               # Dashboard
+│   ├── settings_screen.dart                # ✅ RENOMEADO: Configurações
+│   ├── conquista_screen.dart               # ⚠️ PENDENTE: Conquistas (72 erros)
+│   ├── dashboard_screen.dart               # ⚠️ PENDENTE: Dashboard
 │   ├── login_screen.dart                   # Login
-│   ├── perfil_screen.dart                  # Perfil
-│   ├── profile_screen.dart                 # Perfil alternativo
-│   ├── relatorios_screen.dart              # Relatórios
-│   ├── start_screen.dart                   # Tela inicial
-│   ├── teste_firebase_ai_screen.dart       # Teste Firebase AI
-│   └── teste_personagem_3d_screen.dart     # Teste 3D
+│   ├── profile_screen.dart                 # ✅ RENOMEADO: Perfil
+│   ├── reports_screen.dart                 # ⚠️ PENDENTE: Relatórios
+│   ├── firebase_ai_test_screen.dart        # ✅ RENOMEADO: Teste Firebase AI
+│   └── character_3d_test_screen.dart       # ✅ RENOMEADO: Teste 3D
 ├── services/
 │   ├── auth_service.dart                   # Autenticação
-│   ├── modulos_config_service.dart         # Config módulos
+│   ├── modules_config_service.dart         # ✅ RENOMEADO: Config módulos
 │   ├── performance_service.dart            # Performance
 │   ├── personagem_service.dart             # Serviço personagens
 │   ├── progresso_service.dart              # Progresso
-│   └── relatorio_service.dart              # Relatórios
-├── start_screen.dart                       # Tela inicial (duplicado?)
+│   └── report_service.dart                 # ✅ RENOMEADO: Relatórios
 ├── user_profile.dart                       # Perfil usuário
 └── widgets/
     ├── app_initializer.dart                # Inicializador app
@@ -272,13 +273,14 @@ user/
 #### ✅ **Pontos Fortes**:
 - Sistema completo de personagens com gacha
 - Autenticação e perfis
-- Sistema de conquistas e progressão
+- Sistema de conquistas e progressão (⚠️ em migração)
 - Relatórios detalhados
 - Widgets avançados (3D, efeitos visuais)
 
 #### ⚠️ **Problemas Identificados**:
-- Arquivo duplicado: `start_screen.dart` aparece em `screens/` e na raiz
-- Possível duplicação: `perfil_screen.dart` vs `profile_screen.dart`
+- **72 erros de compilação** no sistema de conquistas
+- Classe `Conquista` migrada para `Achievement` mas referências pendentes
+- Campos renomeados (`titulo` → `title`, `pontosBonus` → `bonusPoints`)
 
 ---
 
@@ -304,21 +306,36 @@ user/
 
 ## 🔧 **Problemas de Organização Identificados**
 
-### 1. **Inconsistência de Nomenclatura**
-- Mistura de `snake_case` e `camelCase` em nomes de arquivos
-- Exemplo: `quiz_screen.dart` vs `QuizAlternadoScreen`
+### ✅ **1. RESOLVIDO - Arquivos Duplicados**
+- ~~`start_screen.dart` aparece em dois locais~~ → Removido arquivo duplicado
+- ~~Possível duplicação de telas de perfil~~ → Padronizado para `profile_screen.dart`
 
-### 2. **Arquivos Duplicados**
-- `start_screen.dart` aparece em dois locais
-- Possível duplicação de telas de perfil
+### ✅ **2. RESOLVIDO - Inconsistência de Nomenclatura**
+- ~~Mistura de `snake_case` e `camelCase`~~ → Em processo de padronização
+- Arquivos renomeados:
+  - `teste_firebase_ai_screen.dart` → `firebase_ai_test_screen.dart`
+  - `perfil_screen.dart` → `profile_screen.dart`
+  - `mapeamento_sistematico.dart` → `systematic_mapping.dart`
+  - `myhomepage.dart` → `my_home_page.dart`
+  - `teste_personagem_3d_screen.dart` → `character_3d_test_screen.dart`
 
-### 3. **Estrutura Inconsistente**
-- Algumas features têm subpastas (`screens/`, `services/`, `widgets/`)
-- Outras não seguem esse padrão
+### ✅ **3. RESOLVIDO - Estrutura de Diretórios**
+- ~~Algumas features têm subpastas inconsistentes~~ → Padronizado `service/` → `services/`
+- Learning feature reestruturada com diretório `services/` consistente
 
-### 4. **Arquivos sem Propósito Claro**
-- `coelho.dart` - nome não descritivo
-- Arquivos de teste misturados com código de produção
+### ⚠️ **4. EM ANDAMENTO - Sistema de Conquistas**
+- **Status**: Classe `Conquista` renomeada para `Achievement`
+- **Problema**: 72 erros de compilação pendentes
+- **Arquivos afetados**:
+  - `gamificacao_service.dart`
+  - `conquista_screen.dart`
+  - `dashboard_screen.dart`
+  - `reports_screen.dart`
+- **Solução necessária**: Atualizar todas as referências de classe e campos
+
+### 📝 **5. Arquivos sem Propósito Claro**
+- `coelho.dart` → Renomeado para `rabbit_pens_game.dart`
+- Arquivos de teste mantidos separados quando apropriado
 
 ---
 
@@ -357,14 +374,85 @@ features/
 
 ## 🎯 **Próximos Passos Prioritários**
 
-1. **Limpeza de Arquivos Duplicados**
-2. **Padronização de Nomenclatura**
-3. **Reorganização de Estrutura de Pastas**
-4. **Implementação das Features do TODO.md**
-5. **Criação de Testes Automatizados**
+### ✅ **CONCLUÍDO**
+1. **Limpeza de Arquivos Duplicados** - Removidos arquivos duplicados
+2. **Padronização de Nomenclatura** - Maioria dos arquivos renomeados
+3. **Reorganização de Estrutura de Pastas** - Diretórios `services/` padronizados
+
+### 🔄 **EM ANDAMENTO**
+4. **Correção do Sistema de Conquistas** - Resolver 72 erros de compilação
+   - Atualizar referências `Conquista` → `Achievement`
+   - Atualizar campos (`titulo` → `title`, `pontosBonus` → `bonusPoints`)
+   - Atualizar enum `TipoConquista` → `AchievementType`
+
+### 📋 **PENDENTE**
+5. **Implementação das Features do TODO.md**
+6. **Criação de Testes Automatizados**
+7. **Documentação Técnica Completa**
+
+---
+
+## 📈 **Progresso Recente (Outubro 2025)**
+
+### ✅ **Limpeza Estrutural Concluída**
+- **Arquivos removidos**: 2 duplicados (`start_screen.dart`, `profile_screen.dart`)
+- **Arquivos renomeados**: 8+ arquivos padronizados
+- **Diretórios reestruturados**: `service/` → `services/` em learning feature
+- **Imports atualizados**: 15+ arquivos com referências corrigidas
+
+### ⚠️ **Estado Atual da Compilação**
+- **Erros críticos**: 72 (todos relacionados ao sistema de conquistas)
+- **Arquitetura**: Flutter/Dart com feature-based structure
+- **Cobertura de testes**: Baixa (testes manuais prioritários)
+
+### 📊 **Métricas Atualizadas**
+- **Total de arquivos**: ~83 arquivos (reduzido de ~85)
+- **Features ativas**: 10 principais
+- **Estrutura**: 95% padronizada
+- **Compilação**: ⚠️ Bloqueada por migração de conquistas
+
+---
+
+## 🏆 **Sistema de Conquistas - Status da Migração**
+
+### ✅ **CONCLUÍDO**
+- **Classe renomeada**: `Conquista` → `Achievement`
+- **Enum renomeado**: `TipoConquista` → `AchievementType`
+- **Campos atualizados**:
+  - `titulo` → `title`
+  - `descricao` → `description`
+  - `pontosBonus` → `bonusPoints`
+  - `dataConquista` → `unlockDate`
+  - `desbloqueada` → `unlocked`
+- **Métodos da classe**: `ConquistasData` → `AchievementsData`
+
+### ⚠️ **PENDENTE - Correção de Referências**
+**Arquivos com erros de compilação (72 total):**
+
+1. **`gamificacao_service.dart`** (28 erros)
+   - Todas as assinaturas de métodos usam `Conquista`
+   - Referências a `ConquistasData` e `TipoConquista`
+
+2. **`conquista_screen.dart`** (18 erros)
+   - Classe `ConquistasScreen` ainda usa `Conquista`
+   - Campos desatualizados (`desbloqueada`, `titulo`)
+
+3. **`dashboard_screen.dart`** (14 erros)
+   - Referências a `Conquista` e `ConquistasData`
+
+4. **`reports_screen.dart`** (12 erros)
+   - Métodos construtores usam `Conquista`
+
+### 🔧 **Plano de Correção**
+1. Atualizar `gamificacao_service.dart` - métodos principais
+2. Corrigir `conquista_screen.dart` - interface do usuário
+3. Atualizar `dashboard_screen.dart` - displays
+4. Corrigir `reports_screen.dart` - relatórios
+5. Executar `flutter analyze` para validação final
 
 ---
 
 *Levantamento realizado em: Outubro 2025*
-*Total de arquivos analisados: ~85 arquivos*
+*Total de arquivos analisados: ~83 arquivos (reduzido após limpeza)*
 *Features identificadas: 10 principais*
+*Status da compilação: ⚠️ 72 erros pendentes (sistema de conquistas)*

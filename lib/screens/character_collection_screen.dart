@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
-import '../../../services/personagem_service.dart';
-import '../../../models/personagem_model.dart';
+import '../../../services/character_service.dart';
+import '../../../models/character_model.dart';
 
 class CharacterCollectionScreen extends StatefulWidget {
   const CharacterCollectionScreen({super.key});

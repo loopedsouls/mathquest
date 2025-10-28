@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../app_theme.dart';
-import '../models/personagem_model.dart';
+import '../models/character_model.dart';
+import '../services/character_service.dart';
 import '../services/performance_service.dart';
-import '../services/personagem_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

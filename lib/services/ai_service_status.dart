@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'ia_service.dart';
+import 'ai_service.dart';
 
 /// Widget que mostra o status do serviço de IA atual
 class AIServiceStatusWidget extends StatefulWidget {

@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
-import 'personagem_3d_widget.dart';
+import 'character_3d_widget.dart';
 
 class ItemVisualizationHelper {
   // Cores por categoria

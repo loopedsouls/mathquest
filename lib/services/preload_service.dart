@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
-import 'ia_service.dart';
+import 'ai_service.dart';
 
 class PreloadService {
   static const String _preloadEnabledKey = 'preload_enabled';

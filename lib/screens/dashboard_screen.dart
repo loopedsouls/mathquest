@@ -3,9 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
-import '../../../services/progresso_service.dart';
+import '../../../services/progress_service.dart';
 import '../models/achievement.dart';
-import 'conquista_screen.dart';
+import 'achievement_screen.dart';
 import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {

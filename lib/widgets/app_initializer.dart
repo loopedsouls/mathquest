@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/start_screen.dart';
+import '../services/character_service.dart';
 import '../services/preload_service.dart';
-import '../services/personagem_service.dart';
 
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});

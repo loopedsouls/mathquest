@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/personagem_model.dart';
+import '../models/character_model.dart';
 import 'dart:math';
 
 class PersonagemService {

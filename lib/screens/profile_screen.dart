@@ -3,8 +3,8 @@ import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/item_visualization_helper.dart';
 import '../../../widgets/mixins.dart';
-import '../../../services/personagem_service.dart';
-import '../../../models/personagem_model.dart';
+import '../models/character_model.dart';
+import '../services/character_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

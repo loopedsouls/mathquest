@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import '../models/user_progress_model.dart';
 import '../widgets/modern_components.dart';
-import '../models/progresso_user_model.dart';
 import '../models/bncc_module_model.dart';
 import '../models/math_course_data.dart';
-import '../services/progresso_service.dart';
+import '../services/progress_service.dart';
 import 'chat_screen.dart';
 
 // Configuração para o programador - definir como false na produção

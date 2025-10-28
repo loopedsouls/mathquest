@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
-import '../services/explicacao_service.dart';
+import '../services/explanation_service.dart';
 import '../services/firebase_ai_service.dart';
 import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

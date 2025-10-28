@@ -9,14 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/bncc_module_model.dart';
-import '../models/progresso_user_model.dart';
+import '../models/user_progress_model.dart';
 import '../models/conversation_model.dart';
+import '../services/conversation_service.dart';
 import '../services/firebase_ai_service.dart';
-import '../services/progresso_service.dart';
+import '../services/progress_service.dart';
 import '../app_theme.dart';
 import '../widgets/latex_markdown_widget.dart';
 import '../widgets/queue_status_indicator.dart';
-import '../services/conversa_service.dart';
 import '../widgets/modern_components.dart';
 import 'package:file_picker/file_picker.dart';
 

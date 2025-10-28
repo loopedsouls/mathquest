@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/gamificacao_service.dart';
+import '../services/gamification_service.dart';
 import '../app_theme.dart';
 
 class StreakWidget extends StatefulWidget {

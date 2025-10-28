@@ -3,7 +3,7 @@ import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
 import '../../../services/progresso_service.dart';
-import '../features/user/achievement.dart';
+import '../models/achievement.dart';
 import '../services/gamificacao_service.dart';
 import '../../../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';

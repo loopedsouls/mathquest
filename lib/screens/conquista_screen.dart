@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/mixins.dart';
-import '../../../features/user/achievement.dart';
+import '../models/achievement.dart';
 import '../../../services/gamificacao_service.dart';
 
 class ConquistasScreen extends StatefulWidget {

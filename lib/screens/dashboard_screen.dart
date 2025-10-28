@@ -4,7 +4,7 @@ import '../../../app_theme.dart';
 import '../../../widgets/modern_components.dart';
 import '../../../widgets/mixins.dart';
 import '../../../services/progresso_service.dart';
-import '../../../features/user/achievement.dart';
+import '../models/achievement.dart';
 import 'conquista_screen.dart';
 import 'settings_screen.dart';
 

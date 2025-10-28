@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'services/firebase_ai_service.dart';
-import 'screens/start_screen.dart';
+import 'services/ai_firebase_ai_service.dart';
+import 'screens/navigation_start_screen.dart';
 import 'app_theme.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'services/auth_service.dart';
+import 'services/user_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';

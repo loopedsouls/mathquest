@@ -6,7 +6,7 @@ import '../../core/widgets/mixins.dart';
 import '../conquista.dart';
 import '../services/progresso_service.dart';
 import 'conquista_screen.dart';
-import 'configuracao_screen.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

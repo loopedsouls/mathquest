@@ -3,7 +3,7 @@ import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import '../../core/widgets/mixins.dart';
 import '../../ai/services/explicacao_service.dart';
-import '../service/quiz_helper_service.dart';
+import '../services/quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 

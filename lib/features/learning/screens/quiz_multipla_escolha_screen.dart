@@ -3,10 +3,10 @@ import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
 import '../../core/widgets/mixins.dart';
 import '../../user/services/progresso_service.dart';
-import '../service/gamificacao_service.dart';
+import '../services/gamificacao_service.dart';
 import '../../ai/services/explicacao_service.dart';
-import '../service/quiz_helper_service.dart';
-import '../../user/conquista.dart';
+import '../services/quiz_helper_service.dart';
+import '../../user/achievement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -526,7 +526,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     await prefs.setString('historico_quiz', jsonEncode(historico));
   }
 
-  void _mostrarNovasConquistas(List<Conquista> conquistas) {
+  void _mostrarNovasConquistas(List<Achievement> conquistas) {
     for (final conquista in conquistas) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -559,14 +559,14 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                       ),
                     ),
                     Text(
-                      conquista.titulo,
+                      conquista.title,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ],
                 ),
               ),
               Text(
-                '+${conquista.pontosBonus}',
+                '+${conquista.bonusPoints}',
                 style: TextStyle(
                   color: AppTheme.accentColor,
                   fontWeight: FontWeight.bold,

@@ -153,7 +153,7 @@ class _CharacterCollectionScreenState extends State<CharacterCollectionScreen> {
           onTap: () => _selecionarPersonagem(personagem),
           child: Container(
             decoration: BoxDecoration(
-              color: isSelecionado ? Colors.blue.withOpacity(0.2) : Colors.grey[800],
+              color: isSelecionado ? Colors.blue.withValues(alpha: 0.2) : Colors.grey[800],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelecionado ? Colors.blue : Colors.grey[600]!,
@@ -208,9 +208,13 @@ class _CharacterCollectionScreenState extends State<CharacterCollectionScreen> {
       setState(() {
         _selecionado = personagem;
       });
-      AppTheme.showSuccessSnackBar(context, '${personagem.nome} selecionado!');
+      if (mounted) {
+        AppTheme.showSuccessSnackBar(context, '${personagem.nome} selecionado!');
+      }
     } catch (e) {
-      AppTheme.showErrorSnackBar(context, 'Erro ao selecionar personagem');
+      if (mounted) {
+        AppTheme.showErrorSnackBar(context, 'Erro ao selecionar personagem');
+      }
     }
   }
 
@@ -219,7 +223,9 @@ class _CharacterCollectionScreenState extends State<CharacterCollectionScreen> {
     await service.inicializar();
 
     if (service.perfilAtual == null || service.perfilAtual!.moedas < 50) {
-      AppTheme.showErrorSnackBar(context, 'Moedas insuficientes! (50 necessárias)');
+      if (mounted) {
+        AppTheme.showErrorSnackBar(context, 'Moedas insuficientes! (50 necessárias)');
+      }
       return;
     }
 
@@ -233,7 +239,9 @@ class _CharacterCollectionScreenState extends State<CharacterCollectionScreen> {
       // Mostrar animação de gacha
       _mostrarResultadoGacha(personagem);
     } else {
-      AppTheme.showErrorSnackBar(context, 'Erro no gacha');
+      if (mounted) {
+        AppTheme.showErrorSnackBar(context, 'Erro no gacha');
+      }
     }
   }
 
@@ -292,9 +300,13 @@ class _CharacterCollectionScreenState extends State<CharacterCollectionScreen> {
         _selecionado = service.obterPersonagemSelecionado();
         _personagens = service.obterColecaoPersonagens();
       });
-      AppTheme.showSuccessSnackBar(context, '${_selecionado!.nome} evoluiu!');
+      if (mounted) {
+        AppTheme.showSuccessSnackBar(context, '${_selecionado!.nome} evoluiu!');
+      }
     } else {
-      AppTheme.showErrorSnackBar(context, 'Erro na evolução');
+      if (mounted) {
+        AppTheme.showErrorSnackBar(context, 'Erro na evolução');
+      }
     }
   }
 }

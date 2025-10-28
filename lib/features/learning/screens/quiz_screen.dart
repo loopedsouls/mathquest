@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
-import '../service/quiz_helper_service.dart';
+import '../services/quiz_helper_service.dart';
 import '../../user/services/performance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'quiz_snake.dart';

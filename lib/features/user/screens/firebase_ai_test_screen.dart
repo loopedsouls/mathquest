@@ -3,14 +3,14 @@ import 'package:mathquest/features/data/service/firebase_ai_service.dart';
 import 'package:mathquest/features/core/app_theme.dart';
 import 'package:mathquest/features/core/widgets/modern_components.dart';
 
-class TesteFirebaseAIScreen extends StatefulWidget {
-  const TesteFirebaseAIScreen({super.key});
+class FirebaseAiTestScreen extends StatefulWidget {
+  const FirebaseAiTestScreen({super.key});
 
   @override
-  State<TesteFirebaseAIScreen> createState() => _TesteFirebaseAIScreenState();
+  State<FirebaseAiTestScreen> createState() => _FirebaseAiTestScreenState();
 }
 
-class _TesteFirebaseAIScreenState extends State<TesteFirebaseAIScreen> {
+class _FirebaseAiTestScreenState extends State<FirebaseAiTestScreen> {
   String _resultado = 'Pronto para testar...';
   bool _testando = false;
   final TextEditingController _promptController = TextEditingController();

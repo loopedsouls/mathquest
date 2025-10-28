@@ -6,14 +6,14 @@ import '../../core/widgets/mixins.dart';
 import '../services/personagem_service.dart';
 import '../models/personagem_model.dart';
 
-class PerfilScreen extends StatefulWidget {
-  const PerfilScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<PerfilScreen> createState() => _PerfilScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _PerfilScreenState extends State<PerfilScreen>
+class _ProfileScreenState extends State<ProfileScreen>
     with TickerProviderStateMixin, LoadingStateMixin, AnimationMixin {
   final PersonagemService _personagemService = PersonagemService();
   PerfilPersonagem? _perfil;

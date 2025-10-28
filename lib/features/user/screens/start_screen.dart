@@ -5,21 +5,21 @@ import '../services/auth_service.dart';
 import '../services/modulos_config_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets/modern_components.dart';
-import 'configuracao_screen.dart';
+import 'settings_screen.dart';
 import '../../learning/screens/quiz_screen.dart';
 import '../../ai/screens/ajuda_screen.dart';
 import '../../ai/screens/modulos_screen.dart';
 import 'dashboard_screen.dart';
 import '../../ai/screens/chat_screen.dart';
-import 'perfil_screen.dart';
-import 'teste_firebase_ai_screen.dart';
+import 'profile_screen.dart';
+import 'firebase_ai_test_screen.dart';
 import 'login_screen.dart';
 import '../../educational_content/resources_screen.dart';
 import '../../community/community_screen.dart';
 import '../../math_tools/representation_editor_screen.dart';
 import '../../learning/exercise_bank_screen.dart';
 import 'conquista_screen.dart';
-import 'relatorios_screen.dart';
+import 'reports_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -345,7 +345,7 @@ class _StartScreenState extends State<StartScreen>
   void _goToTesteFirebaseAI() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const TesteFirebaseAIScreen(),
+        builder: (context) => const FirebaseAiTestScreen(),
       ),
     );
   }
@@ -389,7 +389,7 @@ class _StartScreenState extends State<StartScreen>
       case 'chat':
         return const ChatScreen(mode: ChatMode.general);
       case 'perfil':
-        return const PerfilScreen();
+        return const ProfileScreen();
       case 'recursos':
         return const ResourcesScreen();
       case 'comunidade':

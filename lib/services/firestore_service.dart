@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -8,17 +9,27 @@ class FirestoreService {
   FirebaseFirestore? _firestore;
   FirebaseAuth? _auth;
 
+  // Verificar se Firebase Firestore está disponível na plataforma
+  bool get _isFirebaseAvailable {
+    if (kIsWeb) return true; // Firebase funciona na web
+    try {
+      return !Platform.isLinux;
+    } catch (e) {
+      return false; // Se Platform falhar, assumir indisponível
+    }
+  }
+
   FirebaseFirestore get _firestoreInstance {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firestore não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firestore não está disponível nesta plataforma');
     }
     _firestore ??= FirebaseFirestore.instance;
     return _firestore!;
   }
 
   FirebaseAuth get _authInstance {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     _auth ??= FirebaseAuth.instance;
     return _auth!;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
@@ -19,10 +20,18 @@ class DatabaseService {
 
   // Inicialização do banco para desktop
   static Future<void> _initializeDatabaseFactory() async {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      // Inicializa sqflite_ffi para plataformas desktop
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
+    // Só inicializa sqflite_ffi para desktop se não estiver na web
+    if (!kIsWeb) {
+      try {
+        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+          // Inicializa sqflite_ffi para plataformas desktop
+          sqfliteFfiInit();
+          databaseFactory = databaseFactoryFfi;
+        }
+      } catch (e) {
+        // Se Platform falhar (como na web), não faz nada
+        // O database será null e o app funcionará em modo offline
+      }
     }
   }
 

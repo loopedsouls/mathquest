@@ -1,23 +1,34 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'services/firebase_ai_service.dart';
 import 'widgets/app_initializer.dart';
 import 'app_theme.dart';
 import 'dart:io';
-import 'package:firebase_core/firebase_core.dart'
-    if (Platform.isLinux) 'package:flutter/foundation.dart';
-import 'firebase_options.dart' if (Platform.isLinux) 'dart:ui';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    if (Platform.isLinux) 'dart:ui';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (Platform.isLinux) 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
-bool firebaseAvailable = !Platform.isLinux;
+// Verificar se Firebase está disponível na plataforma atual
+bool get firebaseAvailable {
+  // Firebase não funciona no Linux desktop
+  if (!kIsWeb) {
+    try {
+      return !Platform.isLinux;
+    } catch (e) {
+      // Se Platform falhar, assumir que não está disponível
+      return false;
+    }
+  }
+  // Na web, Firebase funciona
+  return true;
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,7 +82,7 @@ void main() async {
     }
   } else {
     print(
-        'Firebase não disponível nesta plataforma (Linux) - executando em modo offline');
+        'Firebase não disponível nesta plataforma - executando em modo offline');
   }
 
   // Configurar orientações permitidas e UI overlay

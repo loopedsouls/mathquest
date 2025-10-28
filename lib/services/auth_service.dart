@@ -1,20 +1,32 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   FirebaseAuth? _auth;
 
-  FirebaseAuth get _authInstance {
-    if (!Platform.isLinux) {
-      _auth ??= FirebaseAuth.instance;
+  // Verificar se Firebase Auth está disponível na plataforma
+  bool get _isFirebaseAvailable {
+    if (kIsWeb) return true; // Firebase funciona na web
+    try {
+      return !Platform.isLinux;
+    } catch (e) {
+      return false; // Se Platform falhar, assumir indisponível
     }
+  }
+
+  FirebaseAuth get _authInstance {
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
+    }
+    _auth ??= FirebaseAuth.instance;
     return _auth!;
   }
 
   // Stream para ouvir mudanças no estado de autenticação
   Stream<User?> get authStateChanges {
-    if (Platform.isLinux) {
-      // Retornar stream vazio no Linux
+    if (!_isFirebaseAvailable) {
+      // Retornar stream vazio quando Firebase não está disponível
       return Stream.value(null);
     }
     return _authInstance.authStateChanges();
@@ -22,7 +34,7 @@ class AuthService {
 
   // Usuário atual
   User? get currentUser {
-    if (Platform.isLinux) {
+    if (!_isFirebaseAvailable) {
       return null;
     }
     return _authInstance.currentUser;
@@ -33,8 +45,8 @@ class AuthService {
     String email,
     String password,
   ) async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       return await _authInstance.signInWithEmailAndPassword(
@@ -51,8 +63,8 @@ class AuthService {
     String email,
     String password,
   ) async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       return await _authInstance.createUserWithEmailAndPassword(
@@ -66,16 +78,16 @@ class AuthService {
 
   // Logout
   Future<void> signOut() async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     await _authInstance.signOut();
   }
 
   // Resetar senha
   Future<void> sendPasswordResetEmail(String email) async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       await _authInstance.sendPasswordResetEmail(email: email);
@@ -86,8 +98,8 @@ class AuthService {
 
   // Atualizar senha
   Future<void> updatePassword(String newPassword) async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       await _authInstance.currentUser?.updatePassword(newPassword);
@@ -98,8 +110,8 @@ class AuthService {
 
   // Reautenticar usuário (para operações sensíveis)
   Future<void> reauthenticateUser(String email, String password) async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       AuthCredential credential = EmailAuthProvider.credential(
@@ -114,8 +126,8 @@ class AuthService {
 
   // Deletar conta
   Future<void> deleteAccount() async {
-    if (Platform.isLinux) {
-      throw UnsupportedError('Firebase Auth não está disponível no Linux');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth não está disponível nesta plataforma');
     }
     try {
       await _authInstance.currentUser?.delete();

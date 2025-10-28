@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
@@ -9,15 +8,6 @@ class FirebaseAIService {
 
   /// Inicializa o Firebase AI
   static Future<void> initialize() async {
-    if (Platform.isLinux) {
-      // No Linux, não inicializar Firebase AI
-      _geminiModel = null;
-      if (kDebugMode) {
-        print('❌ Firebase AI não disponível no Linux');
-      }
-      return;
-    }
-
     try {
       // Inicializar o serviço Gemini Developer API
       // Criar uma instância GenerativeModel com modelo que suporta nosso caso de uso

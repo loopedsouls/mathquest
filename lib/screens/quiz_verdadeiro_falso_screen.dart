@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/modern_components.dart';
-import '../../../widgets/mixins.dart';
-import '../../../services/progresso_service.dart';
-import '../services/gamificacao_service.dart';
-import '../../../services/explicacao_service.dart';
+import '../app_theme.dart';
+import '../widgets/modern_components.dart';
+import '../widgets/mixins.dart';
+import '../services/explicacao_service.dart';
 import '../services/quiz_helper_service.dart';
-import '../../user/achievement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-class QuizMultiplaEscolhaScreen extends StatefulWidget {
+class QuizVerdadeiroFalsoScreen extends StatefulWidget {
   final bool isOfflineMode;
   final String? topico;
   final String? dificuldade;
 
-  const QuizMultiplaEscolhaScreen({
+  const QuizVerdadeiroFalsoScreen({
     super.key,
     this.isOfflineMode = false,
     this.topico,
@@ -23,15 +20,15 @@ class QuizMultiplaEscolhaScreen extends StatefulWidget {
   });
 
   @override
-  State<QuizMultiplaEscolhaScreen> createState() =>
-      _QuizMultiplaEscolhaScreenState();
+  State<QuizVerdadeiroFalsoScreen> createState() =>
+      _QuizVerdadeiroFalsoScreenState();
 }
 
-class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
+class _QuizVerdadeiroFalsoScreenState extends State<QuizVerdadeiroFalsoScreen>
     with TickerProviderStateMixin, QuizStateMixin, AnimationMixin {
-  // Estado específico do Quiz de Múltipla Escolha
+  // Estado específico do Quiz Verdadeiro/Falso
   int totalPerguntas = 10;
-  String? respostaSelecionada;
+  bool? respostaSelecionada; // true para Verdadeiro, false para Falso
   bool _perguntaDoCache = false;
 
   // Resultados específicos
@@ -47,7 +44,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   late DateTime _inicioQuiz;
   late DateTime _inicioPergunta;
 
-  // Animações específicas
+  // Animações
   late AnimationController _cardAnimationController;
   late AnimationController _progressAnimationController;
   late Animation<double> _cardScaleAnimation;
@@ -56,44 +53,63 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   // Perguntas offline de exemplo
   final List<Map<String, dynamic>> perguntasOffline = [
     {
-      'pergunta': 'Quanto é 15 + 27?',
-      'opcoes': ['40', '42', '44', '45'],
-      'resposta_correta': '42',
-      'explicacao': '15 + 27 = 42. Soma simples: 15 + 20 + 7 = 35 + 7 = 42',
-      'topico': 'Adição',
+      'pergunta':
+          'A soma de dois números pares sempre resulta em um número par.',
+      'resposta_correta': true,
+      'explicacao':
+          'Verdadeiro. A soma de dois números pares (2n + 2m) = 2(n + m), que é sempre par.',
+      'topico': 'Números Pares e Ímpares',
       'dificuldade': 'fácil'
     },
     {
-      'pergunta': 'Qual é 20% de 150?',
-      'opcoes': ['25', '30', '35', '40'],
-      'resposta_correta': '30',
-      'explicacao': '20% de 150 = 0,20 × 150 = 30',
-      'topico': 'Porcentagem',
-      'dificuldade': 'médio'
-    },
-    {
-      'pergunta': 'Se x + 5 = 12, quanto vale x?',
-      'opcoes': ['5', '6', '7', '8'],
-      'resposta_correta': '7',
-      'explicacao': 'x + 5 = 12, então x = 12 - 5 = 7',
-      'topico': 'Álgebra',
-      'dificuldade': 'médio'
-    },
-    {
-      'pergunta': 'Quanto é 8 × 9?',
-      'opcoes': ['70', '71', '72', '73'],
-      'resposta_correta': '72',
-      'explicacao': '8 × 9 = 72. Tabuada do 8 ou 9',
+      'pergunta': 'O resultado de 5 × 6 é igual a 35.',
+      'resposta_correta': false,
+      'explicacao': 'Falso. 5 × 6 = 30, não 35.',
       'topico': 'Multiplicação',
       'dificuldade': 'fácil'
     },
     {
-      'pergunta': 'A área de um quadrado com lado 6 cm é:',
-      'opcoes': ['24 cm²', '30 cm²', '36 cm²', '42 cm²'],
-      'resposta_correta': '36 cm²',
-      'explicacao': 'Área do quadrado = lado × lado = 6 × 6 = 36 cm²',
+      'pergunta': 'Um triângulo pode ter dois ângulos retos.',
+      'resposta_correta': false,
+      'explicacao':
+          'Falso. A soma dos ângulos internos de um triângulo é 180°. Dois ângulos retos já somariam 180°.',
       'topico': 'Geometria',
       'dificuldade': 'médio'
+    },
+    {
+      'pergunta': '0,5 é equivalente a 50%.',
+      'resposta_correta': true,
+      'explicacao': 'Verdadeiro. 0,5 = 5/10 = 50/100 = 50%.',
+      'topico': 'Porcentagem',
+      'dificuldade': 'fácil'
+    },
+    {
+      'pergunta': 'A raiz quadrada de 16 é 4.',
+      'resposta_correta': true,
+      'explicacao': 'Verdadeiro. √16 = 4, pois 4 × 4 = 16.',
+      'topico': 'Raízes',
+      'dificuldade': 'fácil'
+    },
+    {
+      'pergunta': 'Todo número primo é ímpar.',
+      'resposta_correta': false,
+      'explicacao': 'Falso. O número 2 é primo e é par.',
+      'topico': 'Números Primos',
+      'dificuldade': 'médio'
+    },
+    {
+      'pergunta': 'A área de um círculo com raio 3 é 9π.',
+      'resposta_correta': true,
+      'explicacao': 'Verdadeiro. Área = π × r² = π × 3² = 9π.',
+      'topico': 'Geometria',
+      'dificuldade': 'médio'
+    },
+    {
+      'pergunta': 'Se x = 5, então 2x + 3 = 13.',
+      'resposta_correta': true,
+      'explicacao': 'Verdadeiro. 2(5) + 3 = 10 + 3 = 13.',
+      'topico': 'Álgebra',
+      'dificuldade': 'fácil'
     },
   ];
 
@@ -140,50 +156,6 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     _cardAnimationController.dispose();
     _progressAnimationController.dispose();
     super.dispose();
-  }
-
-  // Métodos de mapeamento para integração com sistema de progressão
-  String _mapearTopicoParaUnidade(String topico) {
-    // Mapeamento simples - pode ser refinado
-    if (topico.toLowerCase().contains('número') ||
-        topico.toLowerCase().contains('calculo')) {
-      return 'Números';
-    } else if (topico.toLowerCase().contains('algebr') ||
-        topico.toLowerCase().contains('equação')) {
-      return 'Álgebra';
-    } else if (topico.toLowerCase().contains('geometri') ||
-        topico.toLowerCase().contains('forma')) {
-      return 'Geometria';
-    } else if (topico.toLowerCase().contains('medida') ||
-        topico.toLowerCase().contains('área') ||
-        topico.toLowerCase().contains('volume')) {
-      return 'Grandezas e Medidas';
-    } else if (topico.toLowerCase().contains('estatistic') ||
-        topico.toLowerCase().contains('probabilidade') ||
-        topico.toLowerCase().contains('gráfico')) {
-      return 'Probabilidade e Estatística';
-    }
-    return 'Números'; // Default
-  }
-
-  String _mapearDificuldadeParaAno(String dificuldade) {
-    // Mapeamento de dificuldade para ano escolar
-    switch (dificuldade.toLowerCase()) {
-      case 'iniciante':
-      case 'fácil':
-        return '6º ano';
-      case 'intermediário':
-      case 'médio':
-        return '7º ano';
-      case 'avançado':
-      case 'difícil':
-        return '8º ano';
-      case 'especialista':
-      case 'expert':
-        return '9º ano';
-      default:
-        return '7º ano'; // Default
-    }
   }
 
   Future<void> _initializeQuiz() async {
@@ -233,28 +205,63 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       final dificuldade = widget.dificuldade ?? 'médio';
       const ano = '1º ano'; // Você pode adaptar isso baseado no contexto
 
-      debugPrint('Iniciando geração de pergunta inteligente...');
+      debugPrint('Iniciando geração de pergunta V/F inteligente...');
       debugPrint('Tópico: $topico, Dificuldade: $dificuldade, Ano: $ano');
 
       // Usa o QuizHelperService que verifica cache primeiro
       final pergunta = await QuizHelperService.gerarPerguntaInteligente(
         unidade: topico,
         ano: ano,
-        tipoQuiz: 'multipla_escolha',
+        tipoQuiz: 'verdadeiro_falso',
         dificuldade: dificuldade,
       );
 
       if (pergunta != null) {
-        debugPrint('Pergunta obtida (cache ou IA): ${pergunta['pergunta']}');
+        debugPrint(
+            'Pergunta V/F obtida (cache ou IA): ${pergunta['pergunta']}');
         _processarPerguntaCache(pergunta);
       } else {
         // Mostra erro se não conseguir obter pergunta
-        debugPrint('Erro: Não foi possível obter pergunta');
+        debugPrint('Erro: Não foi possível obter pergunta V/F');
         _mostrarErroSemPergunta();
       }
     } catch (e) {
       // Mostra erro em caso de falha
-      debugPrint('Erro ao gerar pergunta: $e');
+      debugPrint('Erro ao gerar pergunta V/F: $e');
+      _mostrarErroSemPergunta();
+    }
+  }
+
+  void _processarPerguntaCache(Map<String, dynamic> pergunta) {
+    try {
+      // Verifica se a pergunta veio do cache ou foi gerada na hora
+      final fonteIA = pergunta['fonte_ia'];
+      _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
+
+      // Para V/F, a resposta correta pode estar como "VERDADEIRO"/"FALSO" ou boolean
+      bool respostaCorreta = true;
+      final resposta = pergunta['resposta_correta'];
+      if (resposta is String) {
+        respostaCorreta = resposta.toUpperCase().contains('VERDADEIRO') ||
+            resposta.toUpperCase().contains('TRUE');
+      } else if (resposta is bool) {
+        respostaCorreta = resposta;
+      }
+
+      setState(() {
+        perguntaAtual = {
+          'pergunta': pergunta['pergunta'] ?? 'Pergunta não encontrada',
+          'resposta_correta': respostaCorreta,
+          'explicacao': pergunta['explicacao'] ?? 'Explicação não disponível',
+          'numero': perguntaIndex + 1,
+          'fonte': fonteIA ?? 'Cache', // Identifica se veio do cache
+        };
+        carregando = false;
+      });
+      debugPrint(
+          'Pergunta V/F processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
+    } catch (e) {
+      debugPrint('Erro ao processar pergunta V/F do cache: $e');
       _mostrarErroSemPergunta();
     }
   }
@@ -264,13 +271,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       perguntaAtual = {
         'pergunta':
             'Erro: Não foi possível carregar a pergunta.\n\nVerifique se:\n• A IA está configurada\n• Há perguntas precarregadas\n• A conexão está funcionando',
-        'opcoes': [
-          'Tentar novamente',
-          'Voltar ao menu',
-          'Configurar IA',
-          'Precarregar perguntas'
-        ],
-        'resposta_correta': 'A',
+        'resposta_correta': true,
         'explicacao':
             'Configure a IA ou execute o precarregamento nas configurações',
         'numero': perguntaIndex + 1,
@@ -280,35 +281,9 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     });
   }
 
-  void _processarPerguntaCache(Map<String, dynamic> pergunta) {
-    try {
-      // Verifica se a pergunta veio do cache ou foi gerada na hora
-      final fonteIA = pergunta['fonte_ia'];
-      _perguntaDoCache = fonteIA == null || fonteIA == 'cache';
-
-      setState(() {
-        perguntaAtual = {
-          'pergunta': pergunta['pergunta'] ?? 'Pergunta não encontrada',
-          'opcoes': pergunta['opcoes'] ??
-              ['A) Erro', 'B) Erro', 'C) Erro', 'D) Erro'],
-          'resposta_correta': pergunta['resposta_correta'] ?? 'A',
-          'explicacao': pergunta['explicacao'] ?? 'Explicação não disponível',
-          'numero': perguntaIndex + 1,
-          'fonte': fonteIA ?? 'Cache', // Identifica se veio do cache
-        };
-        carregando = false;
-      });
-      debugPrint(
-          'Pergunta processada com sucesso - Fonte: ${_perguntaDoCache ? "Cache" : fonteIA}');
-    } catch (e) {
-      debugPrint('Erro ao processar pergunta do cache: $e');
-      _mostrarErroSemPergunta();
-    }
-  }
-
-  void _selecionarOpcao(String opcao) {
+  void _selecionarResposta(bool resposta) {
     setState(() {
-      respostaSelecionada = opcao;
+      respostaSelecionada = resposta;
     });
   }
 
@@ -318,49 +293,9 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     final tempoResposta = DateTime.now().difference(_inicioPergunta).inSeconds;
     final isCorreta = respostaSelecionada == perguntaAtual!['resposta_correta'];
 
-    // Registrar no sistema de progressão se tiver tópico e dificuldade
-    if (widget.topico != null && widget.dificuldade != null) {
-      // Mapear tópico para unidade BNCC (simplificado)
-      String unidade = _mapearTopicoParaUnidade(widget.topico!);
-      String ano = _mapearDificuldadeParaAno(widget.dificuldade!);
-
-      if (isCorreta) {
-        await ProgressoService.registrarRespostaCorreta(unidade, ano);
-
-        // Registrar no sistema de gamificação
-        final novasAchievements =
-            await GamificacaoService.registrarRespostaCorreta(
-          unidade: unidade,
-          ano: ano,
-          tempoResposta: tempoResposta,
-        );
-
-        // Mostrar conquistas desbloqueadas
-        if (novasAchievements.isNotEmpty) {
-          _mostrarNovasAchievements(novasAchievements);
-        }
-      } else {
-        await ProgressoService.registrarRespostaIncorreta(unidade, ano);
-        await GamificacaoService.registrarRespostaIncorreta();
-
-        // Salvar explicação no histórico quando a resposta está errada
-        await ExplicacaoService.salvarExplicacao(
-          unidade: unidade,
-          ano: ano,
-          pergunta: perguntaAtual!['pergunta'],
-          respostaUsuario: respostaSelecionada!,
-          respostaCorreta: perguntaAtual!['resposta_correta'],
-          explicacao:
-              perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
-          topicoEspecifico: perguntaAtual!['topico'],
-        );
-      }
-    }
-
     // Registrar resposta
     respostas.add({
       'pergunta': perguntaAtual!['pergunta'],
-      'opcoes': perguntaAtual!['opcoes'],
       'resposta_selecionada': respostaSelecionada,
       'resposta_correta': perguntaAtual!['resposta_correta'],
       'correta': isCorreta,
@@ -375,6 +310,18 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       pontuacao += _calcularPontos(tempoResposta);
     } else {
       estatisticas['incorretas'] = estatisticas['incorretas']! + 1;
+
+      // Salvar explicação no histórico quando a resposta está errada
+      await ExplicacaoService.salvarExplicacao(
+        unidade: perguntaAtual!['topico'] ?? 'Geral',
+        ano: 'Não especificado',
+        pergunta: perguntaAtual!['pergunta'],
+        respostaUsuario: respostaSelecionada! ? 'Verdadeiro' : 'Falso',
+        respostaCorreta:
+            perguntaAtual!['resposta_correta'] ? 'Verdadeiro' : 'Falso',
+        explicacao: perguntaAtual!['explicacao'] ?? 'Explicação não disponível',
+        topicoEspecifico: perguntaAtual!['topico'] ?? 'Quiz Verdadeiro/Falso',
+      );
     }
 
     // Mostrar feedback
@@ -388,10 +335,10 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
 
   int _calcularPontos(int tempoSegundos) {
     // Sistema de pontuação baseado no tempo
-    if (tempoSegundos <= 5) return 100;
-    if (tempoSegundos <= 10) return 80;
-    if (tempoSegundos <= 15) return 60;
-    if (tempoSegundos <= 30) return 40;
+    if (tempoSegundos <= 3) return 100;
+    if (tempoSegundos <= 6) return 80;
+    if (tempoSegundos <= 10) return 60;
+    if (tempoSegundos <= 20) return 40;
     return 20;
   }
 
@@ -497,7 +444,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
     final prefs = await SharedPreferences.getInstance();
 
     // Carregar histórico existente
-    final historicoJson = prefs.getString('historico_quiz');
+    final historicoJson = prefs.getString('historico_quiz_vf');
     List<Map<String, dynamic>> historico = [];
 
     if (historicoJson != null) {
@@ -516,6 +463,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       'pontuacao': pontuacao,
       'tempo_total': estatisticas['tempo_total'],
       'taxa_acerto': (estatisticas['corretas']! / totalPerguntas * 100).round(),
+      'tipo': 'verdadeiro_falso',
     });
 
     // Manter apenas os últimos 50 resultados
@@ -523,58 +471,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
       historico = historico.sublist(historico.length - 50);
     }
 
-    await prefs.setString('historico_quiz', jsonEncode(historico));
-  }
-
-  void _mostrarNovasAchievements(List<Achievement> conquistas) {
-    for (final conquista in conquistas) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.accentColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.emoji_events,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      '🏆 Nova Achievement!',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      conquista.title,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-              //TODO: Removido bonusPoints pois não existe na classe Achievement
-              // Se desejar mostrar pontos, adicione uma propriedade válida
-            ],
-          ),
-          backgroundColor: AppTheme.primaryColor,
-          duration: const Duration(seconds: 4),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+    await prefs.setString('historico_quiz_vf', jsonEncode(historico));
   }
 
   void _reiniciarQuiz() {
@@ -621,7 +518,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
             children: [
               // Header
               ResponsiveHeader(
-                title: 'Quiz Matemático',
+                title: 'Quiz Verdadeiro/Falso',
                 subtitle: _buildSubtitle(),
                 showBackButton: true,
                 trailing: _buildHeaderInfo(isTablet),
@@ -645,6 +542,12 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                         _buildLoadingCard(isTablet)
                       else if (perguntaAtual != null)
                         _buildPerguntaCard(isTablet),
+
+                      SizedBox(height: isTablet ? 30 : 20),
+
+                      // Botões Verdadeiro/Falso
+                      if (!carregando && perguntaAtual != null)
+                        _buildOpcoesVerdadeiroFalso(isTablet),
 
                       SizedBox(height: isTablet ? 30 : 20),
 
@@ -886,7 +789,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.quiz_rounded,
+                        Icons.help_outline_rounded,
                         color: AppTheme.primaryColor,
                         size: isTablet ? 20 : 16,
                       ),
@@ -925,94 +828,170 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
             SizedBox(height: isTablet ? 24 : 20),
 
             // Pergunta
-            Text(
-              perguntaAtual!['pergunta'],
-              style: AppTheme.headingSmall.copyWith(
-                color: AppTheme.darkTextPrimaryColor,
-                height: 1.4,
+            Container(
+              padding: EdgeInsets.all(isTablet ? 20 : 16),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurfaceColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                border: Border.all(
+                  color: AppTheme.darkBorderColor,
+                  width: 1,
+                ),
               ),
-            ),
-            SizedBox(height: isTablet ? 24 : 20),
-
-            // Opções
-            ...perguntaAtual!['opcoes'].asMap().entries.map((entry) {
-              final index = entry.key;
-              final opcao = entry.value.toString();
-              final isSelected = respostaSelecionada == opcao;
-
-              return Container(
-                margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
-                child: InkWell(
-                  onTap: () => _selecionarOpcao(opcao),
-                  borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                  child: Container(
-                    padding: EdgeInsets.all(isTablet ? 20 : 16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
-                          : AppTheme.darkSurfaceColor,
-                      borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : AppTheme.darkBorderColor,
-                        width: isSelected ? 2 : 1,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.format_quote_rounded,
+                    color: AppTheme.primaryColor,
+                    size: isTablet ? 32 : 28,
+                  ),
+                  SizedBox(width: isTablet ? 16 : 12),
+                  Expanded(
+                    child: Text(
+                      perguntaAtual!['pergunta'],
+                      style: AppTheme.headingSmall.copyWith(
+                        color: AppTheme.darkTextPrimaryColor,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: isTablet ? 32 : 28,
-                          height: isTablet ? 32 : 28,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppTheme.primaryColor
-                                : Colors.transparent,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.darkBorderColor,
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              String.fromCharCode(
-                                  65 + (index as int)), // A, B, C, D
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppTheme.darkTextSecondaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: isTablet ? 16 : 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: isTablet ? 16 : 12),
-                        Expanded(
-                          child: Text(
-                            opcao,
-                            style: AppTheme.bodyLarge.copyWith(
-                              color: isSelected
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.darkTextPrimaryColor,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildOpcoesVerdadeiroFalso(bool isTablet) {
+    return Row(
+      children: [
+        // Botão Verdadeiro
+        Expanded(
+          child: InkWell(
+            onTap: () => _selecionarResposta(true),
+            borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+            child: Container(
+              padding: EdgeInsets.all(isTablet ? 24 : 20),
+              decoration: BoxDecoration(
+                color: respostaSelecionada == true
+                    ? AppTheme.successColor.withValues(alpha: 0.2)
+                    : AppTheme.darkSurfaceColor,
+                borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                border: Border.all(
+                  color: respostaSelecionada == true
+                      ? AppTheme.successColor
+                      : AppTheme.darkBorderColor,
+                  width: respostaSelecionada == true ? 2 : 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: isTablet ? 64 : 56,
+                    height: isTablet ? 64 : 56,
+                    decoration: BoxDecoration(
+                      color: respostaSelecionada == true
+                          ? AppTheme.successColor
+                          : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: respostaSelecionada == true
+                            ? AppTheme.successColor
+                            : AppTheme.darkBorderColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: respostaSelecionada == true
+                          ? Colors.white
+                          : AppTheme.successColor,
+                      size: isTablet ? 32 : 28,
+                    ),
+                  ),
+                  SizedBox(height: isTablet ? 16 : 12),
+                  Text(
+                    'VERDADEIRO',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: respostaSelecionada == true
+                          ? AppTheme.successColor
+                          : AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(width: isTablet ? 20 : 16),
+
+        // Botão Falso
+        Expanded(
+          child: InkWell(
+            onTap: () => _selecionarResposta(false),
+            borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+            child: Container(
+              padding: EdgeInsets.all(isTablet ? 24 : 20),
+              decoration: BoxDecoration(
+                color: respostaSelecionada == false
+                    ? AppTheme.errorColor.withValues(alpha: 0.2)
+                    : AppTheme.darkSurfaceColor,
+                borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                border: Border.all(
+                  color: respostaSelecionada == false
+                      ? AppTheme.errorColor
+                      : AppTheme.darkBorderColor,
+                  width: respostaSelecionada == false ? 2 : 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: isTablet ? 64 : 56,
+                    height: isTablet ? 64 : 56,
+                    decoration: BoxDecoration(
+                      color: respostaSelecionada == false
+                          ? AppTheme.errorColor
+                          : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: respostaSelecionada == false
+                            ? AppTheme.errorColor
+                            : AppTheme.darkBorderColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: respostaSelecionada == false
+                          ? Colors.white
+                          : AppTheme.errorColor,
+                      size: isTablet ? 32 : 28,
+                    ),
+                  ),
+                  SizedBox(height: isTablet ? 16 : 12),
+                  Text(
+                    'FALSO',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: respostaSelecionada == false
+                          ? AppTheme.errorColor
+                          : AppTheme.darkTextPrimaryColor,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1191,7 +1170,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
   }
 
   Widget _buildStatCard(
-      String title, String valor, IconData icon, Color cor, bool isTablet) {
+      String titulo, String valor, IconData icon, Color cor, bool isTablet) {
     return ModernCard(
       child: Column(
         children: [
@@ -1218,7 +1197,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
           ),
           SizedBox(height: isTablet ? 4 : 2),
           Text(
-            title,
+            titulo,
             style: AppTheme.bodySmall.copyWith(
               color: AppTheme.darkTextSecondaryColor,
             ),
@@ -1385,7 +1364,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                             ),
                             SizedBox(height: isTablet ? 8 : 6),
                             Text(
-                              'Sua resposta: ${resposta['resposta_selecionada']}',
+                              'Sua resposta: ${resposta['resposta_selecionada'] ? "VERDADEIRO" : "FALSO"}',
                               style: AppTheme.bodySmall.copyWith(
                                 color: isCorreta
                                     ? AppTheme.successColor
@@ -1395,7 +1374,7 @@ class _QuizMultiplaEscolhaScreenState extends State<QuizMultiplaEscolhaScreen>
                             if (!isCorreta) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Resposta correta: ${resposta['resposta_correta']}',
+                                'Resposta correta: ${resposta['resposta_correta'] ? "VERDADEIRO" : "FALSO"}',
                                 style: AppTheme.bodySmall.copyWith(
                                   color: AppTheme.successColor,
                                 ),

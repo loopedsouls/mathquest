@@ -1,5 +1,6 @@
+
 import 'package:flutter/material.dart';
-import '../../core/app_theme.dart';
+import '../../../app_theme.dart';
 import 'personagem_3d_widget.dart';
 
 class ItemVisualizationHelper {

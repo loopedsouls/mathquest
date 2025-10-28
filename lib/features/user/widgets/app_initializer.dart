@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../ai/services/preload_service.dart';
-import '../services/personagem_service.dart';
+import '../../../services/preload_service.dart';
+import '../../../services/personagem_service.dart';
 import '../screens/start_screen.dart';
 
 class AppInitializer extends StatefulWidget {

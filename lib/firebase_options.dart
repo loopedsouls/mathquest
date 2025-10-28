@@ -22,17 +22,6 @@ class DefaultFirebaseOptions {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
-      case TargetPlatform.iOS:
-        return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -57,33 +46,4 @@ class DefaultFirebaseOptions {
     projectId: 'mathquest6969',
     storageBucket: 'mathquest6969.firebasestorage.app',
   );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAi4ZXQWg0bFXNP0bCqv-3wC9Hdh_nz-Ds',
-    appId: '1:11203362979:ios:2f516bed80f323bb3cff16',
-    messagingSenderId: '11203362979',
-    projectId: 'mathquest6969',
-    storageBucket: 'mathquest6969.firebasestorage.app',
-    iosBundleId: 'com.example.mathquest',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAi4ZXQWg0bFXNP0bCqv-3wC9Hdh_nz-Ds',
-    appId: '1:11203362979:ios:2f516bed80f323bb3cff16',
-    messagingSenderId: '11203362979',
-    projectId: 'mathquest6969',
-    storageBucket: 'mathquest6969.firebasestorage.app',
-    iosBundleId: 'com.example.mathquest',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDPOO03OQwROqzvpdTKRLPwYvESoolCxaU',
-    appId: '1:11203362979:web:5617f62eccf3da043cff16',
-    messagingSenderId: '11203362979',
-    projectId: 'mathquest6969',
-    authDomain: 'mathquest6969.firebaseapp.com',
-    storageBucket: 'mathquest6969.firebasestorage.app',
-    measurementId: 'G-BD9GYDSQSR',
-  );
-
 }

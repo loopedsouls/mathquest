@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'services/firebase_ai_service.dart';
-import 'widgets/app_initializer.dart';
+import 'screens/start_screen.dart';
 import 'app_theme.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
@@ -170,7 +170,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     // Se Firebase não estiver disponível (ex: Linux), pular autenticação
     if (!firebaseAvailable) {
-      return const AppInitializer();
+      return const StartScreen();
     }
 
     return StreamBuilder<User?>(
@@ -185,7 +185,7 @@ class AuthWrapper extends StatelessWidget {
         }
 
         // Mostrar o app principal - usuário pode estar logado ou como convidado
-        return const AppInitializer();
+        return const StartScreen();
       },
     );
   }

@@ -8,7 +8,6 @@ class ModulosConfigService {
   static const Map<String, List<String>> modulosDisponiveis = {
     'Dashboard': ['navigation_dashboard'],
     'Módulos': ['learning_modulos'],
-    'Módulos BNCC': ['ai_modulos_bncc'],
     'Quiz': ['learning_quiz'],
     'Perfil': ['user_perfil'],
     'Conquistas': ['user_conquistas'],

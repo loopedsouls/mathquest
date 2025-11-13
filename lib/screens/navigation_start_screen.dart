@@ -14,8 +14,7 @@ import 'user_login_screen.dart';
 import 'user_achievement_screen.dart';
 import 'analytics_reports_screen.dart';
 import 'user_character_3d_test_screen.dart';
-import 'ai_modules_bncc_screen.dart';
-import 'learning_modules_screen.dart';
+import '../../../models/ai_math_course_data_model.dart' as math_model;
 
 class NavigationItem {
   final IconData icon;
@@ -82,11 +81,6 @@ class _StartScreenState extends State<StartScreen>
         'id': 'learning_modulos',
         'icon': Icons.library_books_rounded,
         'label': 'Módulos'
-      },
-      {
-        'id': 'ai_modulos_bncc',
-        'icon': Icons.school_rounded,
-        'label': 'Módulos BNCC'
       },
       {'id': 'learning_quiz', 'icon': Icons.quiz_rounded, 'label': 'Quiz'},
       {'id': 'user_perfil', 'icon': Icons.person, 'label': 'Meu Perfil'},
@@ -348,9 +342,10 @@ class _StartScreenState extends State<StartScreen>
       case 'navigation_dashboard':
         return const DashboardScreen();
       case 'learning_modulos':
-        return const ModulosScreen();
-      case 'ai_modulos_bncc':
-        return const ModulosBNCCScreen();
+        return math_model.ModulosScreen(
+          isOfflineMode: _isOfflineMode,
+          exerciciosOffline: const [], // Lista vazia por enquanto
+        );
       case 'learning_quiz':
         return QuizAlternadoScreen(
           isOfflineMode: _isOfflineMode,

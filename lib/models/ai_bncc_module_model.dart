@@ -6,6 +6,8 @@ class ModuloBNCC {
   final String anoEscolar;
   final List<String> prerequisitos;
   final String codigoBNCC;
+  final String titulo;
+  final String descricao;
 
   ModuloBNCC({
     required this.unidadeTematica,
@@ -14,6 +16,8 @@ class ModuloBNCC {
     required this.anoEscolar,
     required this.prerequisitos,
     required this.codigoBNCC,
+    this.titulo = '',
+    this.descricao = '',
   });
 
   // Stub properties for compatibility
@@ -28,6 +32,8 @@ class ModuloBNCC {
       'anoEscolar': anoEscolar,
       'prerequisitos': prerequisitos,
       'codigoBNCC': codigoBNCC,
+      'titulo': titulo,
+      'descricao': descricao,
     };
   }
 }
@@ -36,6 +42,11 @@ class ModulosBNCCData {
   static ModuloBNCC? obterModulo(String unidade, String ano) {
     // Return null since BNCC modules were removed
     return null;
+  }
+
+  static List<ModuloBNCC> obterTodosModulos() {
+    // Return empty list since BNCC modules were removed
+    return [];
   }
 
   static List<String> obterUnidadesTematicas() {

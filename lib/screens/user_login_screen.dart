@@ -165,10 +165,12 @@ class _LoginScreenState extends State<LoginScreen>
                             filled: true,
                             fillColor: Colors.white,
                             focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black87),
+                              borderSide:
+                                  const BorderSide(color: Colors.black87),
                             ),
                             enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black54),
+                              borderSide:
+                                  const BorderSide(color: Colors.black54),
                             ),
                           ),
                           keyboardType: TextInputType.emailAddress,
@@ -218,10 +220,12 @@ class _LoginScreenState extends State<LoginScreen>
                               filled: true,
                               fillColor: Colors.white,
                               focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black87),
+                                borderSide:
+                                    const BorderSide(color: Colors.black87),
                               ),
                               enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black54),
+                                borderSide:
+                                    const BorderSide(color: Colors.black54),
                               ),
                             ),
                             obscureText: true,
@@ -348,10 +352,10 @@ class _LoginScreenState extends State<LoginScreen>
                 filled: true,
                 fillColor: Colors.white,
                 focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black87),
+                  borderSide: const BorderSide(color: Colors.black87),
                 ),
                 enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black54),
+                  borderSide: const BorderSide(color: Colors.black54),
                 ),
               ),
               keyboardType: TextInputType.emailAddress,

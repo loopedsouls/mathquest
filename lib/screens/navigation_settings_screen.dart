@@ -20,6 +20,7 @@ class ConfiguracaoScreen extends StatefulWidget {
 class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     with TickerProviderStateMixin {
   final TextEditingController openaiApiKeyController = TextEditingController();
+  final TextEditingController geminiApiKeyController = TextEditingController();
   bool carregando = false;
   String status = '';
   String _selectedAI = 'openai';
@@ -101,12 +102,14 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   void dispose() {
     _animationController.dispose();
     openaiApiKeyController.dispose();
+    geminiApiKeyController.dispose();
     super.dispose();
   }
 
   Future<void> _carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
     final openaiApiKey = prefs.getString('openai_api_key');
+    final geminiApiKey = prefs.getString('gemini_api_key');
     final selectedAI = prefs.getString('selected_ai') ?? 'openai';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
@@ -123,6 +126,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
     if (openaiApiKey != null) {
       openaiApiKeyController.text = openaiApiKey;
+    }
+    if (geminiApiKey != null) {
+      geminiApiKeyController.text = geminiApiKey;
     }
 
     setState(() {
@@ -231,11 +237,18 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   Future<void> _salvarConfiguracoes() async {
     final openaiApiKey = openaiApiKeyController.text.trim();
-    if (openaiApiKey.isEmpty && _selectedAI == 'openai') return;
+    final geminiApiKey = geminiApiKeyController.text.trim();
+    if (openaiApiKey.isEmpty &&
+        geminiApiKey.isEmpty &&
+        (_selectedAI == 'openai' || _selectedAI == 'gemini')) {
+      return;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     if (_selectedAI == 'openai') {
       await prefs.setString('openai_api_key', openaiApiKey);
+    } else if (_selectedAI == 'gemini') {
+      await prefs.setString('gemini_api_key', geminiApiKey);
     }
     await prefs.setString('selected_ai', _selectedAI);
     await prefs.setString('modelo_ollama', _modeloOllama);
@@ -257,7 +270,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     try {
       if (_selectedAI == 'ollama') {
         // Ollama testing removed - only OpenAI available
-        status = '❌ Ollama não disponível - use OpenAI';
+        status = '❌ Ollama não disponível - use OpenAI ou Gemini';
       } else if (_selectedAI == 'openai') {
         // Testar OpenAI API
         await OpenAIService.initialize(); // Inicializar/recarregar API key
@@ -271,6 +284,15 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
               : '❌ Erro na API OpenAI: $testResult';
         } else {
           status = '❌ OpenAI GPT não configurado ou chave inválida.';
+        }
+      } else if (_selectedAI == 'gemini') {
+        // Testar Gemini API (placeholder - implementar serviço Gemini)
+        final geminiApiKey = geminiApiKeyController.text.trim();
+        if (geminiApiKey.isEmpty) {
+          status = '❌ Chave da API Gemini não configurada.';
+        } else {
+          // TODO: Implementar teste real da API Gemini
+          status = '✅ Gemini configurado (teste real será implementado)';
         }
       }
     } catch (e) {
@@ -765,7 +787,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                             if (_selectedAI == 'ollama')
                               _buildOllamaConfig(false, false, true)
                             else if (_selectedAI == 'openai')
-                              _buildOpenAIConfig(false, false, true),
+                              _buildOpenAIConfig(false, false, true)
+                            else if (_selectedAI == 'gemini')
+                              _buildGeminiConfig(false, false, true),
                           ],
                         ),
                       ),
@@ -845,6 +869,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     // Configuração do OpenAI
                     if (_selectedAI == 'openai') ...[
                       _buildOpenAIConfig(isMobile, isTablet, false),
+                      SizedBox(height: isMobile ? 16 : 20),
+                    ],
+
+                    // Configuração do Gemini
+                    if (_selectedAI == 'gemini') ...[
+                      _buildGeminiConfig(isMobile, isTablet, false),
                       SizedBox(height: isMobile ? 16 : 20),
                     ],
 
@@ -939,6 +969,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         return 'Ollama Local';
       case 'openai':
         return 'OpenAI GPT';
+      case 'gemini':
+        return 'Google Gemini';
       default:
         return 'Não configurado';
     }
@@ -1003,18 +1035,46 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 _buildServiceCard('openai', cardPadding, iconSize,
                     iconInternalSize, borderRadius, spacing, isMobile,
                     isDesktop: true),
+                SizedBox(height: spacing * 0.75),
+                _buildServiceCard('gemini', cardPadding, iconSize,
+                    iconInternalSize, borderRadius, spacing, isMobile,
+                    isDesktop: true),
               ],
             )
           else if (isTablet)
-            Row(
+            Column(
               children: [
-                Expanded(
-                    child: _buildServiceCard('ollama', cardPadding, iconSize,
-                        iconInternalSize, borderRadius, spacing, isMobile)),
-                SizedBox(width: spacing),
-                Expanded(
-                    child: _buildServiceCard('openai', cardPadding, iconSize,
-                        iconInternalSize, borderRadius, spacing, isMobile)),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _buildServiceCard(
+                            'ollama',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                    SizedBox(width: spacing),
+                    Expanded(
+                        child: _buildServiceCard(
+                            'openai',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                  ],
+                ),
+                SizedBox(height: spacing),
+                Center(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: _buildServiceCard('gemini', cardPadding, iconSize,
+                        iconInternalSize, borderRadius, spacing, isMobile),
+                  ),
+                ),
               ],
             )
           else
@@ -1043,6 +1103,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                             isMobile)),
                   ],
                 ),
+                SizedBox(height: spacing),
+                _buildServiceCard('gemini', cardPadding, iconSize,
+                    iconInternalSize, borderRadius, spacing, isMobile),
               ],
             ),
         ],
@@ -1075,6 +1138,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         subtitle = 'ChatGPT API';
         icon = Icons.chat_bubble_rounded;
         color = const Color(0xFF10A37F); // Cor verde do OpenAI
+        break;
+      case 'gemini':
+        title = 'Google Gemini';
+        subtitle = 'Gemini 2.0 Flash';
+        icon = Icons.auto_awesome_rounded;
+        color = const Color(0xFF4285F4); // Cor azul do Google
         break;
       default:
         return const SizedBox.shrink();
@@ -1468,6 +1537,157 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         '• GPT-3.5: ~\$0.002 por 1K tokens\n'
                         '• Configure limites de uso no painel OpenAI\n'
                         '• Monitore seus gastos regularmente',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeminiConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome_rounded,
+                color: const Color(0xFF4285F4),
+                size: iconSize,
+              ),
+              SizedBox(width: spacing),
+              Text(
+                'Configuração do Google Gemini',
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing * 1.5),
+          Text(
+            'Chave da API',
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 12 : 14,
+            ),
+          ),
+          SizedBox(height: spacing),
+          ModernTextField(
+            hint: 'Digite sua chave da API do Gemini (AIza...)',
+            controller: geminiApiKeyController,
+            prefixIcon: Icons.key_rounded,
+            obscureText: true,
+          ),
+          SizedBox(height: spacing),
+          Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              color: AppTheme.infoColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: AppTheme.infoColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_rounded,
+                  color: AppTheme.infoColor,
+                  size: iconSize,
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Como obter sua chave API:',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.infoColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
+                        ),
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        '1. Acesse https://aistudio.google.com/app/apikey\n'
+                        '2. Faça login com sua conta Google\n'
+                        '3. Crie uma nova API key\n'
+                        '4. Cole a chave no campo acima (começa com AIza)',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: spacing),
+          Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              color: AppTheme.successColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: AppTheme.successColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: AppTheme.successColor,
+                  size: iconSize,
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vantagens do Gemini:',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.successColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
+                        ),
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        '• Gratuito para uso básico\n'
+                        '• Modelo Gemini 2.0 Flash - rápido e avançado\n'
+                        '• Suporte multimodal (texto, imagens)\n'
+                        '• Otimizado para tarefas educacionais',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,

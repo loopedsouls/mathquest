@@ -68,6 +68,9 @@ dependencies:
   sqflite_common_ffi: ^2.3.0 # Para suporte a Windows/Linux/macOS
   path: ^1.8.3
 
+  # Para variáveis de ambiente
+  flutter_dotenv: ^5.1.0
+
   # Para copiar texto e gerar PDF
   pdf: ^3.10.4
   printing: ^5.11.0

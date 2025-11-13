@@ -14,6 +14,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Verificar se Firebase está disponível na plataforma atual
 bool get firebaseAvailable {
@@ -32,6 +33,9 @@ bool get firebaseAvailable {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Carregar variáveis de ambiente
+  await dotenv.load(fileName: ".env");
 
   // Inicializar Firebase apenas se disponível na plataforma
   if (firebaseAvailable) {

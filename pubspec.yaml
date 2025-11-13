@@ -51,7 +51,10 @@ dependencies:
   flame: ^1.13.1
 
   # Firebase AI Logic (única IA do projeto)
-  firebase_ai: ^2.3.0
+  # firebase_ai: ^2.3.0
+
+  # OpenAI API
+  # chat_gpt_sdk: ^3.0.2
 
   # Para gráficos de progresso
   fl_chart: ^0.65.0

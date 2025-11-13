@@ -1,37 +1,67 @@
-import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../openai_config.dart';
 
-/// Serviço para integração com Firebase AI (Gemini e Imagen)
+/// Serviço para integração com OpenAI GPT API
 class FirebaseAIService {
-  static GenerativeModel? _geminiModel;
+  static const String _baseUrl = 'https://api.openai.com/v1';
+  static const String _model = 'gpt-3.5-turbo';
 
-  /// Inicializa o Firebase AI
+  /// Verifica se o OpenAI API está disponível
+  static bool get isAvailable => OpenAIConfig.isAvailable;
+
+  /// Inicializa o OpenAI API (não necessário para HTTP calls)
   static Future<void> initialize() async {
-    try {
-      // Inicializar o serviço Gemini Developer API
-      // Criar uma instância GenerativeModel com modelo que suporta nosso caso de uso
-      _geminiModel = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-1.5-flash', // Usar modelo disponível
-      );
-
-      if (kDebugMode) {
-        print('✅ Firebase AI inicializado com sucesso');
+    if (kDebugMode) {
+      if (isAvailable) {
+        print('✅ OpenAI API configurado com sucesso');
+      } else {
+        print('❌ OpenAI API key não configurada');
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Erro ao inicializar Firebase AI: $e');
-      }
-      // Firebase AI pode falhar em algumas plataformas
-      // O app deve continuar funcionando normalmente
-      _geminiModel = null;
     }
   }
 
-  /// Verifica se o Firebase AI está disponível
-  static bool get isAvailable => _geminiModel != null;
+  /// Helper method para fazer requisições de chat completion
+  static Future<String?> _makeChatCompletionRequest(String prompt) async {
+    final apiKey = OpenAIConfig.apiKey;
+    if (apiKey == null) return null;
 
-  /// Gera explicação matemática usando Gemini
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+        body: jsonEncode({
+          'model': _model,
+          'messages': [
+            {'role': 'user', 'content': prompt}
+          ],
+          'max_tokens': 1000,
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['choices'][0]['message']['content'];
+      } else {
+        if (kDebugMode) {
+          print('OpenAI API error: ${response.statusCode} - ${response.body}');
+        }
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro na requisição OpenAI: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Gera explicação matemática usando OpenAI GPT
   static Future<String?> gerarExplicacaoMatematica({
     required String problema,
     required String ano,
@@ -57,9 +87,8 @@ class FirebaseAIService {
       Mantenha a explicação clara, didática e motivadora.
       ''';
 
-      final response =
-          await _geminiModel!.generateContent([Content.text(prompt)]);
-      return response.text;
+      final response = await _makeChatCompletionRequest(prompt);
+      return response;
     } catch (e) {
       if (kDebugMode) {
         print('Erro ao gerar explicação: $e');
@@ -68,7 +97,7 @@ class FirebaseAIService {
     }
   }
 
-  /// Gera exercício personalizado usando Gemini
+  /// Gera exercício personalizado usando OpenAI GPT
   static Future<Map<String, dynamic>?> gerarExercicioPersonalizado({
     required String unidade,
     required String ano,
@@ -98,20 +127,18 @@ class FirebaseAIService {
       Certifique-se de que o exercício seja apropriado para a idade e siga a BNCC.
       ''';
 
-      final response =
-          await _geminiModel!.generateContent([Content.text(prompt)]);
-      final responseText = response.text;
+      final response = await _makeChatCompletionRequest(prompt);
 
-      if (responseText == null) return null;
+      if (response == null) return null;
 
       // Tentar extrair JSON da resposta
       try {
         // Procurar por JSON na resposta
-        final jsonStart = responseText.indexOf('{');
-        final jsonEnd = responseText.lastIndexOf('}');
+        final jsonStart = response.indexOf('{');
+        final jsonEnd = response.lastIndexOf('}');
 
         if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
-          final jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+          final jsonString = response.substring(jsonStart, jsonEnd + 1);
           final parsedJson = json.decode(jsonString) as Map<String, dynamic>;
 
           // Validar estrutura básica do JSON
@@ -181,9 +208,8 @@ class FirebaseAIService {
       Máximo: 150 palavras.
       ''';
 
-      final response =
-          await _geminiModel!.generateContent([Content.text(prompt)]);
-      return response.text;
+      final response = await _makeChatCompletionRequest(prompt);
+      return response;
     } catch (e) {
       if (kDebugMode) {
         print('Erro ao avaliar resposta: $e');
@@ -215,9 +241,8 @@ class FirebaseAIService {
       Máximo: 100 palavras.
       ''';
 
-      final response =
-          await _geminiModel!.generateContent([Content.text(prompt)]);
-      return response.text;
+      final response = await _makeChatCompletionRequest(prompt);
+      return response;
     } catch (e) {
       if (kDebugMode) {
         print('Erro ao gerar dica: $e');
@@ -226,32 +251,30 @@ class FirebaseAIService {
     }
   }
 
-  /// Envia uma mensagem geral para o Firebase AI
+  /// Envia uma mensagem geral para o OpenAI GPT
   static Future<String?> sendMessage(String message) async {
     if (!isAvailable) return null;
 
     try {
-      final prompt = [Content.text(message)];
-      final response = await _geminiModel!.generateContent(prompt);
-      return response.text;
+      final response = await _makeChatCompletionRequest(message);
+      return response;
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao enviar mensagem para Firebase AI: $e');
+        print('Erro ao enviar mensagem para OpenAI: $e');
       }
       return null;
     }
   }
 
-  /// Teste básico do Firebase AI
+  /// Teste básico do OpenAI API
   static Future<String?> testarConexao() async {
     if (!isAvailable) {
-      return 'Firebase AI não está disponível';
+      return 'OpenAI API não está disponível';
     }
 
     try {
-      final prompt = [Content.text('Diga "Olá, MathQuest!" em uma frase.')];
-      final response = await _geminiModel!.generateContent(prompt);
-      return response.text ?? 'Resposta vazia recebida';
+      final response = await _makeChatCompletionRequest('Diga "Olá, MathQuest!" em uma frase.');
+      return response ?? 'Resposta vazia recebida';
     } catch (e) {
       if (kDebugMode) {
         print('Erro no teste de conexão: $e');
@@ -263,9 +286,9 @@ class FirebaseAIService {
   /// Status do serviço para debugging
   static Map<String, dynamic> getStatus() {
     return {
-      'gemini_model_available': _geminiModel != null,
+      'openai_api_available': isAvailable,
       'service_initialized': isAvailable,
-      'firebase_ai_status': 'integrado_com_gemini_api',
+      'ai_status': 'integrado_com_openai_api',
     };
   }
 }

@@ -72,13 +72,13 @@ void main() async {
       print('Erro ao inicializar Crashlytics: $e');
     }
 
-    // Inicializar Firebase AI
+    // Inicializar OpenAI API
     try {
       await FirebaseAIService.initialize();
     } catch (e) {
-      // Firebase AI pode falhar durante desenvolvimento
+      // OpenAI pode falhar se a chave não estiver configurada
       // mas isso não deve impedir o funcionamento do app
-      print('Erro ao inicializar Firebase AI: $e');
+      print('Erro ao inicializar OpenAI API: $e');
     }
   } else {
     print(

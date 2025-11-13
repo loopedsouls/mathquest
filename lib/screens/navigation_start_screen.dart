@@ -13,6 +13,7 @@ import 'user_profile_screen.dart';
 import 'user_login_screen.dart';
 import 'user_achievement_screen.dart';
 import 'analytics_reports_screen.dart';
+import 'user_character_3d_test_screen.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -87,6 +88,11 @@ class _StartScreenState extends State<StartScreen>
         'id': 'analytics_relatorios',
         'icon': Icons.analytics_rounded,
         'label': 'Relatórios'
+      },
+      {
+        'id': 'user_personagem_3d',
+        'icon': Icons.account_circle,
+        'label': 'Personagem 3D'
       },
     ];
 
@@ -343,6 +349,8 @@ class _StartScreenState extends State<StartScreen>
         return const AjudaScreen();
       case 'analytics_relatorios':
         return const RelatoriosScreen();
+      case 'user_personagem_3d':
+        return const TestePersonagem3DScreen();
       default:
         return _buildMainContent(isTablet, isDesktop);
     }

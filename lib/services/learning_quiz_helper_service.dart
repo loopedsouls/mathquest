@@ -136,19 +136,21 @@ class QuizHelperService {
         break;
       case 'médio':
         descricaoDificuldade = '''
-- Aplicação prática dos conceitos
-- Problemas com 1-2 passos de raciocínio
-- Interpretação de situações do dia a dia
-- Combinação de conceitos básicos
-- Exemplos: resolução de problemas contextualizados, cálculos intermediários''';
+- Aplicação prática avançada dos conceitos
+- Problemas com 2-3 passos de raciocínio lógico
+- Interpretação de situações complexas do dia a dia
+- Combinação de conceitos básicos com aplicações práticas
+- Requer análise e interpretação de dados
+- Exemplos: resolução de problemas com contexto real, cálculos que envolvem interpretação, aplicação de fórmulas em situações não diretas''';
         break;
       case 'difícil':
         descricaoDificuldade = '''
-- Raciocínio avançado e análise crítica
-- Problemas complexos com múltiplos passos
-- Aplicações não óbvias e desafiadoras
-- Integração de múltiplos conceitos
-- Exemplos: problemas de otimização, situações complexas que exigem estratégia''';
+- Raciocínio avançado, análise crítica e resolução de problemas complexos
+- Problemas com 3-5 passos de raciocínio matemático
+- Aplicações desafiadoras e não convencionais
+- Integração de múltiplos conceitos e estratégias
+- Requer pensamento lateral e solução criativa
+- Exemplos: problemas de otimização complexa, situações que exigem modelagem matemática, resolução de sistemas complexos, análise de padrões não óbvios''';
         break;
       default:
         descricaoDificuldade = '''

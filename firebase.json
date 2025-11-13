@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mathquest6969","appId":"1:11203362979:android:955c82a65d5579843cff16","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"mathquest6969","configurations":{"android":"1:11203362979:android:955c82a65d5579843cff16","ios":"1:11203362979:ios:2f516bed80f323bb3cff16","macos":"1:11203362979:ios:2f516bed80f323bb3cff16","web":"1:11203362979:web:e554fe79d8d9c0a53cff16","windows":"1:11203362979:web:5617f62eccf3da043cff16"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mathquest6969",
+          "appId": "1:11203362979:android:955c82a65d5579843cff16",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mathquest6969",
+          "configurations": {
+            "android": "1:11203362979:android:955c82a65d5579843cff16",
+            "ios": "1:11203362979:ios:2f516bed80f323bb3cff16",
+            "macos": "1:11203362979:ios:2f516bed80f323bb3cff16",
+            "web": "1:11203362979:web:e554fe79d8d9c0a53cff16",
+            "windows": "1:11203362979:web:5617f62eccf3da043cff16"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

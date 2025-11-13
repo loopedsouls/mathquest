@@ -11,6 +11,7 @@ import '../services/ai_firebase_ai_service.dart';
 import '../services/ai_ai_service.dart';
 import '../services/ai_modules_config_service.dart';
 import 'user_login_screen.dart';
+import '../openai_config.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});
@@ -22,6 +23,7 @@ class ConfiguracaoScreen extends StatefulWidget {
 class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     with TickerProviderStateMixin {
   final TextEditingController apiKeyController = TextEditingController();
+  final TextEditingController openaiApiKeyController = TextEditingController();
   bool carregando = false;
   String status = '';
   String _selectedAI = 'gemini';
@@ -109,6 +111,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   Future<void> _carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
     final apiKey = prefs.getString('gemini_api_key');
+    final openaiApiKey = prefs.getString('openai_api_key');
     final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
@@ -127,6 +130,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       apiKeyController.text = apiKey;
     } else {
       apiKeyController.text = 'AIzaSyDSbj4mYAOSdDxEwD8vP7tC8vJ6KzF4N2M';
+    }
+
+    if (openaiApiKey != null) {
+      openaiApiKeyController.text = openaiApiKey;
     }
 
     setState(() {
@@ -238,11 +245,16 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   Future<void> _salvarConfiguracoes() async {
     final apiKey = apiKeyController.text.trim();
+    final openaiApiKey = openaiApiKeyController.text.trim();
     if (apiKey.isEmpty && _selectedAI == 'gemini') return;
+    if (openaiApiKey.isEmpty && _selectedAI == 'openai') return;
 
     final prefs = await SharedPreferences.getInstance();
     if (_selectedAI == 'gemini') {
       await prefs.setString('gemini_api_key', apiKey);
+    }
+    if (_selectedAI == 'openai') {
+      await prefs.setString('openai_api_key', openaiApiKey);
     }
     await prefs.setString('selected_ai', _selectedAI);
     await prefs.setString('modelo_ollama', _modeloOllama);
@@ -281,6 +293,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         status = isAvailable
             ? '✅ Flutter Gemma funcionando!'
             : '❌ Erro no Flutter Gemma.';
+      } else if (_selectedAI == 'openai') {
+        final isAvailable = OpenAIConfig.isAvailable;
+        status = isAvailable
+            ? '✅ OpenAI GPT funcionando!'
+            : '❌ OpenAI GPT não configurado ou indisponível.';
       }
     } catch (e) {
       status = '❌ Erro ao testar conexão: $e';
@@ -776,7 +793,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                             else if (_selectedAI == 'ollama')
                               _buildOllamaConfig(false, false, true)
                             else if (_selectedAI == 'flutter_gemma')
-                              _buildFlutterGemmaConfig(false, false, true),
+                              _buildFlutterGemmaConfig(false, false, true)
+                            else if (_selectedAI == 'openai')
+                              _buildOpenAIConfig(false, false, true),
                           ],
                         ),
                       ),
@@ -862,6 +881,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     // Configuração do Flutter Gemma
                     if (_selectedAI == 'flutter_gemma') ...[
                       _buildFlutterGemmaConfig(isMobile, isTablet, false),
+                      SizedBox(height: isMobile ? 16 : 20),
+                    ],
+
+                    // Configuração do OpenAI
+                    if (_selectedAI == 'openai') ...[
+                      _buildOpenAIConfig(isMobile, isTablet, false),
                       SizedBox(height: isMobile ? 16 : 20),
                     ],
 
@@ -958,6 +983,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         return 'Ollama Local';
       case 'flutter_gemma':
         return 'Flutter Gemma';
+      case 'openai':
+        return 'OpenAI GPT';
       default:
         return 'Não configurado';
     }
@@ -1026,6 +1053,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                 _buildServiceCard('flutter_gemma', cardPadding, iconSize,
                     iconInternalSize, borderRadius, spacing, isMobile,
                     isDesktop: true),
+                SizedBox(height: spacing * 0.75),
+                _buildServiceCard('openai', cardPadding, iconSize,
+                    iconInternalSize, borderRadius, spacing, isMobile,
+                    isDesktop: true),
               ],
             )
           else if (isTablet)
@@ -1077,8 +1108,29 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                   ],
                 ),
                 SizedBox(height: spacing),
-                _buildServiceCard('flutter_gemma', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _buildServiceCard(
+                            'flutter_gemma',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                    SizedBox(width: spacing),
+                    Expanded(
+                        child: _buildServiceCard(
+                            'openai',
+                            cardPadding,
+                            iconSize,
+                            iconInternalSize,
+                            borderRadius,
+                            spacing,
+                            isMobile)),
+                  ],
+                ),
               ],
             ),
         ],
@@ -1117,6 +1169,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         subtitle = 'IA local no Android';
         icon = Icons.smartphone_rounded;
         color = AppTheme.accentColor;
+        break;
+      case 'openai':
+        title = 'OpenAI GPT';
+        subtitle = 'ChatGPT API';
+        icon = Icons.chat_bubble_rounded;
+        color = const Color(0xFF10A37F); // Cor verde do OpenAI
         break;
       default:
         return const SizedBox.shrink();
@@ -1741,6 +1799,157 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         '• Carregar modelo no app via assets ou rede\n'
                         '• Requer Android com pelo menos 4GB RAM\n'
                         '• Primeira configuração pode demorar alguns minutos',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOpenAIConfig(bool isMobile, bool isTablet, bool isDesktop) {
+    final spacing =
+        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
+    final iconSize =
+        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
+    final borderRadius =
+        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
+
+    return ModernCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.chat_bubble_rounded,
+                color: const Color(0xFF10A37F),
+                size: iconSize,
+              ),
+              SizedBox(width: spacing),
+              Text(
+                'Configuração do OpenAI GPT',
+                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
+                    .copyWith(
+                  color: AppTheme.darkTextPrimaryColor,
+                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacing * 1.5),
+          Text(
+            'Chave da API',
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.darkTextPrimaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 12 : 14,
+            ),
+          ),
+          SizedBox(height: spacing),
+          ModernTextField(
+            hint: 'Digite sua chave da API do OpenAI (sk-...)',
+            controller: openaiApiKeyController,
+            prefixIcon: Icons.key_rounded,
+            obscureText: true,
+          ),
+          SizedBox(height: spacing),
+          Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              color: AppTheme.infoColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: AppTheme.infoColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_rounded,
+                  color: AppTheme.infoColor,
+                  size: iconSize,
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Como obter sua chave API:',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.infoColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
+                        ),
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        '1. Acesse https://platform.openai.com/api-keys\n'
+                        '2. Faça login com sua conta OpenAI\n'
+                        '3. Crie uma nova API key\n'
+                        '4. Cole a chave no campo acima (começa com sk-)',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.darkTextSecondaryColor,
+                          height: 1.4,
+                          fontSize: isMobile ? 10 : 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: spacing),
+          Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: AppTheme.warningColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  color: AppTheme.warningColor,
+                  size: iconSize,
+                ),
+                SizedBox(width: spacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Custos da API:',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.warningColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: isMobile ? 11 : 12,
+                        ),
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        '• GPT-4: ~\$0.03 por 1K tokens\n'
+                        '• GPT-3.5: ~\$0.002 por 1K tokens\n'
+                        '• Configure limites de uso no painel OpenAI\n'
+                        '• Monitore seus gastos regularmente',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,

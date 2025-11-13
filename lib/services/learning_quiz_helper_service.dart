@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'ai_firebase_ai_service.dart';
+import 'ai_openai_service.dart';
 
 class QuizHelperService {
   /// Gera pergunta inteligente usando Firebase AI
@@ -46,12 +46,12 @@ class QuizHelperService {
             '🤖 Iniciando geração via Firebase AI: $tipoQuiz - $unidade - $dificuldade');
       }
 
-      // Initialize Firebase AI
-      await FirebaseAIService.initialize();
+      // Initialize OpenAI
+      await OpenAIService.initialize();
 
-      if (!FirebaseAIService.isAvailable) {
+      if (!(await OpenAIService.isAvailableAsync)) {
         if (kDebugMode) {
-          print('❌ Firebase AI não está disponível');
+          print('❌ OpenAI não está disponível');
         }
         return null;
       }
@@ -69,7 +69,7 @@ class QuizHelperService {
         print('📝 Prompt gerado: $promptPreview');
       }
 
-      final response = await FirebaseAIService.sendMessage(prompt);
+      final response = await OpenAIService.sendMessage(prompt);
 
       if (kDebugMode) {
         final responsePreview = response != null && response.length > 200

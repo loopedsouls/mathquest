@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data_database_service.dart';
-import 'ai_ai_service.dart';
+import 'ai_openai_service.dart';
 
 class PreloadService {
   static const String _preloadEnabledKey = 'preload_enabled';
@@ -74,18 +74,7 @@ class PreloadService {
   /// Verifica se a IA está disponível
   static Future<bool> _isAIAvailable() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
-
-      if (selectedAI == 'gemini') {
-        final apiKey = prefs.getString('gemini_api_key');
-        if (apiKey == null || apiKey.isEmpty) return false;
-
-        final gemini = GeminiService(apiKey: apiKey);
-        return await gemini.isServiceAvailable();
-      }
-
-      return false;
+      return await OpenAIService.isAvailableAsync;
     } catch (e) {
       return false;
     }
@@ -181,16 +170,11 @@ class PreloadService {
       // Obtém a quantidade configurada de perguntas
       final totalQuestions = await getPreloadQuantity();
 
-      // Inicializa o serviço de IA
-      late AIService iaService;
+      // Inicializa o OpenAI service
+      await OpenAIService.initialize();
 
-      if (selectedAI == 'gemini') {
-        if (apiKey == null || apiKey.isEmpty) {
-          throw Exception('API Key do Gemini não configurada');
-        }
-        iaService = GeminiService(apiKey: apiKey);
-      } else {
-        throw Exception('Serviço de IA não suportado: $selectedAI');
+      if (!(await OpenAIService.isAvailableAsync)) {
+        throw Exception('OpenAI não está disponível');
       }
 
       onProgress(0, totalQuestions, 'Iniciando precarregamento...');
@@ -215,7 +199,6 @@ class PreloadService {
 
           // Gera a pergunta
           await _generateAndCacheQuestion(
-            iaService: iaService,
             unidade: topic['unidade']!,
             ano: topic['ano']!,
             tipoQuiz: quizType,
@@ -263,7 +246,6 @@ class PreloadService {
 
   /// Gera e armazena uma pergunta no cache
   static Future<void> _generateAndCacheQuestion({
-    required AIService iaService,
     required String unidade,
     required String ano,
     required String tipoQuiz,
@@ -324,7 +306,11 @@ Formato de resposta (JSON):
     }
 
     // Gera a pergunta
-    final response = await iaService.generate(prompt);
+    final response = await OpenAIService.sendMessage(prompt);
+
+    if (response == null) {
+      throw Exception('Falha ao gerar resposta da IA');
+    }
 
     try {
       // Tenta fazer parse do JSON para extrair dados
@@ -343,7 +329,7 @@ Formato de resposta (JSON):
           opcoes: decoded['opcoes']?.cast<String>(),
           respostaCorreta: decoded['resposta_correta'] ?? 'A',
           explicacao: decoded['explicacao'],
-          fonteIA: iaService.runtimeType.toString(),
+          fonteIA: 'OpenAIService',
         );
       } catch (dbError) {
         if (kDebugMode) {
@@ -361,7 +347,7 @@ Formato de resposta (JSON):
           dificuldade: dificuldade,
           pergunta: response,
           respostaCorreta: 'A', // padrão
-          fonteIA: iaService.runtimeType.toString(),
+          fonteIA: 'OpenAIService',
         );
       } catch (dbError) {
         if (kDebugMode) {

@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'services/ai_firebase_ai_service.dart';
+import 'services/ai_openai_service.dart';
 import 'screens/navigation_start_screen.dart';
 import 'app_theme.dart';
 import 'dart:io';
@@ -34,8 +33,14 @@ bool get firebaseAvailable {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Carregar variáveis de ambiente
-  await dotenv.load(fileName: ".env");
+  // Carregar variáveis de ambiente (opcional - arquivo .env pode não existir)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // Arquivo .env não encontrado - continuar sem ele
+    print(
+        'Arquivo .env não encontrado, continuando sem variáveis de ambiente: $e');
+  }
 
   // Inicializar Firebase apenas se disponível na plataforma
   if (firebaseAvailable) {
@@ -78,7 +83,7 @@ void main() async {
 
     // Inicializar OpenAI API
     try {
-      await FirebaseAIService.initialize();
+      await OpenAIService.initialize();
     } catch (e) {
       // OpenAI pode falhar se a chave não estiver configurada
       // mas isso não deve impedir o funcionamento do app

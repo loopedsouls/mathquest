@@ -3,21 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../services/user_auth_service.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/core_modern_components_widget.dart';
-import '../services/ai_ai_service.dart';
+import '../../../services/ai_openai_service.dart';
 import '../services/ai_modules_config_service.dart';
 import 'navigation_help_screen.dart';
-import 'ai_modules_screen.dart';
 import 'navigation_settings_screen.dart';
 import '../../../screens/learning_quiz_screen.dart';
 import 'analytics_dashboard_screen.dart';
-import '../../../screens/ai_chat_screen.dart';
 import 'user_profile_screen.dart';
-import 'ai_firebase_ai_test_screen.dart';
 import 'user_login_screen.dart';
-import '../../../screens/educational_content_resources_screen.dart';
-import '../../../screens/community_community_screen.dart';
-import '../../../screens/math_tools_representation_editor_screen.dart';
-import '../../../screens/learning_exercise_bank_screen.dart';
 import 'user_achievement_screen.dart';
 import 'analytics_reports_screen.dart';
 
@@ -42,11 +35,9 @@ class StartScreen extends StatefulWidget {
 
 class _StartScreenState extends State<StartScreen>
     with TickerProviderStateMixin {
-  final GeminiService geminiService = GeminiService();
   final AuthService _authService = AuthService();
   bool _isLoading = true;
   bool _isOfflineMode = false;
-  List<Map<String, dynamic>> _exerciciosOffline = [];
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -79,31 +70,13 @@ class _StartScreenState extends State<StartScreen>
 
   List<NavigationItem> _buildNavigationItems() {
     final allItems = [
-      {'id': 'navigation_dashboard', 'icon': Icons.dashboard, 'label': 'Dashboard'},
       {
-        'id': 'ai_modulos_bncc',
-        'icon': Icons.play_arrow_rounded,
-        'label': 'Módulos BNCC'
+        'id': 'navigation_dashboard',
+        'icon': Icons.dashboard,
+        'label': 'Dashboard'
       },
       {'id': 'learning_quiz', 'icon': Icons.quiz_rounded, 'label': 'Quiz'},
-      {'id': 'ai_chat', 'icon': Icons.chat_rounded, 'label': 'Chat IA'},
       {'id': 'user_perfil', 'icon': Icons.person, 'label': 'Meu Perfil'},
-      {
-        'id': 'educational_content_recursos',
-        'icon': Icons.library_books_rounded,
-        'label': 'Recursos'
-      },
-      {'id': 'community_comunidade', 'icon': Icons.groups_rounded, 'label': 'Comunidade'},
-      {
-        'id': 'math_tools_ferramentas',
-        'icon': Icons.calculate_rounded,
-        'label': 'Ferramentas'
-      },
-      {
-        'id': 'learning_exercicios',
-        'icon': Icons.fitness_center_rounded,
-        'label': 'Exercícios'
-      },
       {
         'id': 'user_conquistas',
         'icon': Icons.emoji_events_rounded,
@@ -237,7 +210,8 @@ class _StartScreenState extends State<StartScreen>
 
   Future<void> _carregarExerciciosOffline() async {
     // Exercícios pré-definidos para modo offline com vários tipos
-    _exerciciosOffline = [
+    // Note: This method is kept for future offline functionality but currently doesn't store the exercises
+    [
       // Quiz Múltipla Escolha - Frações
       {
         'tipo': 'multipla_escolha',
@@ -276,9 +250,8 @@ class _StartScreenState extends State<StartScreen>
 
   Future<void> _checkAIServices() async {
     try {
-      // Firebase AI é o único serviço disponível
-      final geminiService = GeminiService();
-      _aiAvailable = await geminiService.isServiceAvailable();
+      // Check OpenAI availability
+      _aiAvailable = await OpenAIService.isAvailableAsync;
 
       if (mounted) {
         setState(() {
@@ -311,17 +284,6 @@ class _StartScreenState extends State<StartScreen>
     });
   }
 
-  void _goToModulos() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ModulosScreen(
-          isOfflineMode: _isOfflineMode,
-          exerciciosOffline: _exerciciosOffline,
-        ),
-      ),
-    );
-  }
-
   void _startQuizAlternado() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -338,14 +300,6 @@ class _StartScreenState extends State<StartScreen>
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const AjudaScreen(),
-      ),
-    );
-  }
-
-  void _goToTesteFirebaseAI() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const FirebaseAiTestScreen(),
       ),
     );
   }
@@ -375,29 +329,14 @@ class _StartScreenState extends State<StartScreen>
     switch (moduloId) {
       case 'navigation_dashboard':
         return const DashboardScreen();
-      case 'ai_modulos_bncc':
-        return ModulosScreen(
-          isOfflineMode: _isOfflineMode,
-          exerciciosOffline: _exerciciosOffline,
-        );
       case 'learning_quiz':
         return QuizAlternadoScreen(
           isOfflineMode: _isOfflineMode,
           topico: 'números e operações',
           dificuldade: 'médio',
         );
-      case 'ai_chat':
-        return const ChatScreen(mode: ChatMode.general);
       case 'user_perfil':
         return const ProfileScreen();
-      case 'educational_content_recursos':
-        return const ResourcesScreen();
-      case 'community_comunidade':
-        return const CommunityScreen();
-      case 'math_tools_ferramentas':
-        return const RepresentationEditorScreen();
-      case 'learning_exercicios':
-        return const ExerciseBankScreen();
       case 'user_conquistas':
         return const AchievementScreen();
       case 'ai_ajuda':
@@ -533,6 +472,7 @@ class _StartScreenState extends State<StartScreen>
       ],
     );
   }
+
   Widget _buildNavigationRail() {
     return Container(
       width: 280, // Largura expandida para desktop
@@ -1426,16 +1366,9 @@ class _StartScreenState extends State<StartScreen>
                                       CrossAxisAlignment.stretch,
                                   children: [
                                     ModernButton(
-                                      text: 'Iniciar',
-                                      onPressed: _goToModulos,
-                                      isPrimary: true,
-                                      height: buttonHeight,
-                                    ),
-                                    SizedBox(height: spacing),
-                                    ModernButton(
                                       text: 'Modo Quiz',
                                       onPressed: _startQuizAlternado,
-                                      isPrimary: false,
+                                      isPrimary: true,
                                       height: buttonHeight,
                                     ),
                                     SizedBox(height: spacing),
@@ -1456,13 +1389,6 @@ class _StartScreenState extends State<StartScreen>
                                     ModernButton(
                                       text: 'Ajuda',
                                       onPressed: _goToAjuda,
-                                      isPrimary: false,
-                                      height: buttonHeight,
-                                    ),
-                                    SizedBox(height: spacing),
-                                    ModernButton(
-                                      text: 'Teste Firebase AI',
-                                      onPressed: _goToTesteFirebaseAI,
                                       isPrimary: false,
                                       height: buttonHeight,
                                     ),

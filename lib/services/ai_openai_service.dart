@@ -3,18 +3,23 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../openai_config.dart';
 
-/// Serviço para integração com OpenAI GPT API
-class FirebaseAIService {
+/// Serviço dedicado para integração com OpenAI GPT API
+class OpenAIService {
   static const String _baseUrl = 'https://api.openai.com/v1';
   static const String _model = 'gpt-3.5-turbo';
 
   /// Verifica se o OpenAI API está disponível
+  static Future<bool> get isAvailableAsync => OpenAIConfig.isApiAvailable();
+
+  /// Verifica se o OpenAI API está disponível (versão sync, pode ser imprecisa)
   static bool get isAvailable => OpenAIConfig.isAvailable;
 
-  /// Inicializa o OpenAI API (não necessário para HTTP calls)
+  /// Inicializa o OpenAI API
   static Future<void> initialize() async {
+    await OpenAIConfig.initialize();
     if (kDebugMode) {
-      if (isAvailable) {
+      final available = await OpenAIConfig.isApiAvailable();
+      if (available) {
         print('✅ OpenAI API configurado com sucesso');
       } else {
         print('❌ OpenAI API key não configurada');
@@ -24,8 +29,13 @@ class FirebaseAIService {
 
   /// Helper method para fazer requisições de chat completion
   static Future<String?> _makeChatCompletionRequest(String prompt) async {
-    final apiKey = OpenAIConfig.apiKey;
-    if (apiKey == null) return null;
+    final apiKey = await OpenAIConfig.getApiKey();
+    if (apiKey == null) {
+      if (kDebugMode) {
+        print('❌ API Key do OpenAI não encontrada');
+      }
+      return null;
+    }
 
     try {
       final response = await http.post(
@@ -46,18 +56,37 @@ class FirebaseAIService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'];
+        if (data['choices'] != null &&
+            data['choices'].isNotEmpty &&
+            data['choices'][0]['message'] != null) {
+          return data['choices'][0]['message']['content']?.toString().trim();
+        } else {
+          if (kDebugMode) {
+            print('❌ Resposta da API em formato inesperado: ${response.body}');
+          }
+          return null;
+        }
       } else {
         if (kDebugMode) {
-          print('OpenAI API error: ${response.statusCode} - ${response.body}');
+          print(
+              '❌ OpenAI API error: ${response.statusCode} - ${response.body}');
         }
-        return null;
+
+        // Tentar extrair mensagem de erro específica
+        try {
+          final errorData = jsonDecode(response.body);
+          final errorMessage =
+              errorData['error']?['message'] ?? 'Erro desconhecido';
+          return 'Erro da API OpenAI: $errorMessage';
+        } catch (e) {
+          return 'Erro HTTP ${response.statusCode}: ${response.reasonPhrase}';
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erro na requisição OpenAI: $e');
+        print('❌ Erro na requisição OpenAI: $e');
       }
-      return null;
+      return 'Erro de conexão: $e';
     }
   }
 
@@ -67,7 +96,8 @@ class FirebaseAIService {
     required String ano,
     required String unidade,
   }) async {
-    if (!isAvailable) return null;
+    final available = await isAvailableAsync;
+    if (!available) return null;
 
     try {
       final prompt = '''
@@ -104,7 +134,8 @@ class FirebaseAIService {
     required String dificuldade,
     required String tipo, // 'multipla_escolha', 'verdadeiro_falso', 'completar'
   }) async {
-    if (!isAvailable) return null;
+    final available = await isAvailableAsync;
+    if (!available) return null;
 
     try {
       final prompt = '''
@@ -191,7 +222,8 @@ class FirebaseAIService {
     required bool acertou,
     required String ano,
   }) async {
-    if (!isAvailable) return null;
+    final available = await isAvailableAsync;
+    if (!available) return null;
 
     try {
       final prompt = '''
@@ -224,7 +256,8 @@ class FirebaseAIService {
     required String ano,
     required String unidade,
   }) async {
-    if (!isAvailable) return null;
+    final available = await isAvailableAsync;
+    if (!available) return null;
 
     try {
       final prompt = '''
@@ -253,7 +286,8 @@ class FirebaseAIService {
 
   /// Envia uma mensagem geral para o OpenAI GPT
   static Future<String?> sendMessage(String message) async {
-    if (!isAvailable) return null;
+    final available = await isAvailableAsync;
+    if (!available) return null;
 
     try {
       final response = await _makeChatCompletionRequest(message);
@@ -268,12 +302,14 @@ class FirebaseAIService {
 
   /// Teste básico do OpenAI API
   static Future<String?> testarConexao() async {
-    if (!isAvailable) {
-      return 'OpenAI API não está disponível';
+    final available = await isAvailableAsync;
+    if (!available) {
+      return 'OpenAI API não está disponível - chave não configurada';
     }
 
     try {
-      final response = await _makeChatCompletionRequest('Diga "Olá, MathQuest!" em uma frase.');
+      final response = await _makeChatCompletionRequest(
+          'Responda apenas: "Olá, MathQuest! API funcionando."');
       return response ?? 'Resposta vazia recebida';
     } catch (e) {
       if (kDebugMode) {
@@ -284,11 +320,15 @@ class FirebaseAIService {
   }
 
   /// Status do serviço para debugging
-  static Map<String, dynamic> getStatus() {
+  static Future<Map<String, dynamic>> getStatus() async {
+    final available = await isAvailableAsync;
+    final apiKey = await OpenAIConfig.getApiKey();
     return {
-      'openai_api_available': isAvailable,
-      'service_initialized': isAvailable,
+      'openai_api_available': available,
+      'service_initialized': available,
       'ai_status': 'integrado_com_openai_api',
+      'api_key_configured': apiKey != null && apiKey.isNotEmpty,
+      'api_key_length': apiKey?.length ?? 0,
     };
   }
 }

@@ -1582,76 +1582,44 @@ Resumo da Pesquisa:
         _latexController.text += '% 🔍 Verificando sistema de IA...\n';
       });
 
-      final hasGeminiConfigured = ExportService.hasGeminiConfigured;
+      // Sempre usa IA (Ollama)
+      // Inicia o cabeçalho LaTeX
+      setState(() {
+        _latexController.text = _getLatexHeader(topic);
+      });
 
-      // Determina se deve usar IA
-      bool useAI = false;
+      // Streaming da análise com IA
+      final stream =
+          ExportService.generateAIStateOfArtStream(selectedArticles, topic);
 
-      if (_selectedAIService == 'auto') {
-        useAI = true;
-      } else if (_selectedAIService == 'gemini' && hasGeminiConfigured) {
-        useAI = true;
-      } else if (_selectedAIService == 'auto') {
-        if (hasGeminiConfigured) {
-          useAI = true;
-        }
+      await for (String chunk in stream) {
+        setState(() {
+          // Se é uma mensagem de progresso (contém emojis), adiciona como comentário
+          if (chunk.contains('🔧') ||
+              chunk.contains('📄') ||
+              chunk.contains('🤖') ||
+              chunk.contains('🔄')) {
+            _latexController.text += '\n% $chunk';
+          } else {
+            // Adiciona o chunk diretamente já que vem em LaTeX
+            _latexController.text += chunk;
+          }
+        });
+
+        // Pequeno delay para visualizar o streaming
+        await Future.delayed(const Duration(milliseconds: 30));
       }
 
-      if (useAI) {
-        // Inicia o cabeçalho LaTeX
-        setState(() {
-          _latexController.text = _getLatexHeader(topic);
-        });
-
-        // Streaming da análise com IA
-        final stream = ExportService.generateAIStateOfArtStream(
-            selectedArticles, topic,
-            preferredService:
-                _selectedAIService == 'auto' ? null : _selectedAIService);
-
-        await for (String chunk in stream) {
-          setState(() {
-            // Se é uma mensagem de progresso (contém emojis), adiciona como comentário
-            if (chunk.contains('🔧') ||
-                chunk.contains('📄') ||
-                chunk.contains('🤖') ||
-                chunk.contains('🔄')) {
-              _latexController.text += '\n% $chunk';
-            } else {
-              // Adiciona o chunk diretamente já que vem em LaTeX
-              _latexController.text += chunk;
-            }
-          });
-
-          // Pequeno delay para visualizar o streaming
-          await Future.delayed(const Duration(milliseconds: 30));
-        }
-
-        // Adiciona o rodapé LaTeX
-        setState(() {
-          _latexController.text += '\n\n\\end{document}';
-        });
-      } else {
-        // Fallback: usa o método tradicional
-        setState(() {
-          _latexController.text +=
-              '% ⚠️ IA não disponível. Usando geração básica...\n';
-        });
-
-        final latexContent =
-            ExportService.generateStateOfArtLatex(selectedArticles, topic);
-        setState(() {
-          _latexController.text = latexContent;
-        });
-      }
+      // Adiciona o rodapé LaTeX
+      setState(() {
+        _latexController.text += '\n\n\\end{document}';
+      });
 
       // Mostra sucesso
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(useAI
-                ? '🎉 Estado da arte gerado com IA!'
-                : '✅ Estado da arte gerado!'),
+          const SnackBar(
+            content: Text('🎉 Estado da arte gerado com IA!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -1821,11 +1789,7 @@ Resumo da Pesquisa:
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Salva as configurações
-                    if (_geminiApiKeyController.text.isNotEmpty) {
-                      ExportService.setGeminiApiKey(
-                          _geminiApiKeyController.text);
-                    }
+                    // Salva as configurações (Gemini removido)
                     Navigator.of(context).pop();
 
                     ScaffoldMessenger.of(context).showSnackBar(

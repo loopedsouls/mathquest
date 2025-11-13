@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math';
 import '../../../services/navigation_preload_service.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/core_modern_components_widget.dart';
 import '../../../services/user_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/ai_firebase_ai_service.dart';
-import '../services/ai_ai_service.dart';
+import '../services/ai_openai_service.dart';
 import '../services/ai_modules_config_service.dart';
 import 'user_login_screen.dart';
-import '../openai_config.dart';
 
 class ConfiguracaoScreen extends StatefulWidget {
   const ConfiguracaoScreen({super.key});
@@ -22,11 +19,10 @@ class ConfiguracaoScreen extends StatefulWidget {
 
 class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     with TickerProviderStateMixin {
-  final TextEditingController apiKeyController = TextEditingController();
   final TextEditingController openaiApiKeyController = TextEditingController();
   bool carregando = false;
   String status = '';
-  String _selectedAI = 'gemini';
+  String _selectedAI = 'openai';
   String _modeloOllama = 'llama2';
   bool _preloadEnabled = false;
   int _currentCredits = 0;
@@ -104,15 +100,14 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    apiKeyController.dispose();
+    openaiApiKeyController.dispose();
     super.dispose();
   }
 
   Future<void> _carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
-    final apiKey = prefs.getString('gemini_api_key');
     final openaiApiKey = prefs.getString('openai_api_key');
-    final selectedAI = prefs.getString('selected_ai') ?? 'gemini';
+    final selectedAI = prefs.getString('selected_ai') ?? 'openai';
     final modeloOllama = prefs.getString('modelo_ollama') ?? 'llama2';
     final preloadEnabled = await PreloadService.isPreloadEnabled();
     final credits = await PreloadService.getCredits();
@@ -124,12 +119,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     if (kDebugMode) {
       print(
           '🔧 Configurações carregadas - Créditos: $credits, Preload: $preloadEnabled');
-    }
-
-    if (apiKey != null) {
-      apiKeyController.text = apiKey;
-    } else {
-      apiKeyController.text = 'AIzaSyDSbj4mYAOSdDxEwD8vP7tC8vJ6KzF4N2M';
     }
 
     if (openaiApiKey != null) {
@@ -153,10 +142,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     setState(() => _loadingModels = true);
     try {
       // OllamaService deprecated - using Firebase AI models instead
-      _ollamaModels = ['gemini-pro', 'gemini-pro-vision'];
-      if (_ollamaModels.isEmpty) {
-        _ollamaModels = ['gemini-pro'];
-      }
+      _ollamaModels = ['llama2'];
       if (!_ollamaModels.contains(_modeloOllama)) {
         _modeloOllama = _ollamaModels.first;
       }
@@ -244,15 +230,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   }
 
   Future<void> _salvarConfiguracoes() async {
-    final apiKey = apiKeyController.text.trim();
     final openaiApiKey = openaiApiKeyController.text.trim();
-    if (apiKey.isEmpty && _selectedAI == 'gemini') return;
     if (openaiApiKey.isEmpty && _selectedAI == 'openai') return;
 
     final prefs = await SharedPreferences.getInstance();
-    if (_selectedAI == 'gemini') {
-      await prefs.setString('gemini_api_key', apiKey);
-    }
     if (_selectedAI == 'openai') {
       await prefs.setString('openai_api_key', openaiApiKey);
     }
@@ -274,30 +255,23 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
   Future<void> testarConexao() async {
     setState(() => carregando = true);
     try {
-      if (_selectedAI == 'gemini') {
-        final geminiService =
-            GeminiService(apiKey: apiKeyController.text.trim());
-        final isAvailable = await geminiService.isServiceAvailable();
-        status = isAvailable
-            ? '✅ Conexão com Gemini funcionando!'
-            : '❌ Erro na conexão com Gemini.';
-      } else if (_selectedAI == 'ollama') {
-        // OllamaService deprecated - using Firebase AI instead
-        final isAvailable = FirebaseAIService.isAvailable;
-        status = isAvailable
-            ? '✅ Firebase AI funcionando!'
-            : '❌ Firebase AI não disponível.';
-      } else if (_selectedAI == 'flutter_gemma') {
-        final flutterGemmaService = GeminiService();
-        final isAvailable = await flutterGemmaService.isServiceAvailable();
-        status = isAvailable
-            ? '✅ Flutter Gemma funcionando!'
-            : '❌ Erro no Flutter Gemma.';
+      if (_selectedAI == 'ollama') {
+        // Ollama testing removed - only OpenAI available
+        status = '❌ Ollama não disponível - use OpenAI';
       } else if (_selectedAI == 'openai') {
-        final isAvailable = OpenAIConfig.isAvailable;
-        status = isAvailable
-            ? '✅ OpenAI GPT funcionando!'
-            : '❌ OpenAI GPT não configurado ou indisponível.';
+        // Testar OpenAI API
+        await OpenAIService.initialize(); // Inicializar/recarregar API key
+        final isAvailable = await OpenAIService.isAvailableAsync;
+        if (isAvailable) {
+          // Fazer teste real da API
+          final testResult = await OpenAIService.testarConexao();
+          status = testResult?.contains('Olá, MathQuest!') == true ||
+                  testResult?.contains('funcionando') == true
+              ? '✅ OpenAI GPT funcionando!'
+              : '❌ Erro na API OpenAI: $testResult';
+        } else {
+          status = '❌ OpenAI GPT não configurado ou chave inválida.';
+        }
       }
     } catch (e) {
       status = '❌ Erro ao testar conexão: $e';
@@ -788,12 +762,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                             const SizedBox(height: 24),
 
                             // Configuração específica do serviço selecionado
-                            if (_selectedAI == 'gemini')
-                              _buildGeminiConfig(false, false, true)
-                            else if (_selectedAI == 'ollama')
+                            if (_selectedAI == 'ollama')
                               _buildOllamaConfig(false, false, true)
-                            else if (_selectedAI == 'flutter_gemma')
-                              _buildFlutterGemmaConfig(false, false, true)
                             else if (_selectedAI == 'openai')
                               _buildOpenAIConfig(false, false, true),
                           ],
@@ -866,21 +836,9 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                     _buildServiceSelector(isMobile, isTablet, false),
                     SizedBox(height: isMobile ? 16 : 20),
 
-                    // Configuração do Gemini
-                    if (_selectedAI == 'gemini') ...[
-                      _buildGeminiConfig(isMobile, isTablet, false),
-                      SizedBox(height: isMobile ? 16 : 20),
-                    ],
-
                     // Configuração do Ollama
                     if (_selectedAI == 'ollama') ...[
                       _buildOllamaConfig(isMobile, isTablet, false),
-                      SizedBox(height: isMobile ? 16 : 20),
-                    ],
-
-                    // Configuração do Flutter Gemma
-                    if (_selectedAI == 'flutter_gemma') ...[
-                      _buildFlutterGemmaConfig(isMobile, isTablet, false),
                       SizedBox(height: isMobile ? 16 : 20),
                     ],
 
@@ -977,12 +935,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
 
   String _getServiceName(String serviceId) {
     switch (serviceId) {
-      case 'gemini':
-        return 'Google Gemini';
       case 'ollama':
         return 'Ollama Local';
-      case 'flutter_gemma':
-        return 'Flutter Gemma';
       case 'openai':
         return 'OpenAI GPT';
       default:
@@ -1042,15 +996,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             // Layout vertical para desktop (mais compacto)
             Column(
               children: [
-                _buildServiceCard('gemini', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile,
-                    isDesktop: true),
-                SizedBox(height: spacing * 0.75),
                 _buildServiceCard('ollama', cardPadding, iconSize,
-                    iconInternalSize, borderRadius, spacing, isMobile,
-                    isDesktop: true),
-                SizedBox(height: spacing * 0.75),
-                _buildServiceCard('flutter_gemma', cardPadding, iconSize,
                     iconInternalSize, borderRadius, spacing, isMobile,
                     isDesktop: true),
                 SizedBox(height: spacing * 0.75),
@@ -1063,22 +1009,12 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
             Row(
               children: [
                 Expanded(
-                    child: _buildServiceCard('gemini', cardPadding, iconSize,
-                        iconInternalSize, borderRadius, spacing, isMobile)),
-                SizedBox(width: spacing),
-                Expanded(
                     child: _buildServiceCard('ollama', cardPadding, iconSize,
                         iconInternalSize, borderRadius, spacing, isMobile)),
                 SizedBox(width: spacing),
                 Expanded(
-                    child: _buildServiceCard(
-                        'flutter_gemma',
-                        cardPadding,
-                        iconSize,
-                        iconInternalSize,
-                        borderRadius,
-                        spacing,
-                        isMobile)),
+                    child: _buildServiceCard('openai', cardPadding, iconSize,
+                        iconInternalSize, borderRadius, spacing, isMobile)),
               ],
             )
           else
@@ -1088,31 +1024,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                   children: [
                     Expanded(
                         child: _buildServiceCard(
-                            'gemini',
-                            cardPadding,
-                            iconSize,
-                            iconInternalSize,
-                            borderRadius,
-                            spacing,
-                            isMobile)),
-                    SizedBox(width: spacing),
-                    Expanded(
-                        child: _buildServiceCard(
                             'ollama',
-                            cardPadding,
-                            iconSize,
-                            iconInternalSize,
-                            borderRadius,
-                            spacing,
-                            isMobile)),
-                  ],
-                ),
-                SizedBox(height: spacing),
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildServiceCard(
-                            'flutter_gemma',
                             cardPadding,
                             iconSize,
                             iconInternalSize,
@@ -1152,23 +1064,11 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     Color color;
 
     switch (serviceType) {
-      case 'gemini':
-        title = 'Google Gemini';
-        subtitle = 'Serviço em nuvem';
-        icon = Icons.auto_awesome_rounded;
-        color = AppTheme.primaryColor;
-        break;
       case 'ollama':
         title = 'Ollama';
         subtitle = 'Execução local';
         icon = Icons.computer_rounded;
         color = AppTheme.secondaryColor;
-        break;
-      case 'flutter_gemma':
-        title = 'Flutter Gemma';
-        subtitle = 'IA local no Android';
-        icon = Icons.smartphone_rounded;
-        color = AppTheme.accentColor;
         break;
       case 'openai':
         title = 'OpenAI GPT';
@@ -1290,107 +1190,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                   ),
                 ],
               ),
-      ),
-    );
-  }
-
-  Widget _buildGeminiConfig(bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing =
-        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize =
-        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius =
-        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_awesome_rounded,
-                color: AppTheme.primaryColor,
-                size: iconSize,
-              ),
-              SizedBox(width: spacing),
-              Text(
-                'Configuração do Google Gemini',
-                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
-                    .copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: spacing * 1.5),
-          Text(
-            'Chave da API',
-            style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.darkTextPrimaryColor,
-              fontWeight: FontWeight.w600,
-              fontSize: isMobile ? 12 : 14,
-            ),
-          ),
-          SizedBox(height: spacing),
-          ModernTextField(
-            hint: 'Digite sua chave da API do Google Gemini',
-            controller: apiKeyController,
-            prefixIcon: Icons.key_rounded,
-            obscureText: true,
-          ),
-          SizedBox(height: spacing),
-          Container(
-            padding: EdgeInsets.all(spacing),
-            decoration: BoxDecoration(
-              color: AppTheme.infoColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: AppTheme.infoColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_rounded,
-                  color: AppTheme.infoColor,
-                  size: iconSize,
-                ),
-                SizedBox(width: spacing),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Como obter sua chave API:',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.infoColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: isMobile ? 11 : 12,
-                        ),
-                      ),
-                      SizedBox(height: spacing * 0.5),
-                      Text(
-                        '1. Acesse https://makersuite.google.com/app/apikey\n'
-                        '2. Faça login com sua conta Google\n'
-                        '3. Crie uma nova API key\n'
-                        '4. Cole a chave no campo acima',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                          height: 1.4,
-                          fontSize: isMobile ? 10 : 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1518,287 +1317,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
                         '• Ollama deve estar instalado e rodando\n'
                         '• Servidor local em http://localhost:11434\n'
                         '• Modelo selecionado deve estar baixado',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                          height: 1.4,
-                          fontSize: isMobile ? 10 : 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFlutterGemmaConfig(
-      bool isMobile, bool isTablet, bool isDesktop) {
-    final spacing =
-        isMobile ? 8.0 : (isTablet ? 12.0 : (isDesktop ? 20.0 : 16.0));
-    final iconSize =
-        isMobile ? 18.0 : (isTablet ? 20.0 : (isDesktop ? 28.0 : 24.0));
-    final borderRadius =
-        isMobile ? 8.0 : (isTablet ? 10.0 : (isDesktop ? 16.0 : 12.0));
-
-    return ModernCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.smartphone_rounded,
-                color: AppTheme.accentColor,
-                size: iconSize,
-              ),
-              SizedBox(width: spacing),
-              Text(
-                'Configuração do Flutter Gemma',
-                style: (isMobile ? AppTheme.bodyLarge : AppTheme.headingMedium)
-                    .copyWith(
-                  color: AppTheme.darkTextPrimaryColor,
-                  fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: spacing * 1.5),
-
-          // Status do modelo
-          FutureBuilder<Map<String, dynamic>>(
-            future: _getFlutterGemmaStatus(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final modelInfo = snapshot.data ?? {};
-              final exists = modelInfo['exists'] ?? false;
-              final size = modelInfo['sizeFormatted'] ?? '0 B';
-
-              return Container(
-                padding: EdgeInsets.all(spacing),
-                decoration: BoxDecoration(
-                  color: exists
-                      ? AppTheme.successColor.withValues(alpha: 0.1)
-                      : AppTheme.warningColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(borderRadius),
-                  border: Border.all(
-                    color: exists
-                        ? AppTheme.successColor.withValues(alpha: 0.3)
-                        : AppTheme.warningColor.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      exists
-                          ? Icons.check_circle_rounded
-                          : Icons.download_rounded,
-                      color: exists
-                          ? AppTheme.successColor
-                          : AppTheme.warningColor,
-                      size: iconSize,
-                    ),
-                    SizedBox(width: spacing),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            exists
-                                ? 'Modelo Carregado'
-                                : 'Modelo Não Encontrado',
-                            style: AppTheme.bodyMedium.copyWith(
-                              color: exists
-                                  ? AppTheme.successColor
-                                  : AppTheme.warningColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: isMobile ? 12 : 14,
-                            ),
-                          ),
-                          SizedBox(height: spacing * 0.25),
-                          Text(
-                            exists
-                                ? 'Tamanho: $size - Pronto para uso'
-                                : 'Clique em "Baixar Modelo" para configurar',
-                            style: AppTheme.bodySmall.copyWith(
-                              color: AppTheme.darkTextSecondaryColor,
-                              fontSize: isMobile ? 10 : 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          SizedBox(height: spacing),
-
-          // Botões de ação
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: isMobile ? 40 : (isTablet ? 44 : 48),
-                  child: ElevatedButton.icon(
-                    onPressed: carregando ? null : _baixarModeloGemma,
-                    icon: Icon(
-                      Icons.download_rounded,
-                      size: isMobile ? 14 : (isTablet ? 16 : 18),
-                    ),
-                    label: Text(
-                      'Baixar Modelo',
-                      style: AppTheme.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: isMobile ? 11 : 12,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentColor,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: spacing),
-              Expanded(
-                child: SizedBox(
-                  height: isMobile ? 40 : (isTablet ? 44 : 48),
-                  child: ElevatedButton.icon(
-                    onPressed: carregando ? null : _testarFlutterGemma,
-                    icon: Icon(
-                      Icons.play_arrow_rounded,
-                      size: isMobile ? 14 : (isTablet ? 16 : 18),
-                    ),
-                    label: Text(
-                      'Testar',
-                      style: AppTheme.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: isMobile ? 11 : 12,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          AppTheme.primaryColor.withValues(alpha: 0.1),
-                      foregroundColor: AppTheme.primaryColor,
-                      elevation: 0,
-                      side: BorderSide(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: spacing),
-
-          Container(
-            padding: EdgeInsets.all(spacing),
-            decoration: BoxDecoration(
-              color: AppTheme.infoColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: AppTheme.infoColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  color: AppTheme.infoColor,
-                  size: iconSize,
-                ),
-                SizedBox(width: spacing),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'IA Local no Android',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.infoColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: isMobile ? 11 : 12,
-                        ),
-                      ),
-                      SizedBox(height: spacing * 0.5),
-                      Text(
-                        '• Executa diretamente no dispositivo Android\n'
-                        '• Não requer conexão com internet após configuração\n'
-                        '• Melhor privacidade e segurança dos dados\n'
-                        '• Recomendado modelo: Gemma 3 1B para melhor performance\n'
-                        '• Funciona apenas em dispositivos Android',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.darkTextSecondaryColor,
-                          height: 1.4,
-                          fontSize: isMobile ? 10 : 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: spacing),
-          Container(
-            padding: EdgeInsets.all(spacing),
-            decoration: BoxDecoration(
-              color: AppTheme.warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: AppTheme.warningColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.warning_rounded,
-                  color: AppTheme.warningColor,
-                  size: iconSize,
-                ),
-                SizedBox(width: spacing),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Configuração Necessária:',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.warningColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: isMobile ? 11 : 12,
-                        ),
-                      ),
-                      SizedBox(height: spacing * 0.5),
-                      Text(
-                        '• Baixar modelo Gemma do HuggingFace ou Kaggle\n'
-                        '• Carregar modelo no app via assets ou rede\n'
-                        '• Requer Android com pelo menos 4GB RAM\n'
-                        '• Primeira configuração pode demorar alguns minutos',
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.darkTextSecondaryColor,
                           height: 1.4,
@@ -2523,7 +2041,7 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
           SizedBox(height: spacing),
           _buildInfoItem(
             'Performance',
-            'Gemini oferece maior precisão, Ollama oferece maior privacidade',
+            'OpenAI oferece maior precisão, Ollama oferece maior privacidade',
             Icons.speed_rounded,
             isMobile,
             isTablet,
@@ -2753,14 +2271,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         return Icons.chat_rounded;
       case 'Perfil':
         return Icons.person_rounded;
-      case 'Recursos Educacionais':
-        return Icons.library_books_rounded;
-      case 'Comunidade':
-        return Icons.groups_rounded;
-      case 'Ferramentas Matemáticas':
-        return Icons.calculate_rounded;
-      case 'Exercícios':
-        return Icons.fitness_center_rounded;
       case 'Conquistas':
         return Icons.emoji_events_rounded;
       case 'Ajuda':
@@ -2788,14 +2298,6 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
         return 'Assistente de IA';
       case 'Perfil':
         return 'Informações do usuário';
-      case 'Recursos Educacionais':
-        return 'Artigos e materiais de estudo';
-      case 'Comunidade':
-        return 'Fórum e discussões';
-      case 'Ferramentas Matemáticas':
-        return 'Calculadoras e editores';
-      case 'Exercícios':
-        return 'Banco de exercícios';
       case 'Conquistas':
         return 'Troféus e medalhas';
       case 'Ajuda':
@@ -2809,84 +2311,5 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
       default:
         return 'Funcionalidade adicional';
     }
-  }
-
-  Future<Map<String, dynamic>> _getFlutterGemmaStatus() async {
-    try {
-      // FlutterGemmaService deprecated - using Firebase AI status instead
-      await FirebaseAIService.initialize();
-      return {
-        'exists': FirebaseAIService.isAvailable,
-        'size': 'N/A (Firebase AI)',
-        'downloaded': FirebaseAIService.isAvailable,
-      };
-    } catch (e) {
-      return {
-        'exists': false,
-        'error': e.toString(),
-      };
-    }
-  }
-
-  Future<void> _baixarModeloGemma() async {
-    setState(() => carregando = true);
-
-    try {
-      // FlutterGemmaService deprecated - using Firebase AI initialization instead
-      await FirebaseAIService.initialize();
-      setState(() {
-        status = '✅ Firebase AI inicializado com sucesso!';
-      });
-    } catch (e) {
-      setState(() {
-        status = '❌ Erro no download: $e';
-      });
-    } finally {
-      setState(() => carregando = false);
-    }
-
-    // Limpar status após alguns segundos
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() => status = '');
-      }
-    });
-  }
-
-  Future<void> _testarFlutterGemma() async {
-    setState(() => carregando = true);
-
-    try {
-      // Initialize Firebase AI if not already done
-      await FirebaseAIService.initialize();
-
-      final isAvailable = FirebaseAIService.isAvailable;
-      if (isAvailable) {
-        // Testar uma geração simples
-        final response =
-            await FirebaseAIService.sendMessage('Olá, teste de funcionamento');
-        setState(() {
-          status =
-              '✅ Firebase AI funcionando! Resposta: ${response != null ? response.substring(0, min(50, response.length)) : "Sem resposta"}...';
-        });
-      } else {
-        setState(() {
-          status = '❌ Firebase AI não está disponível';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        status = '❌ Erro no teste: $e';
-      });
-    } finally {
-      setState(() => carregando = false);
-    }
-
-    // Limpar status após alguns segundos
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() => status = '');
-      }
-    });
   }
 }

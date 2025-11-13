@@ -2,139 +2,30 @@ import 'package:flutter/foundation.dart';
 
 import '../screens/educational_content_arxiv_service_screen.dart';
 import 'package:mathquest/services/ai_ollama_ai_service.dart';
-import 'package:mathquest/services/ai_gemini_ai_service.dart';
 
 class ExportService {
   static final OllamaService _ollamaService = OllamaService();
-  static final GeminiService _geminiService = GeminiService();
 
-  /// Define a chave da API do Gemini
-  static void setGeminiApiKey(String apiKey) {
-    _geminiService.setApiKey(apiKey);
-  }
-
-  /// Verifica se o Gemini está configurado
-  static bool get hasGeminiConfigured => _geminiService.hasApiKey;
-
-  /// Gera estado da arte usando IA com streaming - prioriza Gemini se configurado
+  /// Gera estado da arte usando IA com streaming - usa Ollama
   static Stream<String> generateAIStateOfArtStream(
       List<ArxivArticle> articles, String topic,
       {String? preferredService}) async* {
     try {
-      // Determina qual serviço usar
-      bool useGemini = false;
-
-      if (preferredService == 'gemini' && _geminiService.hasApiKey) {
-        useGemini = true;
-      } else if (preferredService == 'ollama') {
-        useGemini = false;
-      } else {
-        // Auto-detecta: prioriza Gemini se configurado
-        if (_geminiService.hasApiKey) {
-          final geminiWorking = await _geminiService.isGeminiWorking();
-          useGemini = geminiWorking;
+      // Usa Ollama diretamente
+      try {
+        await for (final chunk in _generateWithOllama(articles, topic)) {
+          yield chunk;
         }
-      }
-
-      if (useGemini) {
-        // Tenta Gemini 2.0 Flash com fallback automático
-        yield '🚀 Tentando gerar com Gemini 2.0 Flash...\n';
-
-        try {
-          await for (final chunk in _generateWithGemini(articles, topic)) {
-            yield chunk;
-          }
-          return; // Sucesso com Gemini
-        } catch (e) {
-          if (e.toString().contains('Rate limit') ||
-              e.toString().contains('429') ||
-              e.toString().contains('quota') ||
-              e.toString().contains('RATE_LIMIT_EXCEEDED')) {
-            yield '\n⚠️ Gemini atingiu limite de taxa (rate limit). Alternando para Ollama...\n\n';
-            yield '🔄 Configurando Ollama como fallback...\n';
-
-            // Fallback automático para Ollama
-            try {
-              await for (final chunk in _generateWithOllama(articles, topic)) {
-                yield chunk;
-              }
-              return;
-            } catch (ollamaError) {
-              yield '\n❌ Erro também com Ollama: $ollamaError\n';
-              yield '\n📄 Gerando relatório básico...\n';
-              yield _generateBasicStateOfArt(articles, topic);
-              return;
-            }
-          } else {
-            yield '\n❌ Erro com Gemini: $e\n';
-            yield '🔄 Tentando com Ollama...\n\n';
-
-            // Fallback para outros erros também
-            try {
-              await for (final chunk in _generateWithOllama(articles, topic)) {
-                yield chunk;
-              }
-              return;
-            } catch (ollamaError) {
-              yield '\n❌ Erro também com Ollama: $ollamaError\n';
-              yield '\n📄 Gerando relatório básico...\n';
-              yield _generateBasicStateOfArt(articles, topic);
-              return;
-            }
-          }
-        }
-      } else {
-        // Usa Ollama diretamente
-        try {
-          await for (final chunk in _generateWithOllama(articles, topic)) {
-            yield chunk;
-          }
-        } catch (e) {
-          yield '\n❌ Erro com Ollama: $e\n';
-          yield '\n📄 Gerando relatório básico...\n';
-          yield _generateBasicStateOfArt(articles, topic);
-        }
+      } catch (e) {
+        yield '\n❌ Erro com Ollama: $e\n';
+        yield '\n📄 Gerando relatório básico...\n';
+        yield _generateBasicStateOfArt(articles, topic);
       }
     } catch (e) {
       yield '\n❌ Erro fatal: $e\n';
-      yield '💡 Dica: Verifique se o Ollama está instalado ou a API key do Gemini está configurada.\n';
+      yield '💡 Dica: Verifique se o Ollama está instalado.\n';
       yield '\n📄 Gerando relatório básico...\n';
       yield _generateBasicStateOfArt(articles, topic);
-    }
-  }
-
-  /// Gera estado da arte usando Gemini
-  static Stream<String> _generateWithGemini(
-      List<ArxivArticle> articles, String topic) async* {
-    try {
-      yield '🔧 Configurando Gemini 2.0 Flash...\n';
-
-      // Processa cada artigo
-      List<String> processedTexts = [];
-
-      for (int i = 0; i < articles.length; i++) {
-        final article = articles[i];
-        final articleTitle = article.title.length > 50
-            ? "${article.title.substring(0, 50)}..."
-            : article.title;
-
-        yield '📄 Processando artigo ${i + 1}/${articles.length}: $articleTitle\n';
-
-        try {
-          final processed = await _geminiService.processArticle(article);
-          processedTexts.add(processed);
-        } catch (e) {
-          yield '⚠️ Erro ao processar artigo: $e\n';
-          // Fallback para o abstract original
-          processedTexts.add('**RESUMO ORIGINAL:** ${article.summary}');
-        }
-      }
-
-      // Gera síntese final com streaming
-      yield* _geminiService.generateStateOfArtStreaming(processedTexts, topic);
-    } catch (e) {
-      yield '\n❌ Erro ao gerar estado da arte com Gemini: $e\n';
-      rethrow;
     }
   }
 

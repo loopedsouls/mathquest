@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../services/ai_explanation_service.dart';
-import '../services/ai_firebase_ai_service.dart';
+import '../services/ai_openai_service.dart';
 import '../services/learning_quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -200,7 +200,7 @@ Mantenha essas informações na sua memória para quando o usuário solicitar ve
 Responda apenas com "Resposta armazenada na memória" para confirmar que você processou e guardou a solução.
 ''';
 
-      final confirmacao = await FirebaseAIService.sendMessage(promptMemoria);
+      final confirmacao = await OpenAIService.sendMessage(promptMemoria);
 
       // Log opcional para debug (pode ser removido em produção)
       debugPrint('IA confirmou armazenamento: $confirmacao');
@@ -228,7 +228,7 @@ Forneça uma resposta no seguinte formato:
 Seja preciso na análise matemática e didático na explicação.
 ''';
 
-      final resultado = await FirebaseAIService.sendMessage(promptVerificacao);
+      final resultado = await OpenAIService.sendMessage(promptVerificacao);
 
       if (resultado == null) {
         // Fallback se Firebase AI falhar
@@ -398,7 +398,7 @@ Por favor, forneça instruções claras e específicas sobre:
 Seja didático, encorajador e específico para esta pergunta. Limite sua resposta a cerca de 200 palavras.
 ''';
 
-      final ajudaGerada = await FirebaseAIService.sendMessage(prompt);
+      final ajudaGerada = await OpenAIService.sendMessage(prompt);
 
       setState(() {
         _ajudaIA = ajudaGerada ?? 'Erro ao gerar ajuda. Tente novamente.';

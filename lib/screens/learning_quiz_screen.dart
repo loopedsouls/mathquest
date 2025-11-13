@@ -6,7 +6,6 @@ import '../services/user_character_service.dart';
 import '../services/analytics_performance_service.dart';
 import '../services/learning_quiz_helper_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../widgets/core_modern_components_widget.dart';
 import 'learning_quiz_snake_screen.dart';
 
@@ -698,7 +697,10 @@ class _QuizAlternadoScreenState extends State<QuizAlternadoScreen>
       // Calcular bônus do personagem
       int bonusPontos = 0;
       if (_personagemSelecionado != null) {
-        bonusPontos = (_personagemService.calcularBonusPontos(_personagemSelecionado!) * 10).round();
+        bonusPontos =
+            (_personagemService.calcularBonusPontos(_personagemSelecionado!) *
+                    10)
+                .round();
       }
       pontuacao += 10 + bonusPontos;
       estatisticas['corretas'] = estatisticas['corretas']! + 1;

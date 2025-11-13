@@ -155,12 +155,21 @@ class _LoginScreenState extends State<LoginScreen>
                         // Campo Email
                         TextField(
                           controller: _emailController,
+                          style: const TextStyle(color: Colors.black),
                           decoration: InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: const Icon(Icons.email),
+                            labelStyle: const TextStyle(color: Colors.black87),
+                            prefixIcon:
+                                const Icon(Icons.email, color: Colors.black87),
                             border: const OutlineInputBorder(),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: Colors.white,
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black87),
+                            ),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black54),
+                            ),
                           ),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -170,12 +179,21 @@ class _LoginScreenState extends State<LoginScreen>
                         // Campo Senha
                         TextField(
                           controller: _passwordController,
+                          style: const TextStyle(color: Colors.black),
                           decoration: InputDecoration(
                             labelText: 'Senha',
-                            prefixIcon: const Icon(Icons.lock),
+                            labelStyle: const TextStyle(color: Colors.black87),
+                            prefixIcon:
+                                const Icon(Icons.lock, color: Colors.black87),
                             border: const OutlineInputBorder(),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: Colors.white,
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black87),
+                            ),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black54),
+                            ),
                           ),
                           obscureText: true,
                           textInputAction: _isLogin
@@ -189,12 +207,22 @@ class _LoginScreenState extends State<LoginScreen>
                         if (!_isLogin) ...[
                           TextField(
                             controller: _confirmPasswordController,
+                            style: const TextStyle(color: Colors.black),
                             decoration: InputDecoration(
                               labelText: 'Confirmar Senha',
-                              prefixIcon: const Icon(Icons.lock_outline),
+                              labelStyle:
+                                  const TextStyle(color: Colors.black87),
+                              prefixIcon: const Icon(Icons.lock_outline,
+                                  color: Colors.black87),
                               border: const OutlineInputBorder(),
                               filled: true,
-                              fillColor: Colors.grey[100],
+                              fillColor: Colors.white,
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black87),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black54),
+                              ),
                             ),
                             obscureText: true,
                             textInputAction: TextInputAction.done,
@@ -312,11 +340,19 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 labelText: 'Email',
+                labelStyle: const TextStyle(color: Colors.black87),
                 border: const OutlineInputBorder(),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: Colors.white,
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black87),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black54),
+                ),
               ),
               keyboardType: TextInputType.emailAddress,
             ),

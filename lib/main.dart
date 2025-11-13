@@ -158,9 +158,11 @@ class ResponsiveWrapper extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppTheme.darkBackgroundColor,
-                AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+                Colors.black,
+                AppTheme.primaryColor.withValues(alpha: 0.3),
+                AppTheme.secondaryColor.withValues(alpha: 0.2),
               ],
+              stops: const [0.0, 0.7, 1.0],
             ),
           ),
           child: isDesktop

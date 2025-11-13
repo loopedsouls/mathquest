@@ -2263,6 +2263,8 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     switch (categoria) {
       case 'Dashboard':
         return Icons.dashboard_rounded;
+      case 'Módulos':
+        return Icons.library_books_rounded;
       case 'Módulos BNCC':
         return Icons.school_rounded;
       case 'Quiz':
@@ -2290,8 +2292,10 @@ class _ConfiguracaoScreenState extends State<ConfiguracaoScreen>
     switch (categoria) {
       case 'Dashboard':
         return 'Visão geral do progresso';
+      case 'Módulos':
+        return 'Cursos de matemática disponíveis';
       case 'Módulos BNCC':
-        return 'Conteúdo de aprendizado BNCC';
+        return 'Conteúdo educacional BNCC estruturado';
       case 'Quiz':
         return 'Exercícios e desafios';
       case 'Chat IA':

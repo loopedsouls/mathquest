@@ -38,7 +38,7 @@ class _AchievementScreenState extends State<AchievementScreen>
   }
 
   Widget _buildConquistaIcon(String icone, {bool isLocked = false}) {
-    if (icone.startsWith('assets/models/') && icone.endsWith('.svg')) {
+    if (icone.startsWith('models/') && icone.endsWith('.svg')) {
       return SvgPicture.asset(
         icone,
         width: 40,
@@ -376,8 +376,7 @@ class _AchievementScreenState extends State<AchievementScreen>
   }
 
   Widget _buildConquistasBloqueadas() {
-    final conquistasBloqueadas =
-        _conquistas.where((c) => !c.unlocked).toList();
+    final conquistasBloqueadas = _conquistas.where((c) => !c.unlocked).toList();
 
     if (conquistasBloqueadas.isEmpty) {
       return Center(
@@ -568,8 +567,7 @@ class _AchievementScreenState extends State<AchievementScreen>
         textoProgresso = 'Módulos: 2/$quantidadeRequerida';
         break;
       case AchievementType.totalScore:
-        final pontosRequeridos =
-            (conquista.criteria['pontos'] as int?) ?? 1000;
+        final pontosRequeridos = (conquista.criteria['pontos'] as int?) ?? 1000;
         progresso = 0.45;
         textoProgresso =
             'Pontos: ${(pontosRequeridos * 0.45).round()}/$pontosRequeridos';

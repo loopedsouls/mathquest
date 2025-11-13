@@ -87,7 +87,7 @@ class AchievementsData {
       id: 'first_module',
       title: 'First Step',
       description: 'Complete your first module',
-      emoji: 'assets/models/Primeiro-Passo.svg',
+      emoji: 'models/Primeiro-Passo.svg',
       type: AchievementType.moduleComplete,
       criteria: {'quantity': 1},
       bonusPoints: 50,
@@ -96,7 +96,7 @@ class AchievementsData {
       id: 'ten_modules',
       title: 'Dedicated',
       description: 'Complete 10 modules',
-      emoji: 'assets/models/Dedicado.svg',
+      emoji: 'models/Dedicado.svg',
       type: AchievementType.moduleComplete,
       criteria: {'quantity': 10},
       bonusPoints: 200,
@@ -107,7 +107,7 @@ class AchievementsData {
       id: 'numbers_complete',
       title: 'Numbers Master',
       description: 'Complete the entire Numbers unit',
-      emoji: 'assets/models/Mestre-dos-números.svg',
+      emoji: 'models/Mestre-dos-números.svg',
       type: AchievementType.unitComplete,
       criteria: {'unit': 'Números'},
       bonusPoints: 300,
@@ -116,7 +116,7 @@ class AchievementsData {
       id: 'algebra_complete',
       title: 'Algebraist',
       description: 'Complete the entire Algebra unit',
-      emoji: 'assets/models/Algebrista.svg',
+      emoji: 'models/Algebrista.svg',
       type: AchievementType.unitComplete,
       criteria: {'unit': 'Álgebra'},
       bonusPoints: 300,
@@ -125,7 +125,7 @@ class AchievementsData {
       id: 'geometry_complete',
       title: 'Geometer',
       description: 'Complete the entire Geometry unit',
-      emoji: 'assets/models/Geômetra.svg',
+      emoji: 'models/Geômetra.svg',
       type: AchievementType.unitComplete,
       criteria: {'unit': 'Geometria'},
       bonusPoints: 300,
@@ -134,7 +134,7 @@ class AchievementsData {
       id: 'measurements_complete',
       title: 'Measurement Expert',
       description: 'Complete the entire Measurements and Quantities unit',
-      emoji: 'assets/models/MEdidor-Expert.svg',
+      emoji: 'models/MEdidor-Expert.svg',
       type: AchievementType.unitComplete,
       criteria: {'unit': 'Grandezas e Medidas'},
       bonusPoints: 300,
@@ -143,7 +143,7 @@ class AchievementsData {
       id: 'probability_complete',
       title: 'Statistician',
       description: 'Complete the entire Probability and Statistics unit',
-      emoji: 'assets/models/Estatistico.svg',
+      emoji: 'models/Estatistico.svg',
       type: AchievementType.unitComplete,
       criteria: {'unit': 'Probabilidade e Estatística'},
       bonusPoints: 300,
@@ -154,7 +154,7 @@ class AchievementsData {
       id: 'intermediate_level',
       title: 'Evolving',
       description: 'Reach Intermediate level',
-      emoji: 'assets/models/Evoluindo.svg',
+      emoji: 'models/Evoluindo.svg',
       type: AchievementType.levelReached,
       criteria: {'level': 1}, // UserLevel.intermediate.index
       bonusPoints: 150,
@@ -163,7 +163,7 @@ class AchievementsData {
       id: 'advanced_level',
       title: 'Progressing',
       description: 'Reach Advanced level',
-      emoji: 'assets/models/Progredidndo.svg',
+      emoji: 'models/Progredidndo.svg',
       type: AchievementType.levelReached,
       criteria: {'level': 2}, // UserLevel.advanced.index
       bonusPoints: 300,
@@ -174,7 +174,7 @@ class AchievementsData {
       id: 'first_exercise',
       title: 'First Exercise',
       description: 'Complete your first exercise',
-      emoji: 'assets/models/Primeiro-Passo.svg',
+      emoji: 'models/Primeiro-Passo.svg',
       type: AchievementType.moduleComplete,
       criteria: {'completed_exercises': 1},
       bonusPoints: 25,
@@ -185,7 +185,7 @@ class AchievementsData {
       id: 'bncc_master',
       title: 'BNCC Master',
       description: 'Master all BNCC objectives for your school year',
-      emoji: 'assets/models/Mestre-BNCC.svg',
+      emoji: 'models/Mestre-BNCC.svg',
       type: AchievementType.unitComplete,
       criteria: {'bncc_objectives_complete': true},
       bonusPoints: 1000,
@@ -208,18 +208,14 @@ class AchievementsData {
     }
   }
 
-  static List<Achievement> getUnlockedAchievements(
-      List<String> unlockedIds) {
+  static List<Achievement> getUnlockedAchievements(List<String> unlockedIds) {
     return _baseAchievements
         .where((a) => unlockedIds.contains(a.id))
         .map((a) => a.copyWith(unlocked: true))
         .toList();
   }
 
-  static List<Achievement> getLockedAchievements(
-      List<String> unlockedIds) {
-    return _baseAchievements
-        .where((a) => !unlockedIds.contains(a.id))
-        .toList();
+  static List<Achievement> getLockedAchievements(List<String> unlockedIds) {
+    return _baseAchievements.where((a) => !unlockedIds.contains(a.id)).toList();
   }
 }

@@ -457,7 +457,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildConquistaIcon(String icone, {bool isLocked = false}) {
-    if (icone.startsWith('assets/models/') && icone.endsWith('.svg')) {
+    if (icone.startsWith('models/') && icone.endsWith('.svg')) {
       return SvgPicture.asset(
         icone,
         width: 36,
@@ -479,10 +479,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // Achievement section with detailed view
   Widget _buildAchievementCard() {
-    final unlockedAchievements =
-        _conquistas.where((c) => c.unlocked).toList();
-    final lockedAchievements =
-        _conquistas.where((c) => !c.unlocked).toList();
+    final unlockedAchievements = _conquistas.where((c) => c.unlocked).toList();
+    final lockedAchievements = _conquistas.where((c) => !c.unlocked).toList();
 
     return GestureDetector(
       onTap: () {

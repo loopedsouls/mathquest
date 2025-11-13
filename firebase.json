@@ -3,14 +3,14 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "mathquest6969",
+          "projectId": "math-bb4a5",
           "appId": "1:11203362979:android:955c82a65d5579843cff16",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "mathquest6969",
+          "projectId": "math-bb4a5",
           "configurations": {
             "android": "1:11203362979:android:955c82a65d5579843cff16",
             "ios": "1:11203362979:ios:2f516bed80f323bb3cff16",
@@ -33,6 +33,26 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "**/*.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
       }
     ]
   }

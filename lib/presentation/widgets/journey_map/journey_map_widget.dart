@@ -27,7 +27,10 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
 
   Future<void> _loadAllLessons() async {
     try {
-      final allLessons = await _lessonRepository.getAllLessons();
+      final allLessonsRaw = await _lessonRepository.getAllLessons();
+      
+      // Create a mutable copy before sorting
+      final allLessons = List.of(allLessonsRaw);
       
       // Sort by year and then by order within each category
       allLessons.sort((a, b) {
@@ -78,13 +81,16 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
       if (mounted) {
         setState(() {
           _nodes = nodes;
+          _game = null; // Reset game to be recreated with new nodes
           _isLoading = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading lessons for journey map: $e');
       if (mounted) {
         setState(() {
           _nodes = [];
+          _game = null;
           _isLoading = false;
         });
       }
@@ -292,13 +298,22 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
                 'Nenhuma lição disponível',
                 style: TextStyle(color: Colors.grey[400], fontSize: 18),
               ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() => _isLoading = true);
+                  _loadAllLessons();
+                },
+                child: const Text('Recarregar'),
+              ),
             ],
           ),
         ),
       );
     }
 
-    _game = JourneyMapGame(
+    // Create game only once per node list
+    _game ??= JourneyMapGame(
       nodes: _nodes,
       onNodeTap: _onNodeTap,
     );

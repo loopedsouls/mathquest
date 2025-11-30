@@ -111,12 +111,13 @@ class JourneyMapGame extends FlameGame with ScrollDetector, ScaleDetector {
   }
 
   Vector2 _getNodePosition(int index) {
-    // Create a winding path
+    // Create a winding path - use fixed width since size may not be ready
     const nodeSpacing = 150.0;
-    const amplitude = 100.0;
+    const amplitude = 80.0;
+    const centerX = 200.0; // Fixed center position
     
-    final y = index * nodeSpacing + 100;
-    final x = size.x / 2 + sin(index * 0.8) * amplitude;
+    final y = index * nodeSpacing + 150.0;
+    final x = centerX + sin(index * 0.8) * amplitude;
     
     return Vector2(x, y);
   }
@@ -135,7 +136,7 @@ class JourneyMapGame extends FlameGame with ScrollDetector, ScaleDetector {
     }
     
     final targetPos = _getNodePosition(targetIndex);
-    cameraComponent.viewfinder.position = Vector2(targetPos.x, targetPos.y - size.y / 3);
+    cameraComponent.viewfinder.position = Vector2(targetPos.x, targetPos.y - 200);
   }
 
   @override
@@ -146,7 +147,6 @@ class JourneyMapGame extends FlameGame with ScrollDetector, ScaleDetector {
     cameraComponent.viewfinder.zoom = _currentScale;
   }
 
-  @override
   @override
   void onScaleUpdate(ScaleUpdateInfo info) {
     // Handle drag

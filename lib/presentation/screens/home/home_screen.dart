@@ -26,30 +26,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DuoThemeProvider(
-      child: Builder(
-        builder: (context) {
-          final theme = context.duoTheme;
-          return Scaffold(
-            backgroundColor: theme.bgDark,
-            body: SafeArea(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: const [
-                  _HomeContent(),
-                  JourneyMapWidget(),
-                  _ShopPlaceholder(),
-                  _ProfilePlaceholder(),
-                ],
-              ),
-            ),
-            bottomNavigationBar: DuoNavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (index) {
-                setState(() => _currentIndex = index);
-              },
-            ),
-          );
+    final theme = context.duoTheme;
+    return Scaffold(
+      backgroundColor: theme.bgDark,
+      body: SafeArea(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            _HomeContent(),
+            JourneyMapWidget(),
+            _ShopPlaceholder(),
+            _ProfilePlaceholder(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: DuoNavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
         },
       ),
     );

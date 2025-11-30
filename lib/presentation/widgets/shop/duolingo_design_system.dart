@@ -893,7 +893,7 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-    if (widget.rarity == 'legendary') {
+    if (widget.rarity == 'legendary' || widget.rarity == 'epic') {
       _shimmerController.repeat();
     }
   }
@@ -908,12 +908,25 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
 
   Color get _darkerColor {
     final hsl = HSLColor.fromColor(_baseColor);
-    return hsl.withLightness((hsl.lightness * 0.6).clamp(0.0, 1.0)).toColor();
+    return hsl.withLightness((hsl.lightness * 0.5).clamp(0.0, 1.0)).toColor();
   }
 
   Color get _lighterColor {
     final hsl = HSLColor.fromColor(_baseColor);
-    return hsl.withLightness((hsl.lightness * 1.2).clamp(0.0, 1.0)).toColor();
+    return hsl.withLightness((hsl.lightness * 1.3).clamp(0.0, 0.9)).toColor();
+  }
+
+  Color get _rarityGlowColor {
+    switch (widget.rarity) {
+      case 'legendary':
+        return DuoColors.orange;
+      case 'epic':
+        return DuoColors.purple;
+      case 'rare':
+        return DuoColors.blue;
+      default:
+        return Colors.transparent;
+    }
   }
 
   List<Color> get _gradientColors => [
@@ -934,7 +947,7 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
         transform: Matrix4.translationValues(0, _isPressed ? 4 : 0, 0),
         child: Stack(
           children: [
-            // Shadow
+            // Shadow/3D effect
             Positioned(
               left: 0,
               right: 0,
@@ -942,12 +955,35 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
               child: Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: _darkerColor.withValues(alpha: 0.5),
+                  color: _darkerColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
             ),
-            // Main card with gradient (like theme cards)
+            // Glow effect for rare+ items
+            if (widget.rarity != 'common')
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _shimmerController,
+                  builder: (context, child) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _rarityGlowColor.withValues(
+                              alpha: 0.3 + (_shimmerController.value * 0.2),
+                            ),
+                            blurRadius: 12 + (_shimmerController.value * 8),
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            // Main card
             Container(
               height: _isPressed ? 144 : 140,
               decoration: BoxDecoration(
@@ -959,143 +995,93 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                 borderRadius: BorderRadius.circular(20),
                 border: widget.isSelected
                     ? Border.all(color: DuoColors.green, width: 3)
-                    : null,
+                    : widget.rarity != 'common'
+                        ? Border.all(color: _rarityGlowColor.withValues(alpha: 0.5), width: 2)
+                        : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Avatar/Emoji with white background circle
+                  // Avatar emoji with enhanced container
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.25),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        width: 3,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: _baseColor.withValues(alpha: 0.5),
-                          blurRadius: 4,
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Center(
                       child: Text(
                         widget.emoji,
-                        style: const TextStyle(fontSize: 32),
+                        style: const TextStyle(fontSize: 34),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Name with dark background (like theme cards)
+                  const SizedBox(height: 10),
+                  // Name badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.black.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       widget.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Price or status (like theme cards)
-                  if (widget.isPurchased)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: DuoColors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check, color: Colors.white, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Adquirido',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else if (widget.price == 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white),
-                      ),
-                      child: const Text(
-                        'GRÁTIS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const DuoCoinIcon(size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${widget.price}',
-                            style: const TextStyle(
-                              color: DuoColors.yellow,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const SizedBox(height: 6),
+                  // Status/Price indicator
+                  _buildStatusBadge(),
                 ],
               ),
             ),
-            // Rarity badge
+            // Rarity badge (top right)
             if (widget.rarity != 'common')
               Positioned(
                 top: 8,
                 right: 8,
                 child: _RarityBadge(rarity: widget.rarity),
               ),
-            // Selected checkmark
+            // Selected indicator (top left)
             if (widget.isSelected)
               Positioned(
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
                     color: DuoColors.green,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: DuoColors.green.withValues(alpha: 0.4),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
                   child: const Icon(
-                    Icons.check,
+                    Icons.check_rounded,
                     color: Colors.white,
-                    size: 16,
+                    size: 14,
                   ),
                 ),
               ),
@@ -1103,6 +1089,80 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
         ),
       ),
     );
+  }
+
+  Widget _buildStatusBadge() {
+    if (widget.isPurchased) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: DuoColors.green,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: DuoColors.greenDark.withValues(alpha: 0.5),
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_rounded, color: Colors.white, size: 12),
+            SizedBox(width: 4),
+            Text(
+              'Adquirido',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (widget.price == 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+        ),
+        child: const Text(
+          'GRÁTIS',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const DuoCoinIcon(size: 14),
+            const SizedBox(width: 4),
+            Text(
+              '${widget.price}',
+              style: const TextStyle(
+                color: DuoColors.yellow,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
 

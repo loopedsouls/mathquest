@@ -16,6 +16,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'presentation/screens/splash/splash_screen.dart';
+import 'presentation/widgets/shop/duolingo_design_system.dart';
 
 // Verificar se Firebase está disponível na plataforma atual
 // Desktop (Windows, Linux, macOS) usa configuração web do Firebase
@@ -131,18 +132,25 @@ class MathTutorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MathQuest - Tutoria Inteligente',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark, // Usar tema escuro como padrão
-      onGenerateRoute: AppRoutes.generateRoute,
-      navigatorObservers: analyticsAvailable
-          ? [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)]
-          : [],
-      home: const ResponsiveWrapper(
-        child: AuthWrapper(),
+    return DuoThemeProvider(
+      child: Builder(
+        builder: (context) {
+          final isDark = context.isDuoThemeDark;
+          return MaterialApp(
+            title: 'MathQuest - Tutoria Inteligente',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+            onGenerateRoute: AppRoutes.generateRoute,
+            navigatorObservers: analyticsAvailable
+                ? [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)]
+                : [],
+            home: const ResponsiveWrapper(
+              child: AuthWrapper(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -158,6 +166,8 @@ class ResponsiveWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 1024;
@@ -170,8 +180,8 @@ class ResponsiveWrapper extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppTheme.darkBackgroundColor,
-                AppTheme.darkSurfaceColor.withValues(alpha: 0.5),
+                theme.bgDark,
+                theme.bgCard.withValues(alpha: 0.5),
               ],
             ),
           ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 import 'auth_repository.dart';
 
@@ -97,8 +98,46 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel> signInWithGoogle() async {
-    // TODO: Implement Google Sign In
-    throw UnimplementedError('Google Sign In not implemented');
+    if (!_isFirebaseAvailable) {
+      throw UnsupportedError('Firebase Auth not available on this platform');
+    }
+    try {
+      // Initialize Google Sign In
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        throw Exception('Login com Google cancelado pelo usuário');
+      }
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase with the Google credential
+      final UserCredential userCredential =
+          await _authInstance.signInWithCredential(credential);
+
+      if (userCredential.user == null) {
+        throw Exception('Falha no login com Google');
+      }
+
+      return _userFromFirebase(userCredential.user!);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Erro ao fazer login com Google: $e');
+    }
   }
 
   @override

@@ -24,6 +24,7 @@ class _ShopScreenState extends State<ShopScreen>
   Set<String> _purchasedItems = {};
   String? _selectedAvatar;
   String? _selectedTheme;
+  String? _previewTheme; // Theme being previewed (not saved)
   bool _isLoading = true;
 
   // Shop items from Duolingo design system
@@ -132,11 +133,24 @@ class _ShopScreenState extends State<ShopScreen>
 
   void _handleThemeTap(ShopItem item) {
     if (_isItemPurchased(item.id)) {
-      // Select this theme
+      // Select this theme (permanent)
       _selectTheme(item.id);
+      setState(() => _previewTheme = null); // Clear preview
       _showSuccessSnackbar('Tema aplicado!');
     } else {
       _showPurchaseDialog(item);
+    }
+  }
+
+  void _toggleThemePreview(ShopItem item) {
+    if (_previewTheme == item.id) {
+      // Turn off preview
+      setState(() => _previewTheme = null);
+      _showInfoSnackbar('Preview desativado');
+    } else {
+      // Turn on preview
+      setState(() => _previewTheme = item.id);
+      _showInfoSnackbar('Preview ativado! Compre para manter permanentemente.');
     }
   }
 
@@ -166,6 +180,7 @@ class _ShopScreenState extends State<ShopScreen>
 
     setState(() {
       _userCoins = newCoins;
+      _previewTheme = null; // Clear preview on purchase
       _initializeItems(); // Refresh items
     });
 
@@ -209,6 +224,24 @@ class _ShopScreenState extends State<ShopScreen>
         backgroundColor: DuoColors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showInfoSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.visibility, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: DuoColors.purple,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -346,14 +379,17 @@ class _ShopScreenState extends State<ShopScreen>
       itemBuilder: (context, index) {
         final item = _themes[index];
         final colors = item.themeColors ?? [0xFF131F24, 0xFF1A2B33, 0xFF233640];
+        final isPurchased = _isItemPurchased(item.id);
         return DuoThemeCard(
           id: item.id,
           name: item.name,
           price: item.price,
           colors: colors.map((c) => Color(c)).toList(),
-          isPurchased: _isItemPurchased(item.id),
-          isSelected: _selectedTheme == item.id,
+          isPurchased: isPurchased,
+          isSelected: _selectedTheme == item.id || _previewTheme == item.id,
+          isPreview: _previewTheme == item.id,
           onTap: () => _handleThemeTap(item),
+          onPreview: isPurchased ? null : () => _toggleThemePreview(item),
         );
       },
     );

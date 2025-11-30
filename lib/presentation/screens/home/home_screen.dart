@@ -339,6 +339,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   Set<String> _purchasedItems = {};
   String? _selectedAvatar;
   String? _selectedTheme;
+  String? _previewTheme; // Theme being previewed (not saved)
   bool _isLoading = true;
 
   @override
@@ -421,9 +422,23 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     
     if (_isItemPurchased(id)) {
       _selectTheme(id);
+      setState(() => _previewTheme = null); // Clear preview
       _showSuccessSnackbar('Tema aplicado!');
     } else {
       _showPurchaseDialog(id, theme['name'] as String, price);
+    }
+  }
+
+  void _toggleThemePreview(Map<String, dynamic> theme) {
+    final id = theme['id'] as String;
+    if (_previewTheme == id) {
+      // Turn off preview
+      setState(() => _previewTheme = null);
+      _showInfoSnackbar('Preview desativado');
+    } else {
+      // Turn on preview
+      setState(() => _previewTheme = id);
+      _showInfoSnackbar('Preview ativado! Compre para manter permanentemente.');
     }
   }
 
@@ -474,7 +489,8 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
               Navigator.pop(ctx);
               _showSuccessSnackbar('$name comprado! 🎉');
               
-              // Auto-select
+              // Clear preview and auto-select
+              setState(() => _previewTheme = null);
               if (id.startsWith('avatar_')) _selectAvatar(id);
               if (id.startsWith('theme_')) _selectTheme(id);
             },
@@ -514,6 +530,24 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         backgroundColor: DuoColors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showInfoSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.visibility, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: DuoColors.purple,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -639,14 +673,17 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         final theme = DuoThemes.all[index];
         final id = theme['id'] as String;
         final colors = (theme['colors'] as List).cast<int>().map((c) => Color(c)).toList();
+        final isPurchased = _isItemPurchased(id);
         return DuoThemeCard(
           id: id,
           name: theme['name'] as String,
           price: theme['price'] as int,
           colors: colors,
-          isPurchased: _isItemPurchased(id),
-          isSelected: _selectedTheme == id,
+          isPurchased: isPurchased,
+          isSelected: _selectedTheme == id || _previewTheme == id,
+          isPreview: _previewTheme == id,
           onTap: () => _handleThemeTap(theme),
+          onPreview: isPurchased ? null : () => _toggleThemePreview(theme),
         );
       },
     );

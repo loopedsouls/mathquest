@@ -1060,7 +1060,9 @@ class DuoThemeCard extends StatefulWidget {
   final List<Color> colors;
   final bool isPurchased;
   final bool isSelected;
+  final bool isPreview;
   final VoidCallback? onTap;
+  final VoidCallback? onPreview;
 
   const DuoThemeCard({
     super.key,
@@ -1070,7 +1072,9 @@ class DuoThemeCard extends StatefulWidget {
     required this.colors,
     this.isPurchased = false,
     this.isSelected = false,
+    this.isPreview = false,
     this.onTap,
+    this.onPreview,
   });
 
   @override
@@ -1231,7 +1235,7 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
               ),
             ),
             // Selected checkmark
-            if (widget.isSelected)
+            if (widget.isSelected && !widget.isPreview)
               Positioned(
                 top: 8,
                 left: 8,
@@ -1245,6 +1249,61 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                     Icons.check,
                     color: Colors.white,
                     size: 16,
+                  ),
+                ),
+              ),
+            // Preview badge
+            if (widget.isPreview)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DuoColors.purple,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DuoColors.purple.withValues(alpha: 0.5),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.visibility, color: Colors.white, size: 12),
+                      SizedBox(width: 4),
+                      Text(
+                        'PREVIEW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            // Preview button for unpurchased themes
+            if (!widget.isPurchased && widget.price > 0 && widget.onPreview != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: widget.onPreview,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      widget.isPreview ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                 ),
               ),

@@ -364,10 +364,10 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Sua Jornada Matemática',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: theme.textPrimary,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -375,7 +375,7 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
                         Text(
                           '${_nodes.where((n) => n.status == JourneyNodeStatus.completed).length}/${_nodes.length} lições concluídas',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: theme.textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -424,11 +424,11 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.touch_app, color: Colors.grey[500], size: 16),
+                Icon(Icons.touch_app, color: theme.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   'Arraste para navegar',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  style: TextStyle(color: theme.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -447,6 +447,7 @@ class _LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -461,7 +462,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: theme.textSecondary, fontSize: 12),
         ),
       ],
     );

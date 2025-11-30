@@ -262,11 +262,11 @@ class _HomeContentState extends State<_HomeContent> {
                   _buildQuickActions(),
                   const SizedBox(height: 24),
                   // Recent activity section
-                  const Text(
+                  Text(
                     'Atividade Recente',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: theme.textPrimary,
                       fontSize: 18,
                     ),
                   ),
@@ -293,14 +293,14 @@ class _HomeContentState extends State<_HomeContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.trending_up_rounded, color: DuoColors.green, size: 20),
-              SizedBox(width: 8),
+              Icon(Icons.trending_up_rounded, color: theme.accent, size: 20),
+              const SizedBox(width: 8),
               Text(
                 'Progresso por Unidade',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: theme.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -319,7 +319,7 @@ class _HomeContentState extends State<_HomeContent> {
                     Text(
                       entry.key,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: theme.textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -418,18 +418,18 @@ class _HomeContentState extends State<_HomeContent> {
               child: const Icon(Icons.play_arrow_rounded, color: DuoColors.gray),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Comece sua jornada!',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     'Complete sua primeira lição',
-                    style: TextStyle(color: DuoColors.gray, fontSize: 13),
+                    style: TextStyle(color: theme.textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -456,18 +456,18 @@ class _HomeContentState extends State<_HomeContent> {
             child: const Icon(Icons.check_rounded, color: DuoColors.green),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Lição Completada',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Continue estudando!',
-                  style: TextStyle(color: DuoColors.gray, fontSize: 13),
+                  style: TextStyle(color: theme.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -701,12 +701,14 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
       return;
     }
 
+    final theme = context.duoTheme;
+    
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Comprar $name?', style: const TextStyle(color: Colors.white)),
+        title: Text('Comprar $name?', style: TextStyle(color: theme.textPrimary)),
         content: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -714,14 +716,14 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
             const SizedBox(width: 8),
             Text(
               '$price moedas',
-              style: const TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: theme.textPrimary, fontSize: 18),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar', style: TextStyle(color: DuoColors.gray)),
+            child: Text('Cancelar', style: TextStyle(color: theme.textSecondary)),
           ),
           DuoButton(
             text: 'Comprar',
@@ -824,16 +826,16 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
                     color: theme.bgCard,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.store_rounded, color: DuoColors.green),
+                  child: Icon(Icons.store_rounded, color: theme.accent),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Loja',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: theme.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -841,7 +843,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
                     Text(
                       'Personalize sua experiência',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: theme.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -1136,11 +1138,11 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                           child: const Icon(Icons.person_rounded, color: DuoColors.purple, size: 24),
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Meu Perfil',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: theme.textPrimary,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),

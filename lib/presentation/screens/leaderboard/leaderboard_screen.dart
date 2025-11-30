@@ -94,22 +94,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: DuoColors.bgDark,
+        backgroundColor: theme.bgDark,
         appBar: AppBar(
-          backgroundColor: DuoColors.bgCard,
-          title: const Text('Ranking', style: TextStyle(color: Colors.white)),
-          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: theme.bgCard,
+          title: Text('Ranking', style: TextStyle(color: theme.textPrimary)),
+          iconTheme: IconThemeData(color: theme.iconColor),
         ),
-        body: const Center(child: CircularProgressIndicator(color: DuoColors.yellow)),
+        body: Center(child: CircularProgressIndicator(color: theme.accent)),
       );
     }
 
     return Scaffold(
-      backgroundColor: DuoColors.bgDark,
+      backgroundColor: theme.bgDark,
       appBar: AppBar(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         elevation: 0,
         title: Row(
           children: [
@@ -122,13 +123,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               child: const Icon(Icons.emoji_events_rounded, color: DuoColors.yellow, size: 20),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Ranking',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
             ),
           ],
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.iconColor),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -181,7 +182,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       child: Text(
                         filter,
                         style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.white,
+                          color: isSelected ? Colors.black : theme.textPrimary,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 13,
                         ),
@@ -312,8 +313,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         // Username
         Text(
           entry.username,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.duoTheme.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -413,7 +414,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: entry.isCurrentUser ? DuoColors.green : Colors.white,
+                  color: entry.isCurrentUser ? DuoColors.green : context.duoTheme.textPrimary,
                 ),
               ),
             ),
@@ -455,7 +456,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   style: TextStyle(
                     fontWeight: entry.isCurrentUser ? FontWeight.bold : FontWeight.w600,
                     fontSize: 15,
-                    color: entry.isCurrentUser ? DuoColors.green : Colors.white,
+                    color: entry.isCurrentUser ? DuoColors.green : context.duoTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -515,22 +516,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _showAddFriendDialog() async {
     final controller = TextEditingController();
+    final theme = context.duoTheme;
     
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.person_add_rounded, color: DuoColors.green),
-            SizedBox(width: 12),
-            Text('Adicionar Amigo', style: TextStyle(color: Colors.white)),
+            Icon(Icons.person_add_rounded, color: theme.accent),
+            const SizedBox(width: 12),
+            Text('Adicionar Amigo', style: TextStyle(color: theme.textPrimary)),
           ],
         ),
         content: TextField(
           controller: controller,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.textPrimary),
           decoration: InputDecoration(
             labelText: 'Nome do usuário',
             hintText: 'Digite o nome do amigo',
@@ -538,18 +540,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             hintStyle: TextStyle(color: DuoColors.gray.withValues(alpha: 0.5)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: DuoColors.bgElevated),
+              borderSide: BorderSide(color: theme.bgElevated),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: DuoColors.bgElevated),
+              borderSide: BorderSide(color: theme.bgElevated),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: DuoColors.green),
+              borderSide: BorderSide(color: theme.accent),
             ),
             filled: true,
-            fillColor: DuoColors.bgElevated,
+            fillColor: theme.bgElevated,
           ),
         ),
         actions: [
@@ -559,8 +561,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: DuoColors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.accent,
+              foregroundColor: theme.textPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(context, controller.text.trim()),
@@ -642,8 +644,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ElevatedButton.icon(
               onPressed: _showAddFriendDialog,
               style: ElevatedButton.styleFrom(
-                backgroundColor: DuoColors.green,
-                foregroundColor: Colors.white,
+                backgroundColor: context.duoTheme.accent,
+                foregroundColor: context.duoTheme.textPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),

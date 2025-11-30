@@ -62,28 +62,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: DuoColors.bgDark,
+        backgroundColor: theme.bgDark,
         appBar: AppBar(
-          backgroundColor: DuoColors.bgCard,
-          title: const Text('Configurações', style: TextStyle(color: Colors.white)),
-          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: theme.bgCard,
+          title: Text('Configurações', style: TextStyle(color: theme.textPrimary)),
+          iconTheme: IconThemeData(color: theme.iconColor),
         ),
-        body: const Center(child: CircularProgressIndicator(color: DuoColors.green)),
+        body: Center(child: CircularProgressIndicator(color: theme.accent)),
       );
     }
 
     return Scaffold(
-      backgroundColor: DuoColors.bgDark,
+      backgroundColor: theme.bgDark,
       appBar: AppBar(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Configurações',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.iconColor),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -311,13 +312,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = context.duoTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: theme.bgElevated, borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: DuoColors.gray, size: 22),
           ),
           const SizedBox(width: 14),
@@ -325,7 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500)),
+                Text(title, style: TextStyle(color: theme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
@@ -352,6 +354,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final theme = context.duoTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -362,7 +365,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: theme.bgElevated, borderRadius: BorderRadius.circular(12)),
                 child: Icon(icon, color: DuoColors.gray, size: 22),
               ),
               const SizedBox(width: 14),
@@ -370,7 +373,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(title, style: TextStyle(color: theme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
@@ -387,9 +390,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(color: DuoColors.bgElevated, height: 1, thickness: 1),
+    final theme = context.duoTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(color: theme.bgElevated, height: 1, thickness: 1),
     );
   }
 
@@ -412,16 +416,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showChangePasswordDialog() {
     final emailController = TextEditingController();
+    final theme = context.duoTheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.lock_rounded, color: DuoColors.green),
-            SizedBox(width: 12),
-            Text('Redefinir Senha', style: TextStyle(color: Colors.white)),
+            Icon(Icons.lock_rounded, color: theme.accent),
+            const SizedBox(width: 12),
+            Text('Redefinir Senha', style: TextStyle(color: theme.textPrimary)),
           ],
         ),
         content: Column(
@@ -434,15 +439,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: theme.textPrimary),
               decoration: InputDecoration(
                 labelText: 'Email',
                 labelStyle: const TextStyle(color: DuoColors.gray),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.bgElevated)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.bgElevated)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.green)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.bgElevated)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.bgElevated)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.accent)),
                 filled: true,
-                fillColor: DuoColors.bgElevated,
+                fillColor: theme.bgElevated,
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -455,8 +460,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: DuoColors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.accent,
+              foregroundColor: theme.textPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
@@ -501,16 +506,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       userData[key] = prefs.get(key);
     }
     if (!mounted) return;
+    final theme = context.duoTheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.download_rounded, color: DuoColors.blue),
-            SizedBox(width: 12),
-            Text('Seus Dados', style: TextStyle(color: Colors.white)),
+            const Icon(Icons.download_rounded, color: DuoColors.blue),
+            const SizedBox(width: 12),
+            Text('Seus Dados', style: TextStyle(color: theme.textPrimary)),
           ],
         ),
         content: SingleChildScrollView(
@@ -522,14 +528,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: theme.bgElevated, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: userData.entries.isEmpty
                       ? [const Text('Nenhum dado encontrado', style: TextStyle(color: DuoColors.gray))]
                       : userData.entries.map((e) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text('${e.key}: ${e.value}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                          child: Text('${e.key}: ${e.value}', style: TextStyle(color: theme.textPrimary, fontSize: 12)),
                         )).toList(),
                 ),
               ),
@@ -539,8 +545,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: DuoColors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.accent,
+              foregroundColor: theme.textPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(context),
@@ -552,9 +558,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguagePicker() {
+    final theme = context.duoTheme;
     showModalBottomSheet(
       context: context,
-      backgroundColor: DuoColors.bgCard,
+      backgroundColor: theme.bgCard,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return Column(
@@ -566,9 +573,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               height: 4,
               decoration: BoxDecoration(color: DuoColors.gray.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Selecionar Idioma', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Selecionar Idioma', style: TextStyle(color: theme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             ..._languages.map((language) {
               final isSelected = _selectedLanguage == language;
@@ -576,16 +583,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isSelected ? DuoColors.green.withValues(alpha: 0.15) : DuoColors.bgElevated,
+                    color: isSelected ? theme.accent.withValues(alpha: 0.15) : theme.bgElevated,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.language_rounded, color: isSelected ? DuoColors.green : DuoColors.gray),
+                  child: Icon(Icons.language_rounded, color: isSelected ? theme.accent : DuoColors.gray),
                 ),
                 title: Text(
                   language,
-                  style: TextStyle(color: isSelected ? DuoColors.green : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                  style: TextStyle(color: isSelected ? theme.accent : theme.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
                 ),
-                trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: DuoColors.green) : null,
+                trailing: isSelected ? Icon(Icons.check_circle_rounded, color: theme.accent) : null,
                 onTap: () {
                   setState(() => _selectedLanguage = language);
                   _savePreference(_languageKey, language);
@@ -609,10 +616,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showAboutDialog() {
+    final theme = context.duoTheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -620,13 +628,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [DuoColors.green.withValues(alpha: 0.2), DuoColors.blue.withValues(alpha: 0.2)]),
+                gradient: LinearGradient(colors: [theme.accent.withValues(alpha: 0.2), DuoColors.blue.withValues(alpha: 0.2)]),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.calculate_rounded, size: 48, color: DuoColors.green),
+              child: Icon(Icons.calculate_rounded, size: 48, color: theme.accent),
             ),
             const SizedBox(height: 16),
-            const Text('MathQuest', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            Text('MathQuest', style: TextStyle(color: theme.textPrimary, fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text('Versão 1.0.0', style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.7), fontSize: 14)),
             const SizedBox(height: 16),
@@ -641,8 +649,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Center(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: DuoColors.green,
-                foregroundColor: Colors.white,
+                backgroundColor: theme.accent,
+                foregroundColor: theme.textPrimary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
               ),
@@ -657,16 +665,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLogoutDialog() {
+    final theme = context.duoTheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DuoColors.bgCard,
+        backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.logout_rounded, color: DuoColors.red),
-            SizedBox(width: 12),
-            Text('Sair', style: TextStyle(color: Colors.white)),
+            const Icon(Icons.logout_rounded, color: DuoColors.red),
+            const SizedBox(width: 12),
+            Text('Sair', style: TextStyle(color: theme.textPrimary)),
           ],
         ),
         content: const Text('Tem certeza que deseja sair da sua conta?', style: TextStyle(color: DuoColors.gray)),
@@ -678,7 +687,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: DuoColors.red,
-              foregroundColor: Colors.white,
+              foregroundColor: theme.textPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {

@@ -68,6 +68,9 @@ class DuoThemeColors {
   final Color bgElevated;
   final Color accent;
   final List<Color> gradientColors;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color iconColor;
 
   const DuoThemeColors({
     required this.bgDark,
@@ -75,6 +78,9 @@ class DuoThemeColors {
     required this.bgElevated,
     required this.accent,
     required this.gradientColors,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.iconColor,
   });
 
   /// Default dark theme
@@ -84,17 +90,35 @@ class DuoThemeColors {
     bgElevated: DuoColors.bgElevated,
     accent: DuoColors.green,
     gradientColors: [DuoColors.bgDark, DuoColors.bgCard, DuoColors.bgElevated],
+    textPrimary: Colors.white,
+    textSecondary: DuoColors.gray,
+    iconColor: Colors.white,
   );
 
   /// Create theme from theme data
   factory DuoThemeColors.fromThemeData(Map<String, dynamic> themeData) {
     final colors = (themeData['colors'] as List).cast<int>();
+    final bgColor = Color(colors[0]);
+    
+    // Calculate text colors based on background brightness
+    final brightness = ThemeData.estimateBrightnessForColor(bgColor);
+    final isDark = brightness == Brightness.dark;
+    
+    final textPrimary = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final textSecondary = isDark 
+        ? Colors.white.withValues(alpha: 0.7) 
+        : const Color(0xFF1A1A2E).withValues(alpha: 0.7);
+    final iconColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    
     return DuoThemeColors(
-      bgDark: Color(colors[0]),
+      bgDark: bgColor,
       bgCard: Color(colors[1]),
       bgElevated: Color(colors[2]),
       accent: Color(colors[1]),
       gradientColors: colors.map((c) => Color(c)).toList(),
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      iconColor: iconColor,
     );
   }
 

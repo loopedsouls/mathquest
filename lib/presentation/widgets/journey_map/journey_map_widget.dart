@@ -278,15 +278,15 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
     if (_isLoading) {
       return Container(
         color: theme.bgDark,
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: Colors.amber),
-              SizedBox(height: 16),
+              CircularProgressIndicator(color: theme.accent),
+              const SizedBox(height: 16),
               Text(
                 'Carregando sua jornada...',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: theme.textSecondary),
               ),
             ],
           ),
@@ -301,11 +301,11 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.explore_off, size: 64, color: Colors.grey[600]),
+              Icon(Icons.explore_off, size: 64, color: theme.textSecondary),
               const SizedBox(height: 16),
               Text(
                 'Nenhuma lição disponível',
-                style: TextStyle(color: Colors.grey[400], fontSize: 18),
+                style: TextStyle(color: theme.textSecondary, fontSize: 18),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -354,10 +354,10 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: DuoColors.green.withValues(alpha: 0.2),
+                      color: theme.accent.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.map_rounded, color: DuoColors.green, size: 24),
+                    child: Icon(Icons.map_rounded, color: theme.accent, size: 24),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -396,7 +396,7 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
             decoration: BoxDecoration(
               color: theme.bgCard.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white24),
+              border: Border.all(color: theme.textSecondary.withValues(alpha: 0.3)),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,

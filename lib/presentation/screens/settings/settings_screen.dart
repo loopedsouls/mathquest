@@ -229,7 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: DuoColors.bgCard,
+              color: theme.bgCard,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: DuoColors.red.withValues(alpha: 0.3), width: 1),
             ),
@@ -267,7 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Center(
             child: Text(
               'MathQuest v1.0.0',
-              style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.7), fontSize: 13),
+              style: TextStyle(color: theme.textSecondary, fontSize: 13),
             ),
           ),
           const SizedBox(height: 32),
@@ -282,9 +282,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color iconColor,
     required List<Widget> children,
   }) {
+    final theme = context.duoTheme;
     return Container(
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4)),
@@ -335,7 +336,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: theme.bgElevated, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: DuoColors.gray, size: 22),
+            child: Icon(icon, color: theme.textSecondary, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -345,7 +346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(title, style: TextStyle(color: theme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
+                  Text(subtitle, style: TextStyle(color: theme.textSecondary, fontSize: 12)),
                 ],
               ],
             ),
@@ -353,10 +354,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: DuoColors.green,
-            activeTrackColor: DuoColors.green.withValues(alpha: 0.4),
-            inactiveThumbColor: DuoColors.gray,
-            inactiveTrackColor: DuoColors.bgElevated,
+            activeThumbColor: theme.accent,
+            activeTrackColor: theme.accent.withValues(alpha: 0.4),
+            inactiveThumbColor: theme.textSecondary,
+            inactiveTrackColor: theme.bgElevated,
           ),
         ],
       ),
@@ -381,7 +382,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: theme.bgElevated, borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: DuoColors.gray, size: 22),
+                child: Icon(icon, color: theme.textSecondary, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -391,12 +392,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text(title, style: TextStyle(color: theme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
-                      Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
+                      Text(subtitle, style: TextStyle(color: theme.textSecondary, fontSize: 12)),
                     ],
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: DuoColors.gray),
+              Icon(Icons.chevron_right_rounded, color: theme.textSecondary),
             ],
           ),
         ),

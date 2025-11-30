@@ -264,9 +264,7 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
 
   void _updateCurrentTheme() {
     final themeId = _previewThemeId ?? _selectedThemeId;
-    setState(() {
-      _currentTheme = DuoThemeColors.getThemeById(themeId, isDarkMode: isDarkMode);
-    });
+    _currentTheme = DuoThemeColors.getThemeById(themeId, isDarkMode: isDarkMode);
   }
 
   /// Set brightness mode (light, dark, or system)
@@ -274,18 +272,16 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_themeBrightnessKey, brightness.index);
     
-    setState(() {
-      _themeBrightness = brightness;
-      _updateCurrentTheme();
-    });
+    _themeBrightness = brightness;
+    _updateCurrentTheme();
+    setState(() {});
   }
 
   /// Set preview theme (temporary, for previewing in shop)
   void setPreviewTheme(String? themeId) {
-    setState(() {
-      _previewThemeId = themeId;
-      _updateCurrentTheme();
-    });
+    _previewThemeId = themeId;
+    _updateCurrentTheme();
+    setState(() {});
     // Save preview state
     SharedPreferences.getInstance().then((prefs) {
       if (themeId != null) {
@@ -302,11 +298,10 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
     await prefs.setString(_selectedThemeKey, themeId);
     await prefs.remove(_previewThemeKey);
     
-    setState(() {
-      _selectedThemeId = themeId;
-      _previewThemeId = null;
-      _updateCurrentTheme();
-    });
+    _selectedThemeId = themeId;
+    _previewThemeId = null;
+    _updateCurrentTheme();
+    setState(() {});
   }
 
   /// Clear preview and return to selected theme
@@ -626,10 +621,11 @@ class DuoCoinDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: DuoColors.yellow.withValues(alpha: 0.3), width: 2),
       ),
@@ -923,6 +919,7 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -951,10 +948,10 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
               height: _isPressed ? 144 : 140,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: DuoColors.bgCard,
+                color: theme.bgCard,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: widget.isSelected ? DuoColors.green : _rarityBorderColor,
+                  color: widget.isSelected ? theme.accent : _rarityBorderColor,
                   width: widget.isSelected ? 3 : 2,
                 ),
               ),
@@ -984,8 +981,8 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                   // Name
                   Text(
                     widget.name,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: theme.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -2038,11 +2035,12 @@ class DuoTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       height: 56,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -2055,7 +2053,7 @@ class DuoTabBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: isSelected ? DuoColors.green : Colors.transparent,
+                  color: isSelected ? theme.accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -2063,14 +2061,14 @@ class DuoTabBar extends StatelessWidget {
                   children: [
                     Icon(
                       icons[index],
-                      color: isSelected ? Colors.white : DuoColors.grayLight,
+                      color: isSelected ? Colors.white : theme.textSecondary,
                       size: 22,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       tabs[index],
                       style: TextStyle(
-                        color: isSelected ? Colors.white : DuoColors.grayLight,
+                        color: isSelected ? Colors.white : theme.textSecondary,
                         fontSize: 10,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
@@ -2106,13 +2104,14 @@ class DuoProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Stack(
       children: [
         // Background
         Container(
           height: height,
           decoration: BoxDecoration(
-            color: DuoColors.bgCard,
+            color: theme.bgCard,
             borderRadius: BorderRadius.circular(height / 2),
           ),
         ),
@@ -2141,7 +2140,7 @@ class DuoProgressBar extends StatelessWidget {
               child: Text(
                 '${(progress * 100).toInt()}%',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: theme.textPrimary,
                   fontSize: height * 0.6,
                   fontWeight: FontWeight.bold,
                 ),
@@ -2339,6 +2338,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
@@ -2381,7 +2381,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 ),
                 child: Icon(
                   widget.icon,
-                  color: widget.isSelected ? Colors.white : DuoColors.gray,
+                  color: widget.isSelected ? Colors.white : theme.textSecondary,
                   size: 24,
                 ),
               ),
@@ -2389,7 +2389,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               Text(
                 widget.label,
                 style: TextStyle(
-                  color: widget.isSelected ? widget.color : DuoColors.gray,
+                  color: widget.isSelected ? widget.color : theme.textSecondary,
                   fontSize: 11,
                   fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -2440,6 +2440,7 @@ class DuoProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -2490,12 +2491,12 @@ class DuoProfileAvatar extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: DuoColors.green,
+                    color: theme.accent,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: DuoColors.bgDark, width: 3),
+                    border: Border.all(color: theme.bgDark, width: 3),
                     boxShadow: [
                       BoxShadow(
-                        color: DuoColors.green.withValues(alpha: 0.4),
+                        color: theme.accent.withValues(alpha: 0.4),
                         blurRadius: 6,
                       ),
                     ],
@@ -2520,7 +2521,7 @@ class DuoProfileAvatar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: DuoColors.blue,
                       shape: BoxShape.circle,
-                      border: Border.all(color: DuoColors.bgDark, width: 2),
+                      border: Border.all(color: theme.bgDark, width: 2),
                     ),
                     child: const Icon(
                       Icons.edit_rounded,
@@ -2535,8 +2536,8 @@ class DuoProfileAvatar extends StatelessWidget {
           // Username
           Text(
             username,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: theme.textPrimary,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -2560,20 +2561,21 @@ class DuoStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DuoColors.bgCard.withValues(alpha: 0.5)),
+        border: Border.all(color: theme.bgCard.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: theme.textPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -2587,14 +2589,14 @@ class DuoStatCard extends StatelessWidget {
                 Text(
                   entry.key,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: theme.textSecondary,
                     fontSize: 14,
                   ),
                 ),
                 Text(
                   entry.value,
-                  style: const TextStyle(
-                    color: DuoColors.green,
+                  style: TextStyle(
+                    color: theme.accent,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -2625,6 +2627,7 @@ class DuoQuickStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Column(
       children: [
         Container(
@@ -2639,8 +2642,8 @@ class DuoQuickStat extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -2648,7 +2651,7 @@ class DuoQuickStat extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: theme.textSecondary,
             fontSize: 12,
           ),
         ),
@@ -2672,6 +2675,7 @@ class DuoAvatarSelectionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     final availableAvatars = DuoAvatars.all.where((a) {
       final id = a['id'] as String;
       final price = a['price'] as int;
@@ -2679,17 +2683,17 @@ class DuoAvatarSelectionDialog extends StatelessWidget {
     }).toList();
 
     return Dialog(
-      backgroundColor: DuoColors.bgDark,
+      backgroundColor: theme.bgDark,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Escolher Avatar',
               style: TextStyle(
-                color: Colors.white,
+                color: theme.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -2716,10 +2720,10 @@ class DuoAvatarSelectionDialog extends StatelessWidget {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: DuoColors.bgCard,
+                        color: theme.bgCard,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? DuoColors.green : Colors.transparent,
+                          color: isSelected ? theme.accent : Colors.transparent,
                           width: 3,
                         ),
                       ),
@@ -2733,8 +2737,8 @@ class DuoAvatarSelectionDialog extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             avatar['name'] as String,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: theme.textPrimary,
                               fontSize: 10,
                             ),
                             textAlign: TextAlign.center,
@@ -2788,10 +2792,11 @@ class DuoUserHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -2801,9 +2806,9 @@ class DuoUserHeader extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: DuoColors.green.withValues(alpha: 0.2),
+              color: theme.accent.withValues(alpha: 0.2),
               shape: BoxShape.circle,
-              border: Border.all(color: DuoColors.green, width: 2),
+              border: Border.all(color: theme.accent, width: 2),
             ),
             child: Center(
               child: Text(emoji, style: const TextStyle(fontSize: 24)),
@@ -2817,8 +2822,8 @@ class DuoUserHeader extends StatelessWidget {
               children: [
                 Text(
                   username,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -2829,8 +2834,8 @@ class DuoUserHeader extends StatelessWidget {
                   children: [
                     Text(
                       'Nv. $level',
-                      style: const TextStyle(
-                        color: DuoColors.green,
+                      style: TextStyle(
+                        color: theme.accent,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -2839,7 +2844,7 @@ class DuoUserHeader extends StatelessWidget {
                     Expanded(
                       child: DuoProgressBar(
                         progress: xp / xpToNext,
-                        color: DuoColors.green,
+                        color: theme.accent,
                         height: 8,
                       ),
                     ),
@@ -2847,7 +2852,7 @@ class DuoUserHeader extends StatelessWidget {
                     Text(
                       '$xp/$xpToNext',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: theme.textSecondary,
                         fontSize: 10,
                       ),
                     ),
@@ -3005,6 +3010,7 @@ class DuoJourneyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -3012,12 +3018,12 @@ class DuoJourneyHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: DuoColors.green.withValues(alpha: 0.2),
+              color: theme.accent.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.map_rounded,
-              color: DuoColors.green,
+              color: theme.accent,
               size: 24,
             ),
           ),
@@ -3028,8 +3034,8 @@ class DuoJourneyHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
@@ -3037,7 +3043,7 @@ class DuoJourneyHeader extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: theme.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -3047,7 +3053,7 @@ class DuoJourneyHeader extends StatelessWidget {
           if (onFilterTap != null)
             DuoIconButton(
               icon: Icons.filter_list_rounded,
-              color: DuoColors.bgCard,
+              color: theme.bgCard,
               onPressed: onFilterTap,
             ),
         ],

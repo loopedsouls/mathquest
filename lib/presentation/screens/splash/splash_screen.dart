@@ -1,8 +1,10 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/animated_logo.dart';
+import '../../widgets/flame/splash_game.dart';
 
 /// Splash screen shown on app launch
 class SplashScreen extends StatefulWidget {
@@ -15,7 +17,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const String _onboardingCompleteKey = 'onboarding_complete';
-  
+
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -60,9 +62,9 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final onboardingComplete = prefs.getBool(_onboardingCompleteKey) ?? false;
     final isGuest = prefs.getBool('is_guest') ?? false;
-    
+
     if (!mounted) return;
-    
+
     if (!onboardingComplete) {
       Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       return;
@@ -92,62 +94,84 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withValues(alpha: 0.7),
-              Theme.of(context).colorScheme.secondary,
-            ],
+      body: Stack(
+        children: [
+          // Flame animated background
+          Positioned.fill(
+            child: GameWidget(
+              game: SplashGame(
+                primaryColor: Theme.of(context).primaryColor,
+                secondaryColor: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const AnimatedLogo(size: 150),
-                      const SizedBox(height: 24),
-                      Text(
-                        'MathQuest',
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Aprenda Matemática Jogando',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
+          // Gradient overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF1a1a2e).withValues(alpha: 0.3),
+                    const Color(0xFF1a1a2e).withValues(alpha: 0.7),
+                  ],
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
+          // Content
+          Center(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const AnimatedLogo(size: 150),
+                        const SizedBox(height: 24),
+                        Text(
+                          'MathQuest',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Aprenda Matemática Jogando',
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                        ),
+                        const SizedBox(height: 48),
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

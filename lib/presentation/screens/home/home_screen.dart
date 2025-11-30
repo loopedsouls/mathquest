@@ -1,7 +1,9 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
+import '../../widgets/flame/home_background_game.dart';
 import '../../widgets/home/daily_streak_card.dart';
 import '../../widgets/home/progress_overview_card.dart';
 import '../../widgets/home/quick_actions.dart';
@@ -113,19 +115,18 @@ class _HomeContentState extends State<_HomeContent> {
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Get user name from auth
     final currentUser = _authRepository.currentUser;
-    final userName = currentUser?.displayName ?? 
-                     prefs.getString('user_name') ?? 
-                     'Estudante';
+    final userName =
+        currentUser?.displayName ?? prefs.getString('user_name') ?? 'Estudante';
 
     // Load stats
     final level = prefs.getInt(_userLevelKey) ?? 1;
     final xp = prefs.getInt(_userXpKey) ?? 0;
     final coins = prefs.getInt(_userCoinsKey) ?? 0;
     final streak = prefs.getInt(_streakKey) ?? 0;
-    
+
     // Check if daily reward was already claimed today
     final lastClaimDate = prefs.getString(_dailyRewardClaimedKey);
     final today = DateTime.now().toIso8601String().split('T')[0];
@@ -146,7 +147,13 @@ class _HomeContentState extends State<_HomeContent> {
 
     // Load progress by unit
     final progressByUnit = <String, double>{};
-    for (final unit in ['Números', 'Álgebra', 'Geometria', 'Grandezas', 'Estatística']) {
+    for (final unit in [
+      'Números',
+      'Álgebra',
+      'Geometria',
+      'Grandezas',
+      'Estatística'
+    ]) {
       progressByUnit[unit] = prefs.getDouble('progress_$unit') ?? 0.0;
     }
 
@@ -173,15 +180,15 @@ class _HomeContentState extends State<_HomeContent> {
 
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().split('T')[0];
-    
+
     // Give reward based on streak
     final reward = 10 + (_currentStreak * 5); // More coins for longer streaks
     final newCoins = _coins + reward;
-    
+
     await prefs.setString(_dailyRewardClaimedKey, today);
     await prefs.setInt(_userCoinsKey, newCoins);
     await prefs.setString(_lastStudyDateKey, today);
-    
+
     // Update streak
     final newStreak = _currentStreak + 1;
     await prefs.setInt(_streakKey, newStreak);
@@ -207,60 +214,74 @@ class _HomeContentState extends State<_HomeContent> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User stats header
-            UserStatsHeader(
-              userName: _userName,
-              level: _level,
-              xp: _xp,
-              xpToNextLevel: _xpToNextLevel,
-              coins: _coins,
+    return Stack(
+      children: [
+        // Flame animated background
+        Positioned.fill(
+          child: GameWidget(
+            game: HomeBackgroundGame(
+              primaryColor: Theme.of(context).primaryColor,
             ),
-            const SizedBox(height: 24),
-            // Daily streak
-            DailyStreakCard(
-              currentStreak: _currentStreak,
-              onClaimReward: _dailyRewardClaimed ? null : _claimDailyReward,
-            ),
-            const SizedBox(height: 16),
-            // Progress overview
-            ProgressOverviewCard(
-              progressByUnit: _progressByUnit,
-            ),
-            const SizedBox(height: 16),
-            // Quick actions
-            QuickActions(
-              onStartLesson: () {
-                Navigator.of(context).pushNamed(AppRoutes.lessonMap);
-              },
-              onViewLeaderboard: () {
-                Navigator.of(context).pushNamed(AppRoutes.leaderboard);
-              },
-              onOpenSettings: () {
-                Navigator.of(context).pushNamed(AppRoutes.settings);
-              },
-            ),
-            const SizedBox(height: 24),
-            // Recent activity section
-            Text(
-              'Atividade Recente',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Recent activity list
-            _buildRecentActivityList(),
-          ],
+          ),
         ),
-      ),
+        // Content
+        RefreshIndicator(
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // User stats header
+                UserStatsHeader(
+                  userName: _userName,
+                  level: _level,
+                  xp: _xp,
+                  xpToNextLevel: _xpToNextLevel,
+                  coins: _coins,
+                ),
+                const SizedBox(height: 24),
+                // Daily streak
+                DailyStreakCard(
+                  currentStreak: _currentStreak,
+                  onClaimReward: _dailyRewardClaimed ? null : _claimDailyReward,
+                ),
+                const SizedBox(height: 16),
+                // Progress overview
+                ProgressOverviewCard(
+                  progressByUnit: _progressByUnit,
+                ),
+                const SizedBox(height: 16),
+                // Quick actions
+                QuickActions(
+                  onStartLesson: () {
+                    Navigator.of(context).pushNamed(AppRoutes.lessonMap);
+                  },
+                  onViewLeaderboard: () {
+                    Navigator.of(context).pushNamed(AppRoutes.leaderboard);
+                  },
+                  onOpenSettings: () {
+                    Navigator.of(context).pushNamed(AppRoutes.settings);
+                  },
+                ),
+                const SizedBox(height: 24),
+                // Recent activity section
+                Text(
+                  'Atividade Recente',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                // Recent activity list
+                _buildRecentActivityList(),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -331,26 +352,81 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
 
   void _initializeItems() {
     _avatars = [
-      ShopItem(id: 'avatar_1', name: 'Astronauta', description: 'Um avatar espacial', price: 100, imageAsset: 'assets/avatars/astronaut.png', category: ShopCategory.avatar),
-      ShopItem(id: 'avatar_2', name: 'Cientista', description: 'Avatar de cientista', price: 150, imageAsset: 'assets/avatars/scientist.png', category: ShopCategory.avatar),
-      ShopItem(id: 'avatar_3', name: 'Super-herói', description: 'Avatar de super-herói', price: 200, imageAsset: 'assets/avatars/superhero.png', category: ShopCategory.avatar),
+      ShopItem(
+          id: 'avatar_1',
+          name: 'Astronauta',
+          description: 'Um avatar espacial',
+          price: 100,
+          imageAsset: 'assets/avatars/astronaut.png',
+          category: ShopCategory.avatar),
+      ShopItem(
+          id: 'avatar_2',
+          name: 'Cientista',
+          description: 'Avatar de cientista',
+          price: 150,
+          imageAsset: 'assets/avatars/scientist.png',
+          category: ShopCategory.avatar),
+      ShopItem(
+          id: 'avatar_3',
+          name: 'Super-herói',
+          description: 'Avatar de super-herói',
+          price: 200,
+          imageAsset: 'assets/avatars/superhero.png',
+          category: ShopCategory.avatar),
     ];
     _themes = [
-      ShopItem(id: 'theme_1', name: 'Tema Escuro', description: 'Modo escuro elegante', price: 0, imageAsset: 'assets/themes/dark.png', category: ShopCategory.theme),
-      ShopItem(id: 'theme_2', name: 'Tema Oceano', description: 'Tons de azul', price: 100, imageAsset: 'assets/themes/ocean.png', category: ShopCategory.theme),
-      ShopItem(id: 'theme_3', name: 'Tema Floresta', description: 'Tons de verde', price: 100, imageAsset: 'assets/themes/forest.png', category: ShopCategory.theme),
+      ShopItem(
+          id: 'theme_1',
+          name: 'Tema Escuro',
+          description: 'Modo escuro elegante',
+          price: 0,
+          imageAsset: 'assets/themes/dark.png',
+          category: ShopCategory.theme),
+      ShopItem(
+          id: 'theme_2',
+          name: 'Tema Oceano',
+          description: 'Tons de azul',
+          price: 100,
+          imageAsset: 'assets/themes/ocean.png',
+          category: ShopCategory.theme),
+      ShopItem(
+          id: 'theme_3',
+          name: 'Tema Floresta',
+          description: 'Tons de verde',
+          price: 100,
+          imageAsset: 'assets/themes/forest.png',
+          category: ShopCategory.theme),
     ];
     _powerups = [
-      ShopItem(id: 'powerup_1', name: 'Dica Extra', description: '+1 dica por lição', price: 50, imageAsset: 'assets/powerups/hint.png', category: ShopCategory.powerup),
-      ShopItem(id: 'powerup_2', name: 'Tempo Extra', description: '+10 segundos por questão', price: 75, imageAsset: 'assets/powerups/time.png', category: ShopCategory.powerup),
-      ShopItem(id: 'powerup_3', name: 'Segunda Chance', description: 'Pode tentar novamente', price: 100, imageAsset: 'assets/powerups/retry.png', category: ShopCategory.powerup),
+      ShopItem(
+          id: 'powerup_1',
+          name: 'Dica Extra',
+          description: '+1 dica por lição',
+          price: 50,
+          imageAsset: 'assets/powerups/hint.png',
+          category: ShopCategory.powerup),
+      ShopItem(
+          id: 'powerup_2',
+          name: 'Tempo Extra',
+          description: '+10 segundos por questão',
+          price: 75,
+          imageAsset: 'assets/powerups/time.png',
+          category: ShopCategory.powerup),
+      ShopItem(
+          id: 'powerup_3',
+          name: 'Segunda Chance',
+          description: 'Pode tentar novamente',
+          price: 100,
+          imageAsset: 'assets/powerups/retry.png',
+          category: ShopCategory.powerup),
     ];
   }
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final coins = prefs.getInt(_userCoinsKey) ?? 0;
-    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? ['theme_1'];
+    final purchasedList =
+        prefs.getStringList(_purchasedItemsKey) ?? ['theme_1'];
 
     if (mounted) {
       setState(() {
@@ -385,7 +461,9 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     }
     if (_userCoins < item.price) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Moedas insuficientes!'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Moedas insuficientes!'),
+            backgroundColor: Colors.red),
       );
       return;
     }
@@ -395,7 +473,9 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         title: Text('Comprar ${item.name}?'),
         content: Text('Custo: ${item.price} moedas'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () async {
               final newCoins = _userCoins - item.price;
@@ -404,7 +484,9 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${item.name} comprado!'), backgroundColor: Colors.green),
+                SnackBar(
+                    content: Text('${item.name} comprado!'),
+                    backgroundColor: Colors.green),
               );
             },
             child: const Text('Comprar'),
@@ -429,7 +511,11 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
             children: [
               const Icon(Icons.store, size: 28),
               const SizedBox(width: 12),
-              Text('Loja', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text('Loja',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold)),
               const Spacer(),
               CoinsDisplay(coins: _userCoins),
             ],
@@ -473,8 +559,12 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         final item = items[index];
         return ShopItemCard(
           item: ShopItem(
-            id: item.id, name: item.name, description: item.description,
-            price: item.price, imageAsset: item.imageAsset, category: item.category,
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            imageAsset: item.imageAsset,
+            category: item.category,
             isPurchased: _isItemPurchased(item.id),
           ),
           userCoins: _userCoins,
@@ -522,14 +612,17 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
 
     if (mounted) {
       setState(() {
-        _username = currentUser?.displayName ?? prefs.getString('user_name') ?? 'Estudante';
+        _username = currentUser?.displayName ??
+            prefs.getString('user_name') ??
+            'Estudante';
         _avatarUrl = currentUser?.photoUrl;
         _level = prefs.getInt('user_level') ?? 1;
         _streak = prefs.getInt('current_streak') ?? 0;
         _totalXp = prefs.getInt('user_xp') ?? 0;
         _totalQuestions = prefs.getInt('total_questions') ?? 0;
         _correctQuestions = prefs.getInt('correct_questions') ?? 0;
-        final unlockedAchievements = prefs.getStringList('unlocked_achievements') ?? [];
+        final unlockedAchievements =
+            prefs.getStringList('unlocked_achievements') ?? [];
         _achievementsCount = unlockedAchievements.length;
         _progressByUnit = {
           'Números': prefs.getDouble('progress_Números') ?? 0.0,
@@ -573,24 +666,47 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                     children: [
                       const Icon(Icons.person, size: 28),
                       const SizedBox(width: 12),
-                      Text('Perfil', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('Perfil',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.settings),
-                        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed(AppRoutes.settings),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   // Avatar and user info
-                  AvatarDisplay(avatarUrl: _avatarUrl, level: _level, username: _username),
+                  AvatarDisplay(
+                      avatarUrl: _avatarUrl,
+                      level: _level,
+                      username: _username),
                   const SizedBox(height: 24),
                   // Quick stats
                   Row(
                     children: [
-                      Expanded(child: _QuickStat(icon: Icons.local_fire_department, value: '$_streak', label: 'Sequência', color: Colors.orange)),
-                      Expanded(child: _QuickStat(icon: Icons.star, value: '$_totalXp', label: 'XP Total', color: Colors.amber)),
-                      Expanded(child: _QuickStat(icon: Icons.emoji_events, value: '$_achievementsCount', label: 'Conquistas', color: Colors.purple)),
+                      Expanded(
+                          child: _QuickStat(
+                              icon: Icons.local_fire_department,
+                              value: '$_streak',
+                              label: 'Sequência',
+                              color: Colors.orange)),
+                      Expanded(
+                          child: _QuickStat(
+                              icon: Icons.star,
+                              value: '$_totalXp',
+                              label: 'XP Total',
+                              color: Colors.amber)),
+                      Expanded(
+                          child: _QuickStat(
+                              icon: Icons.emoji_events,
+                              value: '$_achievementsCount',
+                              label: 'Conquistas',
+                              color: Colors.purple)),
                     ],
                   ),
                 ],
@@ -602,7 +718,10 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
             delegate: _TabBarDelegate(
               TabBar(
                 controller: _tabController,
-                tabs: const [Tab(text: 'Estatísticas'), Tab(text: 'Conquistas')],
+                tabs: const [
+                  Tab(text: 'Estatísticas'),
+                  Tab(text: 'Conquistas')
+                ],
               ),
             ),
           ),
@@ -615,11 +734,22 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                StatsCard(title: 'Questões Respondidas', stats: {'Total': '$_totalQuestions', 'Corretas': '$_correctQuestions', 'Taxa de Acerto': _calculateAccuracy()}),
+                StatsCard(title: 'Questões Respondidas', stats: {
+                  'Total': '$_totalQuestions',
+                  'Corretas': '$_correctQuestions',
+                  'Taxa de Acerto': _calculateAccuracy()
+                }),
                 const SizedBox(height: 16),
-                StatsCard(title: 'Progresso por Unidade', stats: {for (final entry in _progressByUnit.entries) entry.key: '${(entry.value * 100).toInt()}%'}),
+                StatsCard(title: 'Progresso por Unidade', stats: {
+                  for (final entry in _progressByUnit.entries)
+                    entry.key: '${(entry.value * 100).toInt()}%'
+                }),
                 const SizedBox(height: 16),
-                StatsCard(title: 'Informações Gerais', stats: {'Nível': '$_level', 'XP Total': '$_totalXp', 'Sequência Atual': '$_streak dias'}),
+                StatsCard(title: 'Informações Gerais', stats: {
+                  'Nível': '$_level',
+                  'XP Total': '$_totalXp',
+                  'Sequência Atual': '$_streak dias'
+                }),
               ],
             ),
           ),
@@ -636,7 +766,11 @@ class _QuickStat extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _QuickStat({required this.icon, required this.value, required this.label, required this.color});
+  const _QuickStat(
+      {required this.icon,
+      required this.value,
+      required this.label,
+      required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -644,12 +778,21 @@ class _QuickStat extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 28),
         ),
         const SizedBox(height: 8),
-        Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600])),
+        Text(value,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -665,8 +808,10 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(color: Theme.of(context).scaffoldBackgroundColor, child: _tabBar);
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+        color: Theme.of(context).scaffoldBackgroundColor, child: _tabBar);
   }
 
   @override

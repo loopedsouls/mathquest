@@ -1,7 +1,9 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import '../../../app/routes.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/repositories/lesson_repository_impl.dart';
+import '../../widgets/flame/gameplay_background_game.dart';
 import '../../widgets/gameplay/answer_option.dart';
 import '../../widgets/gameplay/question_card.dart';
 import '../../widgets/gameplay/progress_bar.dart';
@@ -51,7 +53,8 @@ class _GameplayScreenState extends State<GameplayScreen>
 
   Future<void> _loadQuestions() async {
     try {
-      final questions = await _lessonRepository.getLessonQuestions(widget.lessonId);
+      final questions =
+          await _lessonRepository.getLessonQuestions(widget.lessonId);
       if (mounted) {
         if (questions.isEmpty) {
           setState(() {
@@ -90,11 +93,11 @@ class _GameplayScreenState extends State<GameplayScreen>
     });
 
     final currentQuestion = _questions[_currentQuestionIndex];
-    final selectedAnswer = index >= 0 && index < currentQuestion.options.length 
-        ? currentQuestion.options[index] 
+    final selectedAnswer = index >= 0 && index < currentQuestion.options.length
+        ? currentQuestion.options[index]
         : '';
     final isCorrect = currentQuestion.isCorrect(selectedAnswer);
-    
+
     if (isCorrect) {
       _correctAnswers++;
     } else {
@@ -195,99 +198,142 @@ class _GameplayScreenState extends State<GameplayScreen>
     }
 
     final currentQuestion = _questions[_currentQuestionIndex];
-    final correctAnswerIndex = currentQuestion.options.indexOf(currentQuestion.correctAnswer);
+    final correctAnswerIndex =
+        currentQuestion.options.indexOf(currentQuestion.correctAnswer);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Questão ${_currentQuestionIndex + 1}/${_questions.length}'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => _showExitDialog(),
-        ),
-        actions: [
-          TimerWidget(
-            duration: 30,
-            onTimeUp: _onTimeUp,
-            key: ValueKey(_currentQuestionIndex),
+      body: Stack(
+        children: [
+          // Flame animated background
+          Positioned.fill(
+            child: GameWidget(
+              game: GameplayBackgroundGame(
+                primaryColor: Theme.of(context).primaryColor,
+              ),
+            ),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Progress bar
-              GameProgressBar(
-                current: _currentQuestionIndex + 1,
-                total: _questions.length,
-              ),
-              const SizedBox(height: 24),
-              // Question
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: _shakeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(_shakeAnimation.value, 0),
-                      child: child,
-                    );
-                  },
-                  child: QuestionCard(
-                    question: currentQuestion.question,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Answer options
-              ...List.generate(currentQuestion.options.length, (index) {
-                final isSelected = _selectedAnswerIndex == index;
-                final isCorrect = index == correctAnswerIndex;
-                final showResult = _hasAnswered;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: AnswerOption(
-                    text: currentQuestion.options[index],
-                    index: index,
-                    isSelected: isSelected,
-                    isCorrect: showResult ? isCorrect : null,
-                    showResult: showResult,
-                    onTap: () => _onAnswerSelected(index),
-                  ),
-                );
-              }),
-              // Explanation (shown after answering)
-              if (_hasAnswered && currentQuestion.explanation != null)
-                AnimatedOpacity(
-                  opacity: _hasAnswered ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            currentQuestion.explanation!,
-                            style: Theme.of(context).textTheme.bodyMedium,
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Custom AppBar
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => _showExitDialog(),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Questão ${_currentQuestionIndex + 1}/${_questions.length}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
+                      ),
+                      TimerWidget(
+                        duration: 30,
+                        onTimeUp: _onTimeUp,
+                        key: ValueKey(_currentQuestionIndex),
+                      ),
+                    ],
+                  ),
+                ),
+                // Progress bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GameProgressBar(
+                    current: _currentQuestionIndex + 1,
+                    total: _questions.length,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Question
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AnimatedBuilder(
+                      animation: _shakeAnimation,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(_shakeAnimation.value, 0),
+                          child: child,
+                        );
+                      },
+                      child: QuestionCard(
+                        question: currentQuestion.question,
+                      ),
                     ),
                   ),
                 ),
-            ],
+                const SizedBox(height: 24),
+                // Answer options
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children:
+                        List.generate(currentQuestion.options.length, (index) {
+                      final isSelected = _selectedAnswerIndex == index;
+                      final isCorrect = index == correctAnswerIndex;
+                      final showResult = _hasAnswered;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AnswerOption(
+                          text: currentQuestion.options[index],
+                          index: index,
+                          isSelected: isSelected,
+                          isCorrect: showResult ? isCorrect : null,
+                          showResult: showResult,
+                          onTap: () => _onAnswerSelected(index),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                // Explanation (shown after answering)
+                if (_hasAnswered && currentQuestion.explanation != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AnimatedOpacity(
+                      opacity: _hasAnswered ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline,
+                              color: Colors.amber,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                currentQuestion.explanation!,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

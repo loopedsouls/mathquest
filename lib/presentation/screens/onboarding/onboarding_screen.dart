@@ -1,6 +1,8 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
+import '../../widgets/flame/onboarding_game.dart';
 
 /// Onboarding screen for first-time users
 class OnboardingScreen extends StatefulWidget {
@@ -12,7 +14,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const String _onboardingCompleteKey = 'onboarding_complete';
-  
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -20,32 +22,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     const OnboardingPage(
       icon: Icons.calculate_outlined,
       title: 'Bem-vindo ao MathQuest!',
-      description:
-          'Aprenda matemática de forma divertida e interativa, '
+      description: 'Aprenda matemática de forma divertida e interativa, '
           'alinhado com a BNCC para estudantes do 6º ao 9º ano.',
       color: Color(0xFF6C63FF),
     ),
     const OnboardingPage(
       icon: Icons.emoji_events_outlined,
       title: 'Ganhe Recompensas',
-      description:
-          'Complete lições, ganhe XP e moedas, desbloqueie conquistas '
+      description: 'Complete lições, ganhe XP e moedas, desbloqueie conquistas '
           'e personalize seu personagem!',
       color: Color(0xFF00BFA5),
     ),
     const OnboardingPage(
       icon: Icons.trending_up_outlined,
       title: 'Acompanhe seu Progresso',
-      description:
-          'Veja sua evolução em cada área da matemática e '
+      description: 'Veja sua evolução em cada área da matemática e '
           'mantenha sua sequência de estudos!',
       color: Color(0xFFFF6B6B),
     ),
     const OnboardingPage(
       icon: Icons.group_outlined,
       title: 'Compita com Amigos',
-      description:
-          'Entre no ranking, desafie seus colegas e veja '
+      description: 'Entre no ranking, desafie seus colegas e veja '
           'quem é o melhor matemático!',
       color: Color(0xFFFFB347),
     ),
@@ -70,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Save onboarding completion to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingCompleteKey, true);
-    
+
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
@@ -80,7 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingCompleteKey, true);
     await prefs.setBool('is_guest', true);
-    
+
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
@@ -94,98 +92,116 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Skip button
-            Align(
-              alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _completeOnboarding,
-                child: Text(
-                  'Pular',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontSize: 16,
-                  ),
-                ),
+      body: Stack(
+        children: [
+          // Flame animated background
+          Positioned.fill(
+            child: GameWidget(
+              game: OnboardingGame(
+                pageIndex: _currentPage,
+                pageColor: _pages[_currentPage].color,
               ),
+              key: ValueKey(_currentPage), // Recreate game on page change
             ),
-            // Pages
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                itemCount: _pages.length,
-                itemBuilder: (context, index) => _pages[index],
-              ),
-            ),
-            // Page indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == index ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == index
-                        ? _pages[_currentPage].color
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            // Next/Start button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _nextPage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _pages[_currentPage].color,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    _currentPage < _pages.length - 1 ? 'Próximo' : 'Começar',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          ),
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Skip button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: TextButton(
+                    onPressed: _completeOnboarding,
+                    child: Text(
+                      'Pular',
+                      style: TextStyle(
+                        color: _pages[_currentPage].color,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Guest mode option (shown only on last page)
-            if (_currentPage == _pages.length - 1)
-              TextButton.icon(
-                onPressed: _continueAsGuest,
-                icon: Icon(
-                  Icons.person_outline,
-                  color: Colors.grey[600],
-                  size: 20,
-                ),
-                label: Text(
-                  'Continuar como Convidado',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
+                // Pages
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: _pages.length,
+                    itemBuilder: (context, index) => _pages[index],
                   ),
                 ),
-              ),
-            const SizedBox(height: 32),
-          ],
-        ),
+                // Page indicator
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _pages.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentPage == index ? 24 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? _pages[_currentPage].color
+                            : Colors.grey.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Next/Start button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _nextPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _pages[_currentPage].color,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        _currentPage < _pages.length - 1
+                            ? 'Próximo'
+                            : 'Começar',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Guest mode option (shown only on last page)
+                if (_currentPage == _pages.length - 1)
+                  TextButton.icon(
+                    onPressed: _continueAsGuest,
+                    icon: Icon(
+                      Icons.person_outline,
+                      color: Colors.grey[400],
+                      size: 20,
+                    ),
+                    label: Text(
+                      'Continuar como Convidado',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -231,17 +247,17 @@ class OnboardingPage extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 16),
           Text(
             description,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey[600],
-              height: 1.5,
-            ),
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
           ),
         ],
       ),

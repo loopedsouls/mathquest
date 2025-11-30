@@ -52,10 +52,15 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
+# Suppress CMake deprecation warnings from Firebase SDK (uses old cmake_minimum_required)
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+
+# Re-enable deprecation warnings after plugins are loaded
+set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
 
 # === Installation ===

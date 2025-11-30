@@ -55,6 +55,7 @@ class AppRoutes {
         final args = settings.arguments as Map<String, dynamic>?;
         return _buildRoute(
           ResultsScreen(
+            lessonId: args?['lessonId'] ?? '',
             score: args?['score'] ?? 0,
             totalQuestions: args?['totalQuestions'] ?? 0,
             xpGained: args?['xpGained'] ?? 0,

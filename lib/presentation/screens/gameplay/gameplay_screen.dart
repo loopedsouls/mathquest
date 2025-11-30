@@ -123,6 +123,7 @@ class _GameplayScreenState extends State<GameplayScreen>
     Navigator.of(context).pushReplacementNamed(
       AppRoutes.results,
       arguments: {
+        'lessonId': widget.lessonId,
         'score': _correctAnswers,
         'totalQuestions': _questions.length,
         'xpGained': _correctAnswers * 10,

@@ -1,0 +1,127 @@
+{
+  "@@locale": "es",
+  
+  "appTitle": "MathQuest",
+  "welcome": "¡Bienvenido a MathQuest!",
+  
+  "login": "Iniciar Sesión",
+  "register": "Registrarse",
+  "logout": "Cerrar Sesión",
+  "email": "Correo electrónico",
+  "password": "Contraseña",
+  "confirmPassword": "Confirmar Contraseña",
+  "name": "Nombre",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "dontHaveAccount": "¿No tienes una cuenta?",
+  "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+  "continueWithGoogle": "Continuar con Google",
+  
+  "home": "Inicio",
+  "profile": "Perfil",
+  "settings": "Configuración",
+  "shop": "Tienda",
+  "leaderboard": "Clasificación",
+  "lessonMap": "Mapa de Lecciones",
+  
+  "level": "Nivel",
+  "xp": "XP",
+  "coins": "Monedas",
+  "streak": "Racha",
+  "achievements": "Logros",
+  "statistics": "Estadísticas",
+  
+  "hello": "¡Hola, {name}!",
+  
+  "dailyStreak": "Racha de Estudio",
+  "daysStreak": "{count} días",
+  
+  "progressByUnit": "Progreso por Unidad",
+  "seeMore": "Ver más",
+  
+  "play": "Jugar",
+  "continue_": "Continuar",
+  "retry": "Reintentar",
+  "exit": "Salir",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "close": "Cerrar",
+  
+  "question": "Pregunta",
+  "questionNumber": "Pregunta {current}/{total}",
+  
+  "correct": "¡Correcto!",
+  "incorrect": "¡Incorrecto!",
+  "timeUp": "¡Se acabó el tiempo!",
+  
+  "results": "Resultados",
+  "perfect": "¡Perfecto! 🎉",
+  "veryGood": "¡Muy bien! 👏",
+  "goodJob": "¡Buen trabajo! 💪",
+  "keepTrying": "¡Sigue intentando! 📚",
+  
+  "correctAnswers": "Correctas",
+  "totalQuestions": "Total",
+  "accuracy": "Precisión",
+  "xpGained": "+{xp} XP",
+  
+  "units_numbers": "Números",
+  "units_algebra": "Álgebra",
+  "units_geometry": "Geometría",
+  "units_measures": "Magnitudes y Medidas",
+  "units_statistics": "Probabilidad y Estadística",
+  
+  "year_6": "6º grado",
+  "year_7": "7º grado",
+  "year_8": "8º grado",
+  "year_9": "9º grado",
+  
+  "lessonLocked": "Completa las lecciones anteriores para desbloquear",
+  "lessonCompleted": "¡Lección completada!",
+  
+  "settingsSound": "Efectos de Sonido",
+  "settingsMusic": "Música de Fondo",
+  "settingsNotifications": "Recordatorios de Estudio",
+  "settingsDarkMode": "Modo Oscuro",
+  "settingsLanguage": "Idioma",
+  "settingsEditProfile": "Editar Perfil",
+  "settingsChangePassword": "Cambiar Contraseña",
+  "settingsExportData": "Exportar Datos",
+  "settingsAbout": "Acerca de MathQuest",
+  "settingsTerms": "Términos de Uso",
+  "settingsPrivacy": "Política de Privacidad",
+  
+  "errorGeneric": "Ocurrió un error. Inténtalo de nuevo.",
+  "errorNetwork": "Error de conexión. Verifica tu internet.",
+  "errorLogin": "Error al iniciar sesión. Verifica tus credenciales.",
+  "errorRegister": "Error al registrarse. Inténtalo de nuevo.",
+  
+  "loadingQuestions": "Cargando preguntas...",
+  "loadingData": "Cargando datos...",
+  
+  "exitLessonTitle": "¿Salir de la lección?",
+  "exitLessonMessage": "Tu progreso en esta lección se perderá. ¿Estás seguro de que quieres salir?",
+  
+  "logoutTitle": "Cerrar Sesión",
+  "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+  
+  "claimReward": "Reclamar",
+  "purchase": "Comprar",
+  "purchased": "Adquirido",
+  "insufficientCoins": "¡Monedas insuficientes!",
+  "purchaseConfirm": "¿Comprar {item}?",
+  "purchaseCost": "Costo: {price} monedas",
+  "purchaseSuccess": "¡{item} comprado con éxito!",
+  
+  "rankGlobal": "Global",
+  "rankFriends": "Amigos",
+  "rankDaily": "Diario",
+  "rankWeekly": "Semanal",
+  "rankMonthly": "Mensual",
+  "rankAllTime": "General",
+  "addFriends": "Agregar Amigos",
+  "addFriendsPrompt": "¡Agrega amigos para competir!",
+  
+  "avatars": "Avatares",
+  "themes": "Temas",
+  "powerups": "Power-ups"
+}

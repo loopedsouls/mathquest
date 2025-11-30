@@ -2,19 +2,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'services/ai_firebase_ai_service.dart';
-import 'screens/navigation_start_screen.dart';
-import 'app_theme.dart';
+import 'data/datasources/remote/firebase_service.dart';
+import 'app/theme/app_theme.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'services/user_auth_service.dart';
+import 'data/repositories/auth_repository_impl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'presentation/screens/splash/splash_screen.dart';
 
 // Verificar se Firebase está disponível na plataforma atual
 bool get firebaseAvailable {
@@ -78,7 +78,7 @@ void main() async {
 
     // Inicializar OpenAI API
     try {
-      await FirebaseAIService.initialize();
+      await AIService.initialize();
     } catch (e) {
       // OpenAI pode falhar se a chave não estiver configurada
       // mas isso não deve impedir o funcionamento do app
@@ -174,11 +174,11 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     // Se Firebase não estiver disponível (ex: Linux), pular autenticação
     if (!firebaseAvailable) {
-      return const StartScreen();
+      return const SplashScreen();
     }
 
     return StreamBuilder<User?>(
-      stream: AuthService().authStateChanges,
+      stream: AuthRepositoryImpl().authStateChanges.map((user) => user != null ? FirebaseAuth.instance.currentUser : null),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -189,7 +189,7 @@ class AuthWrapper extends StatelessWidget {
         }
 
         // Mostrar o app principal - usuário pode estar logado ou como convidado
-        return const StartScreen();
+        return const SplashScreen();
       },
     );
   }

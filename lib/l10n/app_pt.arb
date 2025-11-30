@@ -1,0 +1,175 @@
+{
+  "@@locale": "pt",
+  "@@last_modified": "2024-01-01T00:00:00.000Z",
+  
+  "appTitle": "MathQuest",
+  "@appTitle": {
+    "description": "O título do aplicativo"
+  },
+  
+  "welcome": "Bem-vindo ao MathQuest!",
+  "@welcome": {
+    "description": "Mensagem de boas-vindas"
+  },
+  
+  "login": "Entrar",
+  "register": "Cadastrar",
+  "logout": "Sair",
+  "email": "Email",
+  "password": "Senha",
+  "confirmPassword": "Confirmar Senha",
+  "name": "Nome",
+  "forgotPassword": "Esqueceu a senha?",
+  "dontHaveAccount": "Não tem uma conta?",
+  "alreadyHaveAccount": "Já tem uma conta?",
+  "continueWithGoogle": "Continuar com Google",
+  
+  "home": "Início",
+  "profile": "Perfil",
+  "settings": "Configurações",
+  "shop": "Loja",
+  "leaderboard": "Ranking",
+  "lessonMap": "Mapa de Lições",
+  
+  "level": "Nível",
+  "xp": "XP",
+  "coins": "Moedas",
+  "streak": "Sequência",
+  "achievements": "Conquistas",
+  "statistics": "Estatísticas",
+  
+  "hello": "Olá, {name}!",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "dailyStreak": "Sequência de Estudos",
+  "daysStreak": "{count} dias",
+  "@daysStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "progressByUnit": "Progresso por Unidade",
+  "seeMore": "Ver mais",
+  
+  "play": "Jogar",
+  "continue_": "Continuar",
+  "retry": "Tentar Novamente",
+  "exit": "Sair",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "close": "Fechar",
+  
+  "question": "Questão",
+  "questionNumber": "Questão {current}/{total}",
+  "@questionNumber": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  
+  "correct": "Correto!",
+  "incorrect": "Incorreto!",
+  "timeUp": "Tempo esgotado!",
+  
+  "results": "Resultados",
+  "perfect": "Perfeito! 🎉",
+  "veryGood": "Muito bem! 👏",
+  "goodJob": "Bom trabalho! 💪",
+  "keepTrying": "Continue tentando! 📚",
+  
+  "correctAnswers": "Corretas",
+  "totalQuestions": "Total",
+  "accuracy": "Aproveitamento",
+  "xpGained": "+{xp} XP",
+  "@xpGained": {
+    "placeholders": {
+      "xp": {"type": "int"}
+    }
+  },
+  
+  "units_numbers": "Números",
+  "units_algebra": "Álgebra",
+  "units_geometry": "Geometria",
+  "units_measures": "Grandezas e Medidas",
+  "units_statistics": "Probabilidade e Estatística",
+  
+  "year_6": "6º ano",
+  "year_7": "7º ano",
+  "year_8": "8º ano",
+  "year_9": "9º ano",
+  
+  "lessonLocked": "Complete as lições anteriores para desbloquear",
+  "lessonCompleted": "Lição concluída!",
+  
+  "settingsSound": "Efeitos Sonoros",
+  "settingsMusic": "Música de Fundo",
+  "settingsNotifications": "Lembretes de Estudo",
+  "settingsDarkMode": "Modo Escuro",
+  "settingsLanguage": "Idioma",
+  "settingsEditProfile": "Editar Perfil",
+  "settingsChangePassword": "Alterar Senha",
+  "settingsExportData": "Exportar Dados",
+  "settingsAbout": "Sobre o MathQuest",
+  "settingsTerms": "Termos de Uso",
+  "settingsPrivacy": "Política de Privacidade",
+  
+  "errorGeneric": "Ocorreu um erro. Tente novamente.",
+  "errorNetwork": "Erro de conexão. Verifique sua internet.",
+  "errorLogin": "Erro ao fazer login. Verifique suas credenciais.",
+  "errorRegister": "Erro ao criar conta. Tente novamente.",
+  
+  "loadingQuestions": "Carregando questões...",
+  "loadingData": "Carregando dados...",
+  
+  "exitLessonTitle": "Sair da lição?",
+  "exitLessonMessage": "Seu progresso nesta lição será perdido. Tem certeza que deseja sair?",
+  
+  "logoutTitle": "Sair",
+  "logoutMessage": "Tem certeza que deseja sair da sua conta?",
+  
+  "claimReward": "Resgatar",
+  "purchase": "Comprar",
+  "purchased": "Adquirido",
+  "insufficientCoins": "Moedas insuficientes!",
+  "purchaseConfirm": "Comprar {item}?",
+  "@purchaseConfirm": {
+    "placeholders": {
+      "item": {"type": "String"}
+    }
+  },
+  "purchaseCost": "Custo: {price} moedas",
+  "@purchaseCost": {
+    "placeholders": {
+      "price": {"type": "int"}
+    }
+  },
+  "purchaseSuccess": "{item} comprado com sucesso!",
+  "@purchaseSuccess": {
+    "placeholders": {
+      "item": {"type": "String"}
+    }
+  },
+  
+  "rankGlobal": "Global",
+  "rankFriends": "Amigos",
+  "rankDaily": "Diário",
+  "rankWeekly": "Semanal",
+  "rankMonthly": "Mensal",
+  "rankAllTime": "Geral",
+  "addFriends": "Adicionar Amigos",
+  "addFriendsPrompt": "Adicione amigos para competir!",
+  
+  "avatars": "Avatares",
+  "themes": "Temas",
+  "powerups": "Power-ups"
+}

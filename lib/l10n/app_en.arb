@@ -1,0 +1,127 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "MathQuest",
+  "welcome": "Welcome to MathQuest!",
+  
+  "login": "Sign In",
+  "register": "Sign Up",
+  "logout": "Sign Out",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "name": "Name",
+  "forgotPassword": "Forgot password?",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "continueWithGoogle": "Continue with Google",
+  
+  "home": "Home",
+  "profile": "Profile",
+  "settings": "Settings",
+  "shop": "Shop",
+  "leaderboard": "Leaderboard",
+  "lessonMap": "Lesson Map",
+  
+  "level": "Level",
+  "xp": "XP",
+  "coins": "Coins",
+  "streak": "Streak",
+  "achievements": "Achievements",
+  "statistics": "Statistics",
+  
+  "hello": "Hello, {name}!",
+  
+  "dailyStreak": "Study Streak",
+  "daysStreak": "{count} days",
+  
+  "progressByUnit": "Progress by Unit",
+  "seeMore": "See more",
+  
+  "play": "Play",
+  "continue_": "Continue",
+  "retry": "Retry",
+  "exit": "Exit",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "close": "Close",
+  
+  "question": "Question",
+  "questionNumber": "Question {current}/{total}",
+  
+  "correct": "Correct!",
+  "incorrect": "Incorrect!",
+  "timeUp": "Time's up!",
+  
+  "results": "Results",
+  "perfect": "Perfect! 🎉",
+  "veryGood": "Very good! 👏",
+  "goodJob": "Good job! 💪",
+  "keepTrying": "Keep trying! 📚",
+  
+  "correctAnswers": "Correct",
+  "totalQuestions": "Total",
+  "accuracy": "Accuracy",
+  "xpGained": "+{xp} XP",
+  
+  "units_numbers": "Numbers",
+  "units_algebra": "Algebra",
+  "units_geometry": "Geometry",
+  "units_measures": "Measurements",
+  "units_statistics": "Probability and Statistics",
+  
+  "year_6": "6th grade",
+  "year_7": "7th grade",
+  "year_8": "8th grade",
+  "year_9": "9th grade",
+  
+  "lessonLocked": "Complete previous lessons to unlock",
+  "lessonCompleted": "Lesson completed!",
+  
+  "settingsSound": "Sound Effects",
+  "settingsMusic": "Background Music",
+  "settingsNotifications": "Study Reminders",
+  "settingsDarkMode": "Dark Mode",
+  "settingsLanguage": "Language",
+  "settingsEditProfile": "Edit Profile",
+  "settingsChangePassword": "Change Password",
+  "settingsExportData": "Export Data",
+  "settingsAbout": "About MathQuest",
+  "settingsTerms": "Terms of Use",
+  "settingsPrivacy": "Privacy Policy",
+  
+  "errorGeneric": "An error occurred. Please try again.",
+  "errorNetwork": "Connection error. Check your internet.",
+  "errorLogin": "Login error. Check your credentials.",
+  "errorRegister": "Registration error. Please try again.",
+  
+  "loadingQuestions": "Loading questions...",
+  "loadingData": "Loading data...",
+  
+  "exitLessonTitle": "Exit lesson?",
+  "exitLessonMessage": "Your progress in this lesson will be lost. Are you sure you want to exit?",
+  
+  "logoutTitle": "Sign Out",
+  "logoutMessage": "Are you sure you want to sign out?",
+  
+  "claimReward": "Claim",
+  "purchase": "Purchase",
+  "purchased": "Owned",
+  "insufficientCoins": "Insufficient coins!",
+  "purchaseConfirm": "Purchase {item}?",
+  "purchaseCost": "Cost: {price} coins",
+  "purchaseSuccess": "{item} purchased successfully!",
+  
+  "rankGlobal": "Global",
+  "rankFriends": "Friends",
+  "rankDaily": "Daily",
+  "rankWeekly": "Weekly",
+  "rankMonthly": "Monthly",
+  "rankAllTime": "All Time",
+  "addFriends": "Add Friends",
+  "addFriendsPrompt": "Add friends to compete!",
+  
+  "avatars": "Avatars",
+  "themes": "Themes",
+  "powerups": "Power-ups"
+}

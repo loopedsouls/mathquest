@@ -9,7 +9,13 @@ import '../../widgets/home/quick_actions.dart';
 import '../../widgets/home/user_stats_header.dart';
 import '../../widgets/lesson_map/lesson_node.dart';
 import '../../widgets/lesson_map/map_path.dart';
+import '../../widgets/profile/achievement_grid.dart';
+import '../../widgets/profile/stats_card.dart';
+import '../../widgets/profile/avatar_display.dart';
+import '../../widgets/shop/shop_item_card.dart';
+import '../../widgets/shop/coins_display.dart';
 import '../lesson_map/lesson_map_screen.dart';
+import '../shop/shop_screen.dart';
 
 /// Home screen - Main hub after login
 class HomeScreen extends StatefulWidget {
@@ -574,82 +580,376 @@ class _MapPlaceholderState extends State<_MapPlaceholder> {
   }
 }
 
-class _ShopPlaceholder extends StatelessWidget {
+/// Embedded Shop content
+class _ShopPlaceholder extends StatefulWidget {
   const _ShopPlaceholder();
 
   @override
+  State<_ShopPlaceholder> createState() => _ShopPlaceholderState();
+}
+
+class _ShopPlaceholderState extends State<_ShopPlaceholder>
+    with SingleTickerProviderStateMixin {
+  static const String _userCoinsKey = 'user_coins';
+  static const String _purchasedItemsKey = 'purchased_items';
+
+  late TabController _tabController;
+  int _userCoins = 0;
+  Set<String> _purchasedItems = {};
+  bool _isLoading = true;
+
+  late List<ShopItem> _avatars;
+  late List<ShopItem> _themes;
+  late List<ShopItem> _powerups;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _initializeItems();
+    _loadUserData();
+  }
+
+  void _initializeItems() {
+    _avatars = [
+      ShopItem(id: 'avatar_1', name: 'Astronauta', description: 'Um avatar espacial', price: 100, imageAsset: 'assets/avatars/astronaut.png', category: ShopCategory.avatar),
+      ShopItem(id: 'avatar_2', name: 'Cientista', description: 'Avatar de cientista', price: 150, imageAsset: 'assets/avatars/scientist.png', category: ShopCategory.avatar),
+      ShopItem(id: 'avatar_3', name: 'Super-herói', description: 'Avatar de super-herói', price: 200, imageAsset: 'assets/avatars/superhero.png', category: ShopCategory.avatar),
+    ];
+    _themes = [
+      ShopItem(id: 'theme_1', name: 'Tema Escuro', description: 'Modo escuro elegante', price: 0, imageAsset: 'assets/themes/dark.png', category: ShopCategory.theme),
+      ShopItem(id: 'theme_2', name: 'Tema Oceano', description: 'Tons de azul', price: 100, imageAsset: 'assets/themes/ocean.png', category: ShopCategory.theme),
+      ShopItem(id: 'theme_3', name: 'Tema Floresta', description: 'Tons de verde', price: 100, imageAsset: 'assets/themes/forest.png', category: ShopCategory.theme),
+    ];
+    _powerups = [
+      ShopItem(id: 'powerup_1', name: 'Dica Extra', description: '+1 dica por lição', price: 50, imageAsset: 'assets/powerups/hint.png', category: ShopCategory.powerup),
+      ShopItem(id: 'powerup_2', name: 'Tempo Extra', description: '+10 segundos por questão', price: 75, imageAsset: 'assets/powerups/time.png', category: ShopCategory.powerup),
+      ShopItem(id: 'powerup_3', name: 'Segunda Chance', description: 'Pode tentar novamente', price: 100, imageAsset: 'assets/powerups/retry.png', category: ShopCategory.powerup),
+    ];
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final coins = prefs.getInt(_userCoinsKey) ?? 0;
+    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? ['theme_1'];
+
+    if (mounted) {
+      setState(() {
+        _userCoins = coins;
+        _purchasedItems = purchasedList.toSet();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _savePurchase(String itemId, int newCoins) async {
+    final prefs = await SharedPreferences.getInstance();
+    _purchasedItems.add(itemId);
+    await prefs.setStringList(_purchasedItemsKey, _purchasedItems.toList());
+    await prefs.setInt(_userCoinsKey, newCoins);
+  }
+
+  bool _isItemPurchased(String itemId) => _purchasedItems.contains(itemId);
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _purchaseItem(ShopItem item) {
+    if (_isItemPurchased(item.id)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você já possui este item!')),
+      );
+      return;
+    }
+    if (_userCoins < item.price) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Moedas insuficientes!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Comprar ${item.name}?'),
+        content: Text('Custo: ${item.price} moedas'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              final newCoins = _userCoins - item.price;
+              await _savePurchase(item.id, newCoins);
+              setState(() => _userCoins = newCoins);
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${item.name} comprado!'), backgroundColor: Colors.green),
+              );
+            },
+            child: const Text('Comprar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.store_outlined,
-            size: 64,
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Icons.store, size: 28),
+              const SizedBox(width: 12),
+              Text('Loja', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const Spacer(),
+              CoinsDisplay(coins: _userCoins),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Loja',
-            style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        // Tabs
+        TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.face), text: 'Avatares'),
+            Tab(icon: Icon(Icons.palette), text: 'Temas'),
+            Tab(icon: Icon(Icons.bolt), text: 'Power-ups'),
+          ],
+        ),
+        // Content
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildItemGrid(_avatars),
+              _buildItemGrid(_themes),
+              _buildItemGrid(_powerups),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Personalize seu personagem',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemGrid(List<ShopItem> items) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return ShopItemCard(
+          item: ShopItem(
+            id: item.id, name: item.name, description: item.description,
+            price: item.price, imageAsset: item.imageAsset, category: item.category,
+            isPurchased: _isItemPurchased(item.id),
+          ),
+          userCoins: _userCoins,
+          onPurchase: () => _purchaseItem(item),
+        );
+      },
+    );
+  }
+}
+
+/// Embedded Profile content
+class _ProfilePlaceholder extends StatefulWidget {
+  const _ProfilePlaceholder();
+
+  @override
+  State<_ProfilePlaceholder> createState() => _ProfilePlaceholderState();
+}
+
+class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final _authRepository = AuthRepositoryImpl();
+
+  String _username = 'Estudante';
+  String? _avatarUrl;
+  int _level = 1;
+  int _streak = 0;
+  int _totalXp = 0;
+  int _achievementsCount = 0;
+  int _totalQuestions = 0;
+  int _correctQuestions = 0;
+  Map<String, double> _progressByUnit = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentUser = _authRepository.currentUser;
+
+    if (mounted) {
+      setState(() {
+        _username = currentUser?.displayName ?? prefs.getString('user_name') ?? 'Estudante';
+        _avatarUrl = currentUser?.photoUrl;
+        _level = prefs.getInt('user_level') ?? 1;
+        _streak = prefs.getInt('current_streak') ?? 0;
+        _totalXp = prefs.getInt('user_xp') ?? 0;
+        _totalQuestions = prefs.getInt('total_questions') ?? 0;
+        _correctQuestions = prefs.getInt('correct_questions') ?? 0;
+        final unlockedAchievements = prefs.getStringList('unlocked_achievements') ?? [];
+        _achievementsCount = unlockedAchievements.length;
+        _progressByUnit = {
+          'Números': prefs.getDouble('progress_Números') ?? 0.0,
+          'Álgebra': prefs.getDouble('progress_Álgebra') ?? 0.0,
+          'Geometria': prefs.getDouble('progress_Geometria') ?? 0.0,
+          'Grandezas': prefs.getDouble('progress_Grandezas') ?? 0.0,
+          'Estatística': prefs.getDouble('progress_Estatística') ?? 0.0,
+        };
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  String _calculateAccuracy() {
+    if (_totalQuestions == 0) return '0%';
+    return '${((_correctQuestions / _totalQuestions) * 100).toInt()}%';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Header with settings
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 28),
+                      const SizedBox(width: 12),
+                      Text('Perfil', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.settings),
+                        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Avatar and user info
+                  AvatarDisplay(avatarUrl: _avatarUrl, level: _level, username: _username),
+                  const SizedBox(height: 24),
+                  // Quick stats
+                  Row(
+                    children: [
+                      Expanded(child: _QuickStat(icon: Icons.local_fire_department, value: '$_streak', label: 'Sequência', color: Colors.orange)),
+                      Expanded(child: _QuickStat(icon: Icons.star, value: '$_totalXp', label: 'XP Total', color: Colors.amber)),
+                      Expanded(child: _QuickStat(icon: Icons.emoji_events, value: '$_achievementsCount', label: 'Conquistas', color: Colors.purple)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.shop);
-            },
-            icon: const Icon(Icons.shopping_bag),
-            label: const Text('Abrir Loja'),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+              TabBar(
+                controller: _tabController,
+                tabs: const [Tab(text: 'Estatísticas'), Tab(text: 'Conquistas')],
+              ),
+            ),
           ),
+        ];
+      },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                StatsCard(title: 'Questões Respondidas', stats: {'Total': '$_totalQuestions', 'Corretas': '$_correctQuestions', 'Taxa de Acerto': _calculateAccuracy()}),
+                const SizedBox(height: 16),
+                StatsCard(title: 'Progresso por Unidade', stats: {for (final entry in _progressByUnit.entries) entry.key: '${(entry.value * 100).toInt()}%'}),
+                const SizedBox(height: 16),
+                StatsCard(title: 'Informações Gerais', stats: {'Nível': '$_level', 'XP Total': '$_totalXp', 'Sequência Atual': '$_streak dias'}),
+              ],
+            ),
+          ),
+          const AchievementGrid(),
         ],
       ),
     );
   }
 }
 
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
+class _QuickStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _QuickStat({required this.icon, required this.value, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_outlined,
-            size: 64,
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Meu Perfil',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Veja suas estatísticas e conquistas',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.profile);
-            },
-            icon: const Icon(Icons.person),
-            label: const Text('Ver Perfil'),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 28),
+        ),
+        const SizedBox(height: 8),
+        Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600])),
+      ],
     );
   }
+}
+
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar _tabBar;
+  _TabBarDelegate(this._tabBar);
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(color: Theme.of(context).scaffoldBackgroundColor, child: _tabBar);
+  }
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
 }

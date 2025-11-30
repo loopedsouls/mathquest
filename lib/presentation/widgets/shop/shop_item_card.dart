@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/shop/shop_screen.dart';
+import 'gamified_shop_widgets.dart';
 
 /// Shop item card widget
 class ShopItemCard extends StatelessWidget {

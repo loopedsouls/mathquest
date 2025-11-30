@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../widgets/shop/shop_item_card.dart';
+import '../../widgets/shop/duolingo_design_system.dart';
+import '../../widgets/shop/gamified_shop_widgets.dart';
 import '../../widgets/shop/coins_display.dart';
 
-/// Shop screen - Buy items with coins
+/// Gamified Shop screen - Duolingo style
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
 
@@ -15,13 +16,17 @@ class _ShopScreenState extends State<ShopScreen>
     with SingleTickerProviderStateMixin {
   static const String _userCoinsKey = 'user_coins';
   static const String _purchasedItemsKey = 'purchased_items';
+  static const String _selectedAvatarKey = 'selected_avatar';
+  static const String _selectedThemeKey = 'selected_theme';
 
   late TabController _tabController;
   int _userCoins = 0;
   Set<String> _purchasedItems = {};
+  String? _selectedAvatar;
+  String? _selectedTheme;
   bool _isLoading = true;
 
-  // Shop items
+  // Shop items from Duolingo design system
   late List<ShopItem> _avatars;
   late List<ShopItem> _themes;
   late List<ShopItem> _powerups;
@@ -30,101 +35,58 @@ class _ShopScreenState extends State<ShopScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _initializeItems();
+    _tabController.addListener(() => setState(() {}));
     _loadUserData();
   }
 
   void _initializeItems() {
-    _avatars = [
-      ShopItem(
-        id: 'avatar_1',
-        name: 'Astronauta',
-        description: 'Um avatar espacial',
-        price: 100,
-        imageAsset: 'assets/avatars/astronaut.png',
-        category: ShopCategory.avatar,
-      ),
-      ShopItem(
-        id: 'avatar_2',
-        name: 'Cientista',
-        description: 'Avatar de cientista',
-        price: 150,
-        imageAsset: 'assets/avatars/scientist.png',
-        category: ShopCategory.avatar,
-      ),
-      ShopItem(
-        id: 'avatar_3',
-        name: 'Super-herói',
-        description: 'Avatar de super-herói',
-        price: 200,
-        imageAsset: 'assets/avatars/superhero.png',
-        category: ShopCategory.avatar,
-      ),
-    ];
+    // Initialize avatars from DuoAvatars
+    _avatars = DuoAvatars.all.map((data) {
+      return ShopItem.fromAvatarData(
+        data,
+        isPurchased: _purchasedItems.contains(data['id']) || data['price'] == 0,
+      );
+    }).toList();
 
-    _themes = [
-      ShopItem(
-        id: 'theme_1',
-        name: 'Tema Escuro',
-        description: 'Modo escuro elegante',
-        price: 0,
-        imageAsset: 'assets/themes/dark.png',
-        category: ShopCategory.theme,
-      ),
-      ShopItem(
-        id: 'theme_2',
-        name: 'Tema Oceano',
-        description: 'Tons de azul',
-        price: 100,
-        imageAsset: 'assets/themes/ocean.png',
-        category: ShopCategory.theme,
-      ),
-      ShopItem(
-        id: 'theme_3',
-        name: 'Tema Floresta',
-        description: 'Tons de verde',
-        price: 100,
-        imageAsset: 'assets/themes/forest.png',
-        category: ShopCategory.theme,
-      ),
-    ];
+    // Initialize themes from DuoThemes
+    _themes = DuoThemes.all.map((data) {
+      return ShopItem.fromThemeData(
+        data,
+        isPurchased: _purchasedItems.contains(data['id']) || data['price'] == 0,
+      );
+    }).toList();
 
-    _powerups = [
-      ShopItem(
-        id: 'powerup_1',
-        name: 'Dica Extra',
-        description: '+1 dica por lição',
-        price: 50,
-        imageAsset: 'assets/powerups/hint.png',
-        category: ShopCategory.powerup,
-      ),
-      ShopItem(
-        id: 'powerup_2',
-        name: 'Tempo Extra',
-        description: '+10 segundos por questão',
-        price: 75,
-        imageAsset: 'assets/powerups/time.png',
-        category: ShopCategory.powerup,
-      ),
-      ShopItem(
-        id: 'powerup_3',
-        name: 'Segunda Chance',
-        description: 'Pode tentar novamente',
-        price: 100,
-        imageAsset: 'assets/powerups/retry.png',
-        category: ShopCategory.powerup,
-      ),
-    ];
+    // Initialize power-ups from DuoPowerUps
+    _powerups = DuoPowerUps.all.map((data) {
+      return ShopItem.fromPowerUpData(
+        Map<String, dynamic>.from(data),
+        isPurchased: false, // Power-ups are consumable
+      );
+    }).toList();
   }
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    final coins = prefs.getInt(_userCoinsKey) ?? 0;
-    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? ['theme_1']; // Dark theme is free
+    final coins = prefs.getInt(_userCoinsKey) ?? 500; // Start with 500 coins
+    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? [];
+    final selectedAvatar = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_dark';
+
+    // Free items are always purchased
+    final allPurchased = {...purchasedList};
+    for (final avatar in DuoAvatars.all) {
+      if (avatar['price'] == 0) allPurchased.add(avatar['id']);
+    }
+    for (final theme in DuoThemes.all) {
+      if (theme['price'] == 0) allPurchased.add(theme['id']);
+    }
 
     setState(() {
       _userCoins = coins;
-      _purchasedItems = purchasedList.toSet();
+      _purchasedItems = allPurchased;
+      _selectedAvatar = selectedAvatar;
+      _selectedTheme = selectedTheme;
+      _initializeItems();
       _isLoading = false;
     });
   }
@@ -134,6 +96,18 @@ class _ShopScreenState extends State<ShopScreen>
     _purchasedItems.add(itemId);
     await prefs.setStringList(_purchasedItemsKey, _purchasedItems.toList());
     await prefs.setInt(_userCoinsKey, newCoins);
+  }
+
+  Future<void> _selectAvatar(String avatarId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedAvatarKey, avatarId);
+    setState(() => _selectedAvatar = avatarId);
+  }
+
+  Future<void> _selectTheme(String themeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedThemeKey, themeId);
+    setState(() => _selectedTheme = themeId);
   }
 
   bool _isItemPurchased(String itemId) {
@@ -146,57 +120,95 @@ class _ShopScreenState extends State<ShopScreen>
     super.dispose();
   }
 
-  void _purchaseItem(ShopItem item) {
-    final isPurchased = _isItemPurchased(item.id);
-    
-    if (isPurchased) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você já possui este item!')),
-      );
-      return;
+  void _handleAvatarTap(ShopItem item) {
+    if (_isItemPurchased(item.id)) {
+      // Select this avatar
+      _selectAvatar(item.id);
+      _showSuccessSnackbar('Avatar selecionado!');
+    } else {
+      _showPurchaseDialog(item);
     }
+  }
 
-    if (_userCoins < item.price) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Moedas insuficientes!'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+  void _handleThemeTap(ShopItem item) {
+    if (_isItemPurchased(item.id)) {
+      // Select this theme
+      _selectTheme(item.id);
+      _showSuccessSnackbar('Tema aplicado!');
+    } else {
+      _showPurchaseDialog(item);
     }
+  }
 
+  void _handlePowerUpTap(ShopItem item) {
+    _showPurchaseDialog(item);
+  }
+
+  void _showPurchaseDialog(ShopItem item) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Comprar ${item.name}?'),
-        content: Text('Custo: ${item.price} moedas'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newCoins = _userCoins - item.price;
-              await _savePurchase(item.id, newCoins);
-              
-              setState(() {
-                _userCoins = newCoins;
-              });
-              
-              if (!context.mounted) return;
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${item.name} comprado com sucesso!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: const Text('Comprar'),
-          ),
-        ],
+      builder: (context) => PurchaseConfirmationDialog(
+        item: item,
+        userCoins: _userCoins,
+        onConfirm: () => _completePurchase(item),
+      ),
+    );
+  }
+
+  Future<void> _completePurchase(ShopItem item) async {
+    if (_userCoins < item.price) {
+      _showErrorSnackbar('Moedas insuficientes!');
+      return;
+    }
+
+    final newCoins = _userCoins - item.price;
+    await _savePurchase(item.id, newCoins);
+
+    setState(() {
+      _userCoins = newCoins;
+      _initializeItems(); // Refresh items
+    });
+
+    _showSuccessSnackbar('${item.name} comprado! 🎉');
+
+    // Auto-select if it's an avatar or theme
+    if (item.category == ShopCategory.avatar) {
+      _selectAvatar(item.id);
+    } else if (item.category == ShopCategory.theme) {
+      _selectTheme(item.id);
+    }
+  }
+
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        backgroundColor: DuoColors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        backgroundColor: DuoColors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -205,87 +217,167 @@ class _ShopScreenState extends State<ShopScreen>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Loja')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: DuoColors.bgDark,
+        body: const Center(
+          child: CircularProgressIndicator(color: DuoColors.green),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Loja'),
-        actions: [
-          CoinsDisplay(coins: _userCoins),
-          const SizedBox(width: 16),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.face), text: 'Avatares'),
-            Tab(icon: Icon(Icons.palette), text: 'Temas'),
-            Tab(icon: Icon(Icons.bolt), text: 'Power-ups'),
+      backgroundColor: DuoColors.bgDark,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom App Bar
+            _buildAppBar(),
+            // Tab Bar
+            _buildTabBar(),
+            const SizedBox(height: 16),
+            // Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildAvatarsGrid(),
+                  _buildThemesGrid(),
+                  _buildPowerUpsList(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
         children: [
-          _buildItemGrid(_avatars),
-          _buildItemGrid(_themes),
-          _buildItemGrid(_powerups),
+          // Back button
+          DuoIconButton(
+            icon: Icons.arrow_back_rounded,
+            color: DuoColors.bgCard,
+            size: 44,
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 16),
+          // Title
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Loja',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Personalize sua experiência',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Coins display
+          CoinsDisplay(coins: _userCoins, showLabel: true),
         ],
       ),
     );
   }
 
-  Widget _buildItemGrid(List<ShopItem> items) {
+  Widget _buildTabBar() {
+    return DuoTabBar(
+      tabs: const ['Avatares', 'Temas', 'Power-ups'],
+      icons: const [Icons.face_rounded, Icons.palette_rounded, Icons.bolt_rounded],
+      selectedIndex: _tabController.index,
+      onTabSelected: (index) {
+        _tabController.animateTo(index);
+      },
+    );
+  }
+
+  Widget _buildAvatarsGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
-      itemCount: items.length,
+      itemCount: _avatars.length,
       itemBuilder: (context, index) {
-        final item = items[index];
-        return ShopItemCard(
-          item: ShopItem(
+        final item = _avatars[index];
+        return DuoShopCard(
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          emoji: item.emoji ?? '😊',
+          color: item.colorValue ?? 0xFF58CC02,
+          rarity: item.rarity ?? 'common',
+          isPurchased: _isItemPurchased(item.id),
+          isSelected: _selectedAvatar == item.id,
+          onTap: () => _handleAvatarTap(item),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemesGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: _themes.length,
+      itemBuilder: (context, index) {
+        final item = _themes[index];
+        final colors = item.themeColors ?? [0xFF131F24, 0xFF1A2B33, 0xFF233640];
+        return DuoThemeCard(
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          colors: colors.map((c) => Color(c)).toList(),
+          isPurchased: _isItemPurchased(item.id),
+          isSelected: _selectedTheme == item.id,
+          onTap: () => _handleThemeTap(item),
+        );
+      },
+    );
+  }
+
+  Widget _buildPowerUpsList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _powerups.length,
+      itemBuilder: (context, index) {
+        final item = _powerups[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DuoPowerUpCard(
             id: item.id,
             name: item.name,
             description: item.description,
             price: item.price,
-            imageAsset: item.imageAsset,
-            category: item.category,
-            isPurchased: _isItemPurchased(item.id),
+            icon: item.powerupIcon ?? Icons.bolt_rounded,
+            colorValue: item.colorValue ?? 0xFFFF9600,
+            onTap: () => _handlePowerUpTap(item),
           ),
-          userCoins: _userCoins,
-          onPurchase: () => _purchaseItem(item),
         );
       },
     );
   }
 }
-
-/// Data class for shop items
-class ShopItem {
-  final String id;
-  final String name;
-  final String description;
-  final int price;
-  final String imageAsset;
-  final ShopCategory category;
-  final bool isPurchased;
-
-  ShopItem({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.imageAsset,
-    required this.category,
-    this.isPurchased = false,
-  });
-}
-
-enum ShopCategory { avatar, theme, powerup }

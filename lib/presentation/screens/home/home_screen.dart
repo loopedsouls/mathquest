@@ -12,9 +12,8 @@ import '../../widgets/journey_map/journey_map_widget.dart';
 import '../../widgets/profile/achievement_grid.dart';
 import '../../widgets/profile/stats_card.dart';
 import '../../widgets/profile/avatar_display.dart';
-import '../../widgets/shop/shop_item_card.dart';
+import '../../widgets/shop/duolingo_design_system.dart';
 import '../../widgets/shop/coins_display.dart';
-import '../shop/shop_screen.dart';
 
 /// Home screen - Main hub after login
 class HomeScreen extends StatefulWidget {
@@ -320,7 +319,7 @@ class _HomeContentState extends State<_HomeContent> {
   }
 }
 
-/// Embedded Shop content
+/// Embedded Shop content - Duolingo style
 class _ShopPlaceholder extends StatefulWidget {
   const _ShopPlaceholder();
 
@@ -332,106 +331,46 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     with SingleTickerProviderStateMixin {
   static const String _userCoinsKey = 'user_coins';
   static const String _purchasedItemsKey = 'purchased_items';
+  static const String _selectedAvatarKey = 'selected_avatar';
+  static const String _selectedThemeKey = 'selected_theme';
 
   late TabController _tabController;
   int _userCoins = 0;
   Set<String> _purchasedItems = {};
+  String? _selectedAvatar;
+  String? _selectedTheme;
   bool _isLoading = true;
-
-  late List<ShopItem> _avatars;
-  late List<ShopItem> _themes;
-  late List<ShopItem> _powerups;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _initializeItems();
+    _tabController.addListener(() => setState(() {}));
     _loadUserData();
-  }
-
-  void _initializeItems() {
-    _avatars = [
-      ShopItem(
-          id: 'avatar_1',
-          name: 'Astronauta',
-          description: 'Um avatar espacial',
-          price: 100,
-          imageAsset: 'assets/avatars/astronaut.png',
-          category: ShopCategory.avatar),
-      ShopItem(
-          id: 'avatar_2',
-          name: 'Cientista',
-          description: 'Avatar de cientista',
-          price: 150,
-          imageAsset: 'assets/avatars/scientist.png',
-          category: ShopCategory.avatar),
-      ShopItem(
-          id: 'avatar_3',
-          name: 'Super-herói',
-          description: 'Avatar de super-herói',
-          price: 200,
-          imageAsset: 'assets/avatars/superhero.png',
-          category: ShopCategory.avatar),
-    ];
-    _themes = [
-      ShopItem(
-          id: 'theme_1',
-          name: 'Tema Escuro',
-          description: 'Modo escuro elegante',
-          price: 0,
-          imageAsset: 'assets/themes/dark.png',
-          category: ShopCategory.theme),
-      ShopItem(
-          id: 'theme_2',
-          name: 'Tema Oceano',
-          description: 'Tons de azul',
-          price: 100,
-          imageAsset: 'assets/themes/ocean.png',
-          category: ShopCategory.theme),
-      ShopItem(
-          id: 'theme_3',
-          name: 'Tema Floresta',
-          description: 'Tons de verde',
-          price: 100,
-          imageAsset: 'assets/themes/forest.png',
-          category: ShopCategory.theme),
-    ];
-    _powerups = [
-      ShopItem(
-          id: 'powerup_1',
-          name: 'Dica Extra',
-          description: '+1 dica por lição',
-          price: 50,
-          imageAsset: 'assets/powerups/hint.png',
-          category: ShopCategory.powerup),
-      ShopItem(
-          id: 'powerup_2',
-          name: 'Tempo Extra',
-          description: '+10 segundos por questão',
-          price: 75,
-          imageAsset: 'assets/powerups/time.png',
-          category: ShopCategory.powerup),
-      ShopItem(
-          id: 'powerup_3',
-          name: 'Segunda Chance',
-          description: 'Pode tentar novamente',
-          price: 100,
-          imageAsset: 'assets/powerups/retry.png',
-          category: ShopCategory.powerup),
-    ];
   }
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    final coins = prefs.getInt(_userCoinsKey) ?? 0;
-    final purchasedList =
-        prefs.getStringList(_purchasedItemsKey) ?? ['theme_1'];
+    final coins = prefs.getInt(_userCoinsKey) ?? 500;
+    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? [];
+    final selectedAvatar = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_dark';
+
+    // Free items are always purchased
+    final allPurchased = {...purchasedList};
+    for (final avatar in DuoAvatars.all) {
+      if (avatar['price'] == 0) allPurchased.add(avatar['id']);
+    }
+    for (final theme in DuoThemes.all) {
+      if (theme['price'] == 0) allPurchased.add(theme['id']);
+    }
 
     if (mounted) {
       setState(() {
         _userCoins = coins;
-        _purchasedItems = purchasedList.toSet();
+        _purchasedItems = allPurchased;
+        _selectedAvatar = selectedAvatar;
+        _selectedTheme = selectedTheme;
         _isLoading = false;
       });
     }
@@ -444,6 +383,18 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     await prefs.setInt(_userCoinsKey, newCoins);
   }
 
+  Future<void> _selectAvatar(String avatarId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedAvatarKey, avatarId);
+    setState(() => _selectedAvatar = avatarId);
+  }
+
+  Future<void> _selectTheme(String themeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedThemeKey, themeId);
+    setState(() => _selectedTheme = themeId);
+  }
+
   bool _isItemPurchased(String itemId) => _purchasedItems.contains(itemId);
 
   @override
@@ -452,46 +403,117 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     super.dispose();
   }
 
-  void _purchaseItem(ShopItem item) {
-    if (_isItemPurchased(item.id)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você já possui este item!')),
-      );
+  void _handleAvatarTap(Map<String, dynamic> avatar) {
+    final id = avatar['id'] as String;
+    final price = avatar['price'] as int;
+    
+    if (_isItemPurchased(id)) {
+      _selectAvatar(id);
+      _showSuccessSnackbar('Avatar selecionado!');
+    } else {
+      _showPurchaseDialog(id, avatar['name'] as String, price);
+    }
+  }
+
+  void _handleThemeTap(Map<String, dynamic> theme) {
+    final id = theme['id'] as String;
+    final price = theme['price'] as int;
+    
+    if (_isItemPurchased(id)) {
+      _selectTheme(id);
+      _showSuccessSnackbar('Tema aplicado!');
+    } else {
+      _showPurchaseDialog(id, theme['name'] as String, price);
+    }
+  }
+
+  void _handlePowerUpTap(Map<String, dynamic> powerup) {
+    _showPurchaseDialog(
+      powerup['id'] as String,
+      powerup['name'] as String,
+      powerup['price'] as int,
+    );
+  }
+
+  void _showPurchaseDialog(String id, String name, int price) {
+    if (_userCoins < price) {
+      _showErrorSnackbar('Moedas insuficientes!');
       return;
     }
-    if (_userCoins < item.price) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Moedas insuficientes!'),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Comprar ${item.name}?'),
-        content: Text('Custo: ${item.price} moedas'),
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Comprar $name?', style: const TextStyle(color: Colors.white)),
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const DuoCoinIcon(size: 24),
+            const SizedBox(width: 8),
+            Text(
+              '$price moedas',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar')),
-          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar', style: TextStyle(color: DuoColors.gray)),
+          ),
+          DuoButton(
+            text: 'Comprar',
+            color: DuoColors.green,
             onPressed: () async {
-              final newCoins = _userCoins - item.price;
-              await _savePurchase(item.id, newCoins);
+              final newCoins = _userCoins - price;
+              await _savePurchase(id, newCoins);
               setState(() => _userCoins = newCoins);
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('${item.name} comprado!'),
-                    backgroundColor: Colors.green),
-              );
+              _showSuccessSnackbar('$name comprado! 🎉');
+              
+              // Auto-select
+              if (id.startsWith('avatar_')) _selectAvatar(id);
+              if (id.startsWith('theme_')) _selectTheme(id);
             },
-            child: const Text('Comprar'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        backgroundColor: DuoColors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        backgroundColor: DuoColors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -499,76 +521,154 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: DuoColors.green),
+      );
     }
 
-    return Column(
-      children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              const Icon(Icons.store, size: 28),
-              const SizedBox(width: 12),
-              Text('Loja',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-              const Spacer(),
-              CoinsDisplay(coins: _userCoins),
-            ],
+    return Container(
+      color: DuoColors.bgDark,
+      child: Column(
+        children: [
+          // Header with coins
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: DuoColors.bgCard,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.store_rounded, color: DuoColors.green),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Loja',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Personalize sua experiência',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                CoinsDisplay(coins: _userCoins, showLabel: true),
+              ],
+            ),
           ),
-        ),
-        // Tabs
-        TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.face), text: 'Avatares'),
-            Tab(icon: Icon(Icons.palette), text: 'Temas'),
-            Tab(icon: Icon(Icons.bolt), text: 'Power-ups'),
-          ],
-        ),
-        // Content
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildItemGrid(_avatars),
-              _buildItemGrid(_themes),
-              _buildItemGrid(_powerups),
-            ],
+          // Tab Bar
+          DuoTabBar(
+            tabs: const ['Avatares', 'Temas', 'Power-ups'],
+            icons: const [Icons.face_rounded, Icons.palette_rounded, Icons.bolt_rounded],
+            selectedIndex: _tabController.index,
+            onTabSelected: (index) {
+              _tabController.animateTo(index);
+            },
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          // Content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildAvatarsGrid(),
+                _buildThemesGrid(),
+                _buildPowerUpsList(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildItemGrid(List<ShopItem> items) {
+  Widget _buildAvatarsGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
-      itemCount: items.length,
+      itemCount: DuoAvatars.all.length,
       itemBuilder: (context, index) {
-        final item = items[index];
-        return ShopItemCard(
-          item: ShopItem(
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            imageAsset: item.imageAsset,
-            category: item.category,
-            isPurchased: _isItemPurchased(item.id),
+        final avatar = DuoAvatars.all[index];
+        final id = avatar['id'] as String;
+        return DuoShopCard(
+          id: id,
+          name: avatar['name'] as String,
+          description: avatar['description'] as String? ?? '',
+          price: avatar['price'] as int,
+          emoji: avatar['emoji'] as String,
+          color: avatar['color'] as int,
+          rarity: avatar['rarity'] as String,
+          isPurchased: _isItemPurchased(id),
+          isSelected: _selectedAvatar == id,
+          onTap: () => _handleAvatarTap(avatar),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemesGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: DuoThemes.all.length,
+      itemBuilder: (context, index) {
+        final theme = DuoThemes.all[index];
+        final id = theme['id'] as String;
+        final colors = (theme['colors'] as List).cast<int>().map((c) => Color(c)).toList();
+        return DuoThemeCard(
+          id: id,
+          name: theme['name'] as String,
+          price: theme['price'] as int,
+          colors: colors,
+          isPurchased: _isItemPurchased(id),
+          isSelected: _selectedTheme == id,
+          onTap: () => _handleThemeTap(theme),
+        );
+      },
+    );
+  }
+
+  Widget _buildPowerUpsList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: DuoPowerUps.all.length,
+      itemBuilder: (context, index) {
+        final powerup = DuoPowerUps.all[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DuoPowerUpCard(
+            id: powerup['id'] as String,
+            name: powerup['name'] as String,
+            description: powerup['description'] as String,
+            price: powerup['price'] as int,
+            icon: powerup['icon'] as IconData,
+            colorValue: powerup['color'] as int,
+            onTap: () => _handlePowerUpTap(powerup),
           ),
-          userCoins: _userCoins,
-          onPurchase: () => _purchaseItem(item),
         );
       },
     );

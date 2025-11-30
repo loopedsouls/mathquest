@@ -4,7 +4,6 @@ import '../presentation/screens/onboarding/onboarding_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
-import '../presentation/screens/lesson_map/lesson_map_screen.dart';
 import '../presentation/screens/gameplay/gameplay_screen.dart';
 import '../presentation/screens/results/results_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
@@ -20,7 +19,6 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
-  static const String lessonMap = '/lesson-map';
   static const String gameplay = '/gameplay';
   static const String results = '/results';
   static const String profile = '/profile';
@@ -41,8 +39,6 @@ class AppRoutes {
         return _buildRoute(const RegisterScreen(), settings);
       case home:
         return _buildRoute(const HomeScreen(), settings);
-      case lessonMap:
-        return _buildRoute(const LessonMapScreen(), settings);
       case gameplay:
         final args = settings.arguments as Map<String, dynamic>?;
         return _buildRoute(

@@ -20,6 +20,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  void switchToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return DuoThemeProvider(
@@ -355,31 +359,37 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Widget _buildQuickActions() {
+    // Get home screen state to switch tabs
+    final homeState = context.findAncestorStateOfType<_HomeScreenState>();
+    
     return Row(
       children: [
         Expanded(
-          child: _ActionButton(
+          child: _GradientActionButton(
             icon: Icons.play_arrow_rounded,
             label: 'Começar',
-            color: DuoColors.green,
-            onTap: () => Navigator.of(context).pushNamed(AppRoutes.lessonMap),
+            gradientColors: const [DuoColors.green, Color(0xFF3DA35D)],
+            onTap: () {
+              // Navigate to Journey Map tab (index 1)
+              homeState?.switchToTab(1);
+            },
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _ActionButton(
-            icon: Icons.leaderboard_rounded,
+          child: _GradientActionButton(
+            icon: Icons.emoji_events_rounded,
             label: 'Ranking',
-            color: DuoColors.yellow,
+            gradientColors: const [DuoColors.yellow, Color(0xFFFFAD1F)],
             onTap: () => Navigator.of(context).pushNamed(AppRoutes.leaderboard),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _ActionButton(
+          child: _GradientActionButton(
             icon: Icons.settings_rounded,
             label: 'Config',
-            color: DuoColors.gray,
+            gradientColors: const [DuoColors.blue, Color(0xFF4B7BE5)],
             onTap: () => Navigator.of(context).pushNamed(AppRoutes.settings),
           ),
         ),
@@ -483,17 +493,17 @@ class _HomeContentState extends State<_HomeContent> {
   }
 }
 
-/// Quick Action Button for home screen
-class _ActionButton extends StatelessWidget {
+/// Gradient Quick Action Button for home screen (Duolingo style)
+class _GradientActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final List<Color> gradientColors;
   final VoidCallback onTap;
 
-  const _ActionButton({
+  const _GradientActionButton({
     required this.icon,
     required this.label,
-    required this.color,
+    required this.gradientColors,
     required this.onTap,
   });
 
@@ -502,22 +512,40 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors[0].withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(
-                color: color,
+              style: const TextStyle(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: 13,
+                shadows: [Shadow(color: Colors.black26, blurRadius: 2)],
               ),
             ),
           ],

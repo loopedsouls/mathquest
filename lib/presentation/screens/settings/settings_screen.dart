@@ -3,8 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
+import '../../widgets/shop/duolingo_design_system.dart';
 
-/// Settings screen
+/// Settings screen with Duolingo design system
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -42,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _soundEnabled = prefs.getBool(_soundEnabledKey) ?? true;
       _musicEnabled = prefs.getBool(_musicEnabledKey) ?? true;
       _notificationsEnabled = prefs.getBool(_notificationsEnabledKey) ?? true;
-      _darkMode = (prefs.getInt(_themeModeKey) ?? 2) == 2; // 2 = dark
+      _darkMode = (prefs.getInt(_themeModeKey) ?? 2) == 2;
       _selectedLanguage = prefs.getString(_languageKey) ?? 'Português';
       _isLoading = false;
     });
@@ -63,140 +64,332 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Configurações')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: DuoColors.bgDark,
+        appBar: AppBar(
+          backgroundColor: DuoColors.bgCard,
+          title: const Text('Configurações', style: TextStyle(color: Colors.white)),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: DuoColors.green)),
       );
     }
 
     return Scaffold(
+      backgroundColor: DuoColors.bgDark,
       appBar: AppBar(
-        title: const Text('Configurações'),
+        backgroundColor: DuoColors.bgCard,
+        elevation: 0,
+        title: const Text(
+          'Configurações',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          // Sound section
-          const _SectionHeader(title: 'Som'),
-          SwitchListTile(
-            title: const Text('Efeitos Sonoros'),
-            subtitle: const Text('Sons de acerto, erro, etc.'),
-            secondary: const Icon(Icons.volume_up),
-            value: _soundEnabled,
-            onChanged: (value) {
-              setState(() => _soundEnabled = value);
-              _savePreference(_soundEnabledKey, value);
-            },
+          _buildSectionCard(
+            title: 'Som',
+            icon: Icons.volume_up_rounded,
+            iconColor: DuoColors.blue,
+            children: [
+              _buildSwitchTile(
+                title: 'Efeitos Sonoros',
+                subtitle: 'Sons de acerto, erro, etc.',
+                icon: Icons.music_note_rounded,
+                value: _soundEnabled,
+                onChanged: (value) {
+                  setState(() => _soundEnabled = value);
+                  _savePreference(_soundEnabledKey, value);
+                },
+              ),
+              _buildDivider(),
+              _buildSwitchTile(
+                title: 'Música de Fundo',
+                subtitle: 'Música durante o jogo',
+                icon: Icons.library_music_rounded,
+                value: _musicEnabled,
+                onChanged: (value) {
+                  setState(() => _musicEnabled = value);
+                  _savePreference(_musicEnabledKey, value);
+                },
+              ),
+            ],
           ),
-          SwitchListTile(
-            title: const Text('Música de Fundo'),
-            subtitle: const Text('Música durante o jogo'),
-            secondary: const Icon(Icons.music_note),
-            value: _musicEnabled,
-            onChanged: (value) {
-              setState(() => _musicEnabled = value);
-              _savePreference(_musicEnabledKey, value);
-            },
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            title: 'Notificações',
+            icon: Icons.notifications_rounded,
+            iconColor: DuoColors.yellow,
+            children: [
+              _buildSwitchTile(
+                title: 'Lembretes de Estudo',
+                subtitle: 'Receba lembretes para manter sua sequência',
+                icon: Icons.alarm_rounded,
+                value: _notificationsEnabled,
+                onChanged: (value) {
+                  setState(() => _notificationsEnabled = value);
+                  _savePreference(_notificationsEnabledKey, value);
+                },
+              ),
+            ],
           ),
-          const Divider(),
-          // Notifications section
-          const _SectionHeader(title: 'Notificações'),
-          SwitchListTile(
-            title: const Text('Lembretes de Estudo'),
-            subtitle: const Text('Receba lembretes para manter sua sequência'),
-            secondary: const Icon(Icons.notifications),
-            value: _notificationsEnabled,
-            onChanged: (value) {
-              setState(() => _notificationsEnabled = value);
-              _savePreference(_notificationsEnabledKey, value);
-            },
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            title: 'Aparência',
+            icon: Icons.palette_rounded,
+            iconColor: DuoColors.purple,
+            children: [
+              _buildSwitchTile(
+                title: 'Modo Escuro',
+                subtitle: 'Tema escuro para o aplicativo',
+                icon: Icons.dark_mode_rounded,
+                value: _darkMode,
+                onChanged: (value) {
+                  setState(() => _darkMode = value);
+                  _savePreference(_themeModeKey, value ? 2 : 1);
+                },
+              ),
+              _buildDivider(),
+              _buildListTile(
+                title: 'Idioma',
+                subtitle: _selectedLanguage,
+                icon: Icons.language_rounded,
+                onTap: _showLanguagePicker,
+              ),
+            ],
           ),
-          const Divider(),
-          // Appearance section
-          const _SectionHeader(title: 'Aparência'),
-          SwitchListTile(
-            title: const Text('Modo Escuro'),
-            subtitle: const Text('Tema escuro para o aplicativo'),
-            secondary: const Icon(Icons.dark_mode),
-            value: _darkMode,
-            onChanged: (value) {
-              setState(() => _darkMode = value);
-              _savePreference(_themeModeKey, value ? 2 : 1); // 2 = dark, 1 = light
-            },
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            title: 'Conta',
+            icon: Icons.person_rounded,
+            iconColor: DuoColors.green,
+            children: [
+              _buildListTile(
+                title: 'Editar Perfil',
+                icon: Icons.edit_rounded,
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+              ),
+              _buildDivider(),
+              _buildListTile(
+                title: 'Alterar Senha',
+                icon: Icons.lock_rounded,
+                onTap: _showChangePasswordDialog,
+              ),
+              _buildDivider(),
+              _buildListTile(
+                title: 'Exportar Dados',
+                subtitle: 'Baixe uma cópia dos seus dados',
+                icon: Icons.download_rounded,
+                onTap: _exportUserData,
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Idioma'),
-            subtitle: Text(_selectedLanguage),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _showLanguagePicker,
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            title: 'Sobre',
+            icon: Icons.info_rounded,
+            iconColor: DuoColors.blue,
+            children: [
+              _buildListTile(
+                title: 'Sobre o MathQuest',
+                icon: Icons.help_outline_rounded,
+                onTap: () => _showAboutDialog(),
+              ),
+              _buildDivider(),
+              _buildListTile(
+                title: 'Termos de Uso',
+                icon: Icons.description_rounded,
+                onTap: () => _openUrl('https://mathquest.app/terms'),
+              ),
+              _buildDivider(),
+              _buildListTile(
+                title: 'Política de Privacidade',
+                icon: Icons.privacy_tip_rounded,
+                onTap: () => _openUrl('https://mathquest.app/privacy'),
+              ),
+            ],
           ),
-          const Divider(),
-          // Account section
-          const _SectionHeader(title: 'Conta'),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Editar Perfil'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRoutes.profile);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock),
-            title: const Text('Alterar Senha'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _showChangePasswordDialog,
-          ),
-          ListTile(
-            leading: const Icon(Icons.download),
-            title: const Text('Exportar Dados'),
-            subtitle: const Text('Baixe uma cópia dos seus dados'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _exportUserData,
-          ),
-          const Divider(),
-          // About section
-          const _SectionHeader(title: 'Sobre'),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('Sobre o MathQuest'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showAboutDialog(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: const Text('Termos de Uso'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openUrl('https://mathquest.app/terms'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Política de Privacidade'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openUrl('https://mathquest.app/privacy'),
-          ),
-          const Divider(),
-          // Logout
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text(
-              'Sair',
-              style: TextStyle(color: Colors.red),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: DuoColors.bgCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: DuoColors.red.withValues(alpha: 0.3), width: 1),
             ),
-            onTap: () => _showLogoutDialog(),
-          ),
-          const SizedBox(height: 24),
-          // Version info
-          Center(
-            child: Text(
-              'MathQuest v1.0.0',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => _showLogoutDialog(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: DuoColors.red.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.logout_rounded, color: DuoColors.red, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      const Text(
+                        'Sair da Conta',
+                        style: TextStyle(color: DuoColors.red, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right_rounded, color: DuoColors.red),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 24),
+          Center(
+            child: Text(
+              'MathQuest v1.0.0',
+              style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.7), fontSize: 13),
+            ),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(color: iconColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required String title,
+    String? subtitle,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: DuoColors.gray, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
+                ],
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: DuoColors.green,
+            activeTrackColor: DuoColors.green.withValues(alpha: 0.4),
+            inactiveThumbColor: DuoColors.gray,
+            inactiveTrackColor: DuoColors.bgElevated,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListTile({
+    required String title,
+    String? subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: DuoColors.gray, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500)),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.8), fontSize: 12)),
+                    ],
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: DuoColors.gray),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(color: DuoColors.bgElevated, height: 1, thickness: 1),
     );
   }
 
@@ -207,7 +400,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o link')),
+        SnackBar(
+          content: const Text('Não foi possível abrir o link'),
+          backgroundColor: DuoColors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -217,17 +415,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Redefinir Senha'),
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_rounded, color: DuoColors.green),
+            SizedBox(width: 12),
+            Text('Redefinir Senha', style: TextStyle(color: Colors.white)),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Digite seu email para receber um link de redefinição de senha.'),
+            const Text(
+              'Digite seu email para receber um link de redefinição de senha.',
+              style: TextStyle(color: DuoColors.gray),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 labelText: 'Email',
-                border: OutlineInputBorder(),
+                labelStyle: const TextStyle(color: DuoColors.gray),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.bgElevated)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.bgElevated)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: DuoColors.green)),
+                filled: true,
+                fillColor: DuoColors.bgElevated,
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -236,9 +451,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: DuoColors.gray)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DuoColors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () async {
               final email = emailController.text.trim();
               if (email.isEmpty) return;
@@ -247,9 +467,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Email de redefinição enviado!'),
-                    backgroundColor: Colors.green,
+                  SnackBar(
+                    content: const Text('Email de redefinição enviado!'),
+                    backgroundColor: DuoColors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 );
               } catch (e) {
@@ -257,7 +479,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('$e'.replaceAll('Exception: ', '')),
-                    backgroundColor: Colors.red,
+                    backgroundColor: DuoColors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 );
               }
@@ -273,30 +497,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final allKeys = prefs.getKeys();
     final userData = <String, dynamic>{};
-    
     for (final key in allKeys) {
       userData[key] = prefs.get(key);
     }
-
     if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Seus Dados'),
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.download_rounded, color: DuoColors.blue),
+            SizedBox(width: 12),
+            Text('Seus Dados', style: TextStyle(color: Colors.white)),
+          ],
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Dados armazenados localmente:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              ...userData.entries.map((e) => Text('${e.key}: ${e.value}')),
-              if (userData.isEmpty) const Text('Nenhum dado encontrado'),
+              const Text('Dados armazenados localmente:', style: TextStyle(fontWeight: FontWeight.bold, color: DuoColors.gray)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: DuoColors.bgElevated, borderRadius: BorderRadius.circular(12)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: userData.entries.isEmpty
+                      ? [const Text('Nenhum dado encontrado', style: TextStyle(color: DuoColors.gray))]
+                      : userData.entries.map((e) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text('${e.key}: ${e.value}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        )).toList(),
+                ),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DuoColors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () => Navigator.pop(context),
             child: const Text('Fechar'),
           ),
@@ -308,52 +554,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showLanguagePicker() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: DuoColors.bgCard,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return ListView.builder(
-          shrinkWrap: true,
-          itemCount: _languages.length,
-          itemBuilder: (context, index) {
-            final language = _languages[index];
-            return ListTile(
-              title: Text(language),
-              trailing: _selectedLanguage == language
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() => _selectedLanguage = language);
-                _savePreference(_languageKey, language);
-                Navigator.pop(context);
-                // Show restart hint
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Reinicie o app para aplicar o idioma'),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: DuoColors.gray.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Selecionar Idioma', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            ..._languages.map((language) {
+              final isSelected = _selectedLanguage == language;
+              return ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? DuoColors.green.withValues(alpha: 0.15) : DuoColors.bgElevated,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                );
-              },
-            );
-          },
+                  child: Icon(Icons.language_rounded, color: isSelected ? DuoColors.green : DuoColors.gray),
+                ),
+                title: Text(
+                  language,
+                  style: TextStyle(color: isSelected ? DuoColors.green : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                ),
+                trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: DuoColors.green) : null,
+                onTap: () {
+                  setState(() => _selectedLanguage = language);
+                  _savePreference(_languageKey, language);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Reinicie o app para aplicar o idioma'),
+                      backgroundColor: DuoColors.blue,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
         );
       },
     );
   }
 
   void _showAboutDialog() {
-    showAboutDialog(
+    showDialog(
       context: context,
-      applicationName: 'MathQuest',
-      applicationVersion: '1.0.0',
-      applicationIcon: const Icon(
-        Icons.calculate,
-        size: 48,
-        color: Color(0xFF6C63FF),
-      ),
-      children: [
-        const Text(
-          'MathQuest é um aplicativo de aprendizado de matemática gamificado, '
-          'alinhado com a Base Nacional Comum Curricular (BNCC) para '
-          'estudantes do 6º ao 9º ano do Ensino Fundamental.',
+      builder: (context) => AlertDialog(
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [DuoColors.green.withValues(alpha: 0.2), DuoColors.blue.withValues(alpha: 0.2)]),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.calculate_rounded, size: 48, color: DuoColors.green),
+            ),
+            const SizedBox(height: 16),
+            const Text('MathQuest', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text('Versão 1.0.0', style: TextStyle(color: DuoColors.gray.withValues(alpha: 0.7), fontSize: 14)),
+            const SizedBox(height: 16),
+            const Text(
+              'MathQuest é um aplicativo de aprendizado de matemática gamificado, alinhado com a Base Nacional Comum Curricular (BNCC) para estudantes do 6º ao 9º ano do Ensino Fundamental.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: DuoColors.gray, height: 1.4),
+            ),
+          ],
         ),
-      ],
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DuoColors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fechar'),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 
@@ -361,14 +660,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sair'),
-        content: const Text('Tem certeza que deseja sair da sua conta?'),
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: DuoColors.red),
+            SizedBox(width: 12),
+            Text('Sair', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text('Tem certeza que deseja sair da sua conta?', style: TextStyle(color: DuoColors.gray)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: DuoColors.gray)),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DuoColors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () async {
               Navigator.pop(context);
               try {
@@ -377,37 +689,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Ignore errors on sign out
               }
               if (!mounted) return;
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.login,
-                (route) => false,
-              );
+              Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
             },
-            child: const Text(
-              'Sair',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Sair'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).primaryColor,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

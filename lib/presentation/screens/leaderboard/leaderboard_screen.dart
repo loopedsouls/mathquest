@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../widgets/leaderboard/leaderboard_item.dart';
-import '../../widgets/leaderboard/leaderboard_header.dart';
+import '../../widgets/shop/duolingo_design_system.dart';
 
-/// Leaderboard screen - Rankings and competition
+/// Leaderboard screen - Rankings and competition with Duolingo design
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
 
@@ -38,10 +37,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     _currentUserXp = prefs.getInt('user_xp') ?? 0;
     final friendsList = prefs.getStringList(_friendsKey) ?? [];
 
-    // Generate leaderboard with current user
     final entries = _generateLeaderboard();
-    
-    // Filter friends entries
     final friendsEntries = entries.where((e) => 
       friendsList.contains(e.username) || e.isCurrentUser
     ).toList();
@@ -54,7 +50,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   List<LeaderboardEntry> _generateLeaderboard() {
-    // Sample leaderboard data with current user
     final baseEntries = [
       LeaderboardEntry(rank: 1, username: 'MathMaster', xp: 2450, level: 12, isCurrentUser: false),
       LeaderboardEntry(rank: 2, username: 'NumeroUno', xp: 2320, level: 11, isCurrentUser: false),
@@ -67,17 +62,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       LeaderboardEntry(rank: 9, username: 'Aprendiz', xp: 1050, level: 5, isCurrentUser: false),
     ];
 
-    // Add current user to the list
     final allEntries = [...baseEntries];
     allEntries.add(LeaderboardEntry(
-      rank: 0, // Will be calculated
+      rank: 0,
       username: _currentUsername,
       xp: _currentUserXp,
       level: (_currentUserXp ~/ 100) + 1,
       isCurrentUser: true,
     ));
 
-    // Sort by XP and assign ranks
     allEntries.sort((a, b) => b.xp.compareTo(a.xp));
     for (int i = 0; i < allEntries.length; i++) {
       allEntries[i] = LeaderboardEntry(
@@ -103,20 +96,64 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Ranking')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: DuoColors.bgDark,
+        appBar: AppBar(
+          backgroundColor: DuoColors.bgCard,
+          title: const Text('Ranking', style: TextStyle(color: Colors.white)),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: DuoColors.yellow)),
       );
     }
 
     return Scaffold(
+      backgroundColor: DuoColors.bgDark,
       appBar: AppBar(
-        title: const Text('Ranking'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Global'),
-            Tab(text: 'Amigos'),
+        backgroundColor: DuoColors.bgCard,
+        elevation: 0,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: DuoColors.yellow.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.emoji_events_rounded, color: DuoColors.yellow, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Ranking',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+            ),
           ],
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: DuoColors.bgElevated,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: DuoColors.yellow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              labelColor: Colors.black,
+              unselectedLabelColor: DuoColors.gray,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+              tabs: const [
+                Tab(text: 'Global'),
+                Tab(text: 'Amigos'),
+              ],
+            ),
+          ),
         ),
       ),
       body: Column(
@@ -130,12 +167,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 final isSelected = _selectedFilter == filter;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      setState(() => _selectedFilter = filter);
-                    },
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = filter),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? DuoColors.yellow : DuoColors.bgCard,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? DuoColors.yellow : DuoColors.bgElevated,
+                        ),
+                      ),
+                      child: Text(
+                        filter,
+                        style: TextStyle(
+                          color: isSelected ? Colors.black : Colors.white,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -146,9 +197,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Global leaderboard
                 _buildLeaderboard(_entries),
-                // Friends leaderboard
                 _buildFriendsLeaderboard(),
               ],
             ),
@@ -160,18 +209,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildLeaderboard(List<LeaderboardEntry> entries) {
     if (entries.length < 3) {
-      return const Center(child: Text('Carregando ranking...'));
+      return const Center(child: Text('Carregando ranking...', style: TextStyle(color: DuoColors.gray)));
     }
 
     return CustomScrollView(
       slivers: [
         // Top 3 header
         SliverToBoxAdapter(
-          child: LeaderboardHeader(
-            first: entries[0],
-            second: entries[1],
-            third: entries[2],
-          ),
+          child: _buildPodiumHeader(entries[0], entries[1], entries[2]),
         ),
         // Rest of the list
         SliverPadding(
@@ -179,10 +224,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final entry = entries[index + 3]; // Skip top 3
+                final entry = entries[index + 3];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: LeaderboardItem(entry: entry),
+                  child: _buildLeaderboardItem(entry),
                 );
               },
               childCount: entries.length > 3 ? entries.length - 3 : 0,
@@ -193,27 +238,331 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
+  Widget _buildPodiumHeader(LeaderboardEntry first, LeaderboardEntry second, LeaderboardEntry third) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            DuoColors.yellow.withValues(alpha: 0.3),
+            DuoColors.bgDark,
+          ],
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _buildPodiumEntry(second, 2, 80),
+          const SizedBox(width: 12),
+          _buildPodiumEntry(first, 1, 100),
+          const SizedBox(width: 12),
+          _buildPodiumEntry(third, 3, 60),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPodiumEntry(LeaderboardEntry entry, int rank, double height) {
+    Color medalColor;
+    Color medalBg;
+    switch (rank) {
+      case 1:
+        medalColor = const Color(0xFFFFD700);
+        medalBg = const Color(0xFFFFD700).withValues(alpha: 0.2);
+        break;
+      case 2:
+        medalColor = const Color(0xFFC0C0C0);
+        medalBg = const Color(0xFFC0C0C0).withValues(alpha: 0.2);
+        break;
+      default:
+        medalColor = const Color(0xFFCD7F32);
+        medalBg = const Color(0xFFCD7F32).withValues(alpha: 0.2);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Crown for #1
+        if (rank == 1)
+          const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 28),
+        // Avatar
+        Container(
+          width: rank == 1 ? 64 : 52,
+          height: rank == 1 ? 64 : 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: medalColor, width: 3),
+            color: medalBg,
+          ),
+          child: Center(
+            child: Text(
+              entry.username[0].toUpperCase(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: rank == 1 ? 24 : 20,
+                color: medalColor,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Username
+        Text(
+          entry.username,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        // XP
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.bolt_rounded, color: DuoColors.yellow, size: 14),
+            Text(
+              '${entry.xp}',
+              style: TextStyle(
+                color: DuoColors.gray.withValues(alpha: 0.9),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Podium
+        Container(
+          width: 60,
+          height: height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                medalColor,
+                medalColor.withValues(alpha: 0.7),
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: medalColor.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              '$rank',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+                color: Colors.white,
+                shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLeaderboardItem(LeaderboardEntry entry) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: entry.isCurrentUser 
+            ? DuoColors.green.withValues(alpha: 0.15)
+            : DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: entry.isCurrentUser
+            ? Border.all(color: DuoColors.green, width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Rank
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: entry.isCurrentUser 
+                  ? DuoColors.green.withValues(alpha: 0.2)
+                  : DuoColors.bgElevated,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                '${entry.rank}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: entry.isCurrentUser ? DuoColors.green : Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Avatar
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: entry.isCurrentUser
+                  ? DuoColors.green.withValues(alpha: 0.2)
+                  : DuoColors.bgElevated,
+              border: Border.all(
+                color: entry.isCurrentUser ? DuoColors.green : DuoColors.gray.withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                entry.username[0].toUpperCase(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: entry.isCurrentUser ? DuoColors.green : DuoColors.gray,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Name & Level
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.username,
+                  style: TextStyle(
+                    fontWeight: entry.isCurrentUser ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 15,
+                    color: entry.isCurrentUser ? DuoColors.green : Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.star_rounded,
+                      size: 14,
+                      color: DuoColors.yellow.withValues(alpha: 0.8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Nível ${entry.level}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: DuoColors.gray.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // XP
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: entry.isCurrentUser
+                  ? DuoColors.green.withValues(alpha: 0.2)
+                  : DuoColors.yellow.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.bolt_rounded,
+                  size: 16,
+                  color: entry.isCurrentUser ? DuoColors.green : DuoColors.yellow,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${entry.xp}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: entry.isCurrentUser ? DuoColors.green : DuoColors.yellow,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showAddFriendDialog() async {
     final controller = TextEditingController();
     
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Adicionar Amigo'),
+        backgroundColor: DuoColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.person_add_rounded, color: DuoColors.green),
+            SizedBox(width: 12),
+            Text('Adicionar Amigo', style: TextStyle(color: Colors.white)),
+          ],
+        ),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
             labelText: 'Nome do usuário',
             hintText: 'Digite o nome do amigo',
-            border: OutlineInputBorder(),
+            labelStyle: const TextStyle(color: DuoColors.gray),
+            hintStyle: TextStyle(color: DuoColors.gray.withValues(alpha: 0.5)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: DuoColors.bgElevated),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: DuoColors.bgElevated),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: DuoColors.green),
+            ),
+            filled: true,
+            fillColor: DuoColors.bgElevated,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: DuoColors.gray)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DuoColors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: const Text('Adicionar'),
           ),
@@ -228,21 +577,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       if (!friends.contains(result)) {
         friends.add(result);
         await prefs.setStringList(_friendsKey, friends);
-        
-        // Reload data
         await _loadLeaderboardData();
         
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$result adicionado como amigo!'),
-            backgroundColor: Colors.green,
+            backgroundColor: DuoColors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Este usuário já é seu amigo')),
+          SnackBar(
+            content: const Text('Este usuário já é seu amigo'),
+            backgroundColor: DuoColors.blue,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         );
       }
     }
@@ -250,28 +604,51 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildFriendsLeaderboard() {
     if (_friendsEntries.length <= 1) {
-      // Only current user, no friends
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.group_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Adicione amigos para competir!',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey[600],
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: DuoColors.blue.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
               ),
+              child: const Icon(
+                Icons.group_rounded,
+                size: 64,
+                color: DuoColors.blue,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Adicione amigos para competir!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Convide seus colegas e vejam quem aprende mais.',
+              style: TextStyle(
+                color: DuoColors.gray.withValues(alpha: 0.8),
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _showAddFriendDialog,
-              icon: const Icon(Icons.person_add),
-              label: const Text('Adicionar Amigos'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DuoColors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.person_add_rounded),
+              label: const Text('Adicionar Amigos', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -284,7 +661,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           padding: const EdgeInsets.all(16),
           child: ElevatedButton.icon(
             onPressed: _showAddFriendDialog,
-            icon: const Icon(Icons.person_add),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DuoColors.bgCard,
+              foregroundColor: DuoColors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: DuoColors.green),
+              ),
+            ),
+            icon: const Icon(Icons.person_add_rounded, size: 20),
             label: const Text('Adicionar Amigo'),
           ),
         ),
@@ -295,7 +681,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: LeaderboardItem(entry: _friendsEntries[index]),
+                child: _buildLeaderboardItem(_friendsEntries[index]),
               );
             },
           ),

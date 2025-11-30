@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/lesson_repository_impl.dart';
+import '../shop/duolingo_design_system.dart';
 import 'journey_map_game.dart';
 
 /// Journey Map Widget using Flame engine
@@ -266,9 +267,17 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Get theme colors - fallback to defaults if not in DuoThemeProvider
+    DuoThemeColors theme;
+    try {
+      theme = context.duoTheme;
+    } catch (_) {
+      theme = DuoThemeColors.defaultTheme;
+    }
+    
     if (_isLoading) {
       return Container(
-        color: const Color(0xFF1a1a2e),
+        color: theme.bgDark,
         child: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -287,7 +296,7 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
 
     if (_nodes.isEmpty) {
       return Container(
-        color: const Color(0xFF1a1a2e),
+        color: theme.bgDark,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -334,35 +343,44 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF1a1a2e),
-                  const Color(0xFF1a1a2e).withValues(alpha: 0),
+                  theme.bgDark,
+                  theme.bgDark.withValues(alpha: 0),
                 ],
               ),
             ),
             child: SafeArea(
               child: Row(
                 children: [
-                  const Icon(Icons.route, color: Colors.amber, size: 28),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: DuoColors.green.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.map_rounded, color: DuoColors.green, size: 24),
+                  ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sua Jornada Matemática',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sua Jornada Matemática',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${_nodes.where((n) => n.status == JourneyNodeStatus.completed).length}/${_nodes.length} lições concluídas',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
+                        Text(
+                          '${_nodes.where((n) => n.status == JourneyNodeStatus.completed).length}/${_nodes.length} lições concluídas',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -376,7 +394,7 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1a1a2e).withValues(alpha: 0.9),
+              color: theme.bgCard.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white24),
             ),
@@ -400,7 +418,7 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1a1a2e).withValues(alpha: 0.9),
+              color: theme.bgCard.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

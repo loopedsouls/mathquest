@@ -22,23 +22,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: DuoColors.bgDark,
-      body: SafeArea(
-        child: IndexedStack(
-          index: _currentIndex,
-          children: const [
-            _HomeContent(),
-            JourneyMapWidget(),
-            _ShopPlaceholder(),
-            _ProfilePlaceholder(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: DuoNavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
+    return DuoThemeProvider(
+      child: Builder(
+        builder: (context) {
+          final theme = context.duoTheme;
+          return Scaffold(
+            backgroundColor: theme.bgDark,
+            body: SafeArea(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: const [
+                  _HomeContent(),
+                  JourneyMapWidget(),
+                  _ShopPlaceholder(),
+                  _ProfilePlaceholder(),
+                ],
+              ),
+            ),
+            bottomNavigationBar: DuoNavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                setState(() => _currentIndex = index);
+              },
+            ),
+          );
         },
       ),
     );
@@ -199,22 +206,26 @@ class _HomeContentState extends State<_HomeContent> {
       return const Center(child: CircularProgressIndicator(color: DuoColors.green));
     }
 
+    final theme = context.duoTheme;
+
     return Container(
-      color: DuoColors.bgDark,
+      color: theme.bgDark,
       child: Stack(
         children: [
-          // Flame animated background
+          // Flame animated background with theme colors
           Positioned.fill(
             child: GameWidget(
               game: HomeBackgroundGame(
-                primaryColor: DuoColors.green,
+                primaryColor: theme.gradientColors.isNotEmpty 
+                    ? theme.gradientColors[1] 
+                    : DuoColors.green,
               ),
             ),
           ),
           // Content
           RefreshIndicator(
             color: DuoColors.green,
-            backgroundColor: DuoColors.bgCard,
+            backgroundColor: theme.bgCard,
             onRefresh: _refreshData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -268,10 +279,11 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Widget _buildProgressSection() {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -376,12 +388,13 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Widget _buildRecentActivityList() {
+    final theme = context.duoTheme;
     // Show placeholder if no activity
     if (_xp == 0) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: DuoColors.bgCard,
+          color: theme.bgCard,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -419,7 +432,7 @@ class _HomeContentState extends State<_HomeContent> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -589,12 +602,16 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedThemeKey, themeId);
     setState(() => _selectedTheme = themeId);
+    // Update global theme provider
+    DuoThemeProvider.of(context)?.selectTheme(themeId);
   }
 
   bool _isItemPurchased(String itemId) => _purchasedItems.contains(itemId);
 
   @override
   void dispose() {
+    // Clear preview when leaving shop
+    DuoThemeProvider.of(context)?.clearPreview();
     _tabController.dispose();
     super.dispose();
   }
@@ -618,6 +635,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     if (_isItemPurchased(id)) {
       _selectTheme(id);
       setState(() => _previewTheme = null); // Clear preview
+      DuoThemeProvider.of(context)?.clearPreview();
       _showSuccessSnackbar('Tema aplicado!');
     } else {
       _showPurchaseDialog(id, theme['name'] as String, price);
@@ -626,13 +644,17 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
 
   void _toggleThemePreview(Map<String, dynamic> theme) {
     final id = theme['id'] as String;
+    final themeProvider = DuoThemeProvider.of(context);
+    
     if (_previewTheme == id) {
       // Turn off preview
       setState(() => _previewTheme = null);
+      themeProvider?.clearPreview();
       _showInfoSnackbar('Preview desativado');
     } else {
       // Turn on preview
       setState(() => _previewTheme = id);
+      themeProvider?.setPreviewTheme(id);
       _showInfoSnackbar('Preview ativado! Compre para manter permanentemente.');
     }
   }
@@ -686,6 +708,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
               
               // Clear preview and auto-select
               setState(() => _previewTheme = null);
+              DuoThemeProvider.of(context)?.clearPreview();
               if (id.startsWith('avatar_')) _selectAvatar(id);
               if (id.startsWith('theme_')) _selectTheme(id);
             },
@@ -755,8 +778,10 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
       );
     }
 
+    final theme = context.duoTheme;
+
     return Container(
-      color: DuoColors.bgDark,
+      color: theme.bgDark,
       child: Column(
         children: [
           // Header with coins
@@ -768,7 +793,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: DuoColors.bgCard,
+                    color: theme.bgCard,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.store_rounded, color: DuoColors.green),
@@ -824,7 +849,6 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
       ),
     );
   }
-
   Widget _buildAvatarsGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -1060,8 +1084,10 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
       return const Center(child: CircularProgressIndicator(color: DuoColors.green));
     }
 
+    final theme = context.duoTheme;
+
     return Container(
-      color: DuoColors.bgDark,
+      color: theme.bgDark,
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -1094,7 +1120,7 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                         ),
                         DuoIconButton(
                           icon: Icons.settings_rounded,
-                          color: DuoColors.bgCard,
+                          color: theme.bgCard,
                           onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
                         ),
                       ],
@@ -1146,6 +1172,7 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
             SliverPersistentHeader(
               pinned: true,
               delegate: _DuoTabBarDelegate(
+                theme.bgDark,
                 DuoTabBar(
                   tabs: const ['Estatísticas', 'Conquistas'],
                   icons: const [Icons.bar_chart_rounded, Icons.emoji_events_rounded],
@@ -1193,8 +1220,9 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
 }
 
 class _DuoTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Color bgColor;
   final Widget _tabBar;
-  _DuoTabBarDelegate(this._tabBar);
+  _DuoTabBarDelegate(this.bgColor, this._tabBar);
 
   @override
   double get minExtent => 56;
@@ -1204,12 +1232,12 @@ class _DuoTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: DuoColors.bgDark,
+      color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: _tabBar,
     );
   }
 
   @override
-  bool shouldRebuild(_DuoTabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(_DuoTabBarDelegate oldDelegate) => oldDelegate.bgColor != bgColor;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Duolingo-style Design System for MathQuest Shop
 /// Provides gamified components with rounded shapes, vibrant colors, and playful animations
@@ -54,6 +55,189 @@ class DuoColors {
   static const Color rarityRare = blue;
   static const Color rarityEpic = purple;
   static const Color rarityLegendary = orange;
+}
+
+// ============================================================================
+// DYNAMIC THEME SYSTEM
+// ============================================================================
+
+/// Holds the current theme colors that can change based on preview or selection
+class DuoThemeColors {
+  final Color bgDark;
+  final Color bgCard;
+  final Color bgElevated;
+  final Color accent;
+  final List<Color> gradientColors;
+
+  const DuoThemeColors({
+    required this.bgDark,
+    required this.bgCard,
+    required this.bgElevated,
+    required this.accent,
+    required this.gradientColors,
+  });
+
+  /// Default dark theme
+  static const DuoThemeColors defaultTheme = DuoThemeColors(
+    bgDark: DuoColors.bgDark,
+    bgCard: DuoColors.bgCard,
+    bgElevated: DuoColors.bgElevated,
+    accent: DuoColors.green,
+    gradientColors: [DuoColors.bgDark, DuoColors.bgCard, DuoColors.bgElevated],
+  );
+
+  /// Create theme from theme data
+  factory DuoThemeColors.fromThemeData(Map<String, dynamic> themeData) {
+    final colors = (themeData['colors'] as List).cast<int>();
+    return DuoThemeColors(
+      bgDark: Color(colors[0]),
+      bgCard: Color(colors[1]),
+      bgElevated: Color(colors[2]),
+      accent: Color(colors[1]),
+      gradientColors: colors.map((c) => Color(c)).toList(),
+    );
+  }
+
+  /// Get theme by ID
+  static DuoThemeColors getThemeById(String? themeId) {
+    if (themeId == null) return defaultTheme;
+    for (final theme in DuoThemes.all) {
+      if (theme['id'] == themeId) {
+        return DuoThemeColors.fromThemeData(theme);
+      }
+    }
+    return defaultTheme;
+  }
+}
+
+/// InheritedWidget to provide theme throughout the app
+class DuoThemeProvider extends StatefulWidget {
+  final Widget child;
+
+  const DuoThemeProvider({
+    super.key,
+    required this.child,
+  });
+
+  static DuoThemeProviderState? of(BuildContext context) {
+    return context.findAncestorStateOfType<DuoThemeProviderState>();
+  }
+
+  @override
+  State<DuoThemeProvider> createState() => DuoThemeProviderState();
+}
+
+class DuoThemeProviderState extends State<DuoThemeProvider> {
+  static const String _selectedThemeKey = 'selected_theme';
+  static const String _previewThemeKey = 'preview_theme';
+
+  String? _selectedThemeId;
+  String? _previewThemeId;
+  DuoThemeColors _currentTheme = DuoThemeColors.defaultTheme;
+
+  DuoThemeColors get theme => _currentTheme;
+  String? get selectedThemeId => _selectedThemeId;
+  String? get previewThemeId => _previewThemeId;
+  bool get isPreviewActive => _previewThemeId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_dark';
+    final previewTheme = prefs.getString(_previewThemeKey);
+    
+    setState(() {
+      _selectedThemeId = selectedTheme;
+      _previewThemeId = previewTheme;
+      _currentTheme = DuoThemeColors.getThemeById(previewTheme ?? selectedTheme);
+    });
+  }
+
+  /// Set preview theme (temporary, for previewing in shop)
+  void setPreviewTheme(String? themeId) {
+    setState(() {
+      _previewThemeId = themeId;
+      _currentTheme = DuoThemeColors.getThemeById(themeId ?? _selectedThemeId);
+    });
+    // Save preview state
+    SharedPreferences.getInstance().then((prefs) {
+      if (themeId != null) {
+        prefs.setString(_previewThemeKey, themeId);
+      } else {
+        prefs.remove(_previewThemeKey);
+      }
+    });
+  }
+
+  /// Select theme permanently
+  Future<void> selectTheme(String themeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedThemeKey, themeId);
+    await prefs.remove(_previewThemeKey);
+    
+    setState(() {
+      _selectedThemeId = themeId;
+      _previewThemeId = null;
+      _currentTheme = DuoThemeColors.getThemeById(themeId);
+    });
+  }
+
+  /// Clear preview and return to selected theme
+  void clearPreview() {
+    setPreviewTheme(null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DuoThemeInherited(
+      theme: _currentTheme,
+      selectedThemeId: _selectedThemeId,
+      previewThemeId: _previewThemeId,
+      child: widget.child,
+    );
+  }
+}
+
+class _DuoThemeInherited extends InheritedWidget {
+  final DuoThemeColors theme;
+  final String? selectedThemeId;
+  final String? previewThemeId;
+
+  const _DuoThemeInherited({
+    required this.theme,
+    required this.selectedThemeId,
+    required this.previewThemeId,
+    required super.child,
+  });
+
+  static _DuoThemeInherited? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_DuoThemeInherited>();
+  }
+
+  @override
+  bool updateShouldNotify(_DuoThemeInherited oldWidget) {
+    return theme != oldWidget.theme || 
+           selectedThemeId != oldWidget.selectedThemeId ||
+           previewThemeId != oldWidget.previewThemeId;
+  }
+}
+
+/// Extension to easily access theme colors
+extension DuoThemeExtension on BuildContext {
+  DuoThemeColors get duoTheme {
+    final inherited = _DuoThemeInherited.of(this);
+    return inherited?.theme ?? DuoThemeColors.defaultTheme;
+  }
+  
+  bool get isThemePreviewActive {
+    final inherited = _DuoThemeInherited.of(this);
+    return inherited?.previewThemeId != null;
+  }
 }
 
 // ============================================================================
@@ -1760,10 +1944,11 @@ class DuoNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.duoTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: DuoColors.bgCard,
+        color: theme.bgCard,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),

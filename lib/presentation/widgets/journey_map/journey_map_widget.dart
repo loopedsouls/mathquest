@@ -380,14 +380,14 @@ class _JourneyMapWidgetState extends State<JourneyMapWidget> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white24),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 _LegendItem(color: Colors.green, label: 'Concluída'),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _LegendItem(color: Colors.amber, label: 'Disponível'),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _LegendItem(color: Colors.grey, label: 'Bloqueada'),
               ],
             ),

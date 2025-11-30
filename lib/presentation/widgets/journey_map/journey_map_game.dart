@@ -387,8 +387,8 @@ class JourneyNode extends PositionComponent with TapCallbacks {
   }
 
   void _drawStars(Canvas canvas, Vector2 center) {
-    final starColor = Colors.amber;
-    final starSize = 10.0;
+    const starColor = Colors.amber;
+    const starSize = 10.0;
     
     for (int i = 0; i < 3; i++) {
       final isFilled = i < data.stars;

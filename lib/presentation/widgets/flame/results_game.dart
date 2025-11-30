@@ -444,7 +444,7 @@ class TrophyGlow extends PositionComponent {
 
     for (int i = 0; i < 12; i++) {
       final angle = (i / 12) * 2 * pi + _time * 0.2;
-      final innerRadius = 40.0;
+      const innerRadius = 40.0;
       final outerRadius = length * (0.8 + sin(_time * 3 + i) * 0.2);
 
       canvas.drawLine(
@@ -495,7 +495,7 @@ class RisingStar extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final starColor = const Color(0xFFFFD700);
+    const starColor = Color(0xFFFFD700);
 
     // Glow
     if (_reachedTarget) {

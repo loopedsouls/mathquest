@@ -4,14 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/flame/home_background_game.dart';
-import '../../widgets/home/daily_streak_card.dart';
-import '../../widgets/home/progress_overview_card.dart';
-import '../../widgets/home/quick_actions.dart';
-import '../../widgets/home/user_stats_header.dart';
 import '../../widgets/journey_map/journey_map_widget.dart';
 import '../../widgets/profile/achievement_grid.dart';
-import '../../widgets/profile/stats_card.dart';
-import '../../widgets/profile/avatar_display.dart';
 import '../../widgets/shop/duolingo_design_system.dart';
 import '../../widgets/shop/coins_display.dart';
 
@@ -29,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DuoColors.bgDark,
       body: SafeArea(
         child: IndexedStack(
           index: _currentIndex,
@@ -40,33 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: DuoNavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Mapa',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.store_outlined),
-            selectedIcon: Icon(Icons.store),
-            label: 'Loja',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outlined),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
       ),
     );
   }
@@ -86,10 +59,12 @@ class _HomeContentState extends State<_HomeContent> {
   static const String _userCoinsKey = 'user_coins';
   static const String _userXpKey = 'user_xp';
   static const String _userLevelKey = 'user_level';
+  static const String _selectedAvatarKey = 'selected_avatar';
 
   final _authRepository = AuthRepositoryImpl();
 
   String _userName = 'Estudante';
+  String _userEmoji = '🎓';
   int _level = 1;
   int _xp = 0;
   int _xpToNextLevel = 100;
@@ -119,6 +94,16 @@ class _HomeContentState extends State<_HomeContent> {
     final currentUser = _authRepository.currentUser;
     final userName =
         currentUser?.displayName ?? prefs.getString('user_name') ?? 'Estudante';
+
+    // Load avatar emoji
+    final selectedAvatarId = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    String userEmoji = '🎓';
+    for (final avatar in DuoAvatars.all) {
+      if (avatar['id'] == selectedAvatarId) {
+        userEmoji = avatar['emoji'] as String;
+        break;
+      }
+    }
 
     // Load stats
     final level = prefs.getInt(_userLevelKey) ?? 1;
@@ -158,6 +143,7 @@ class _HomeContentState extends State<_HomeContent> {
 
     setState(() {
       _userName = userName;
+      _userEmoji = userEmoji;
       _level = level;
       _xp = xp;
       _xpToNextLevel = level * 100; // XP needed increases with level
@@ -210,74 +196,179 @@ class _HomeContentState extends State<_HomeContent> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: DuoColors.green));
     }
 
-    return Stack(
-      children: [
-        // Flame animated background
-        Positioned.fill(
-          child: GameWidget(
-            game: HomeBackgroundGame(
-              primaryColor: Theme.of(context).primaryColor,
+    return Container(
+      color: DuoColors.bgDark,
+      child: Stack(
+        children: [
+          // Flame animated background
+          Positioned.fill(
+            child: GameWidget(
+              game: HomeBackgroundGame(
+                primaryColor: DuoColors.green,
+              ),
             ),
           ),
-        ),
-        // Content
-        RefreshIndicator(
-          onRefresh: _refreshData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+          // Content
+          RefreshIndicator(
+            color: DuoColors.green,
+            backgroundColor: DuoColors.bgCard,
+            onRefresh: _refreshData,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Gamified User Header
+                  DuoUserHeader(
+                    username: _userName,
+                    emoji: _userEmoji,
+                    level: _level,
+                    xp: _xp,
+                    xpToNext: _xpToNextLevel,
+                    coins: _coins,
+                    onCoinsTap: () {},
+                  ),
+                  const SizedBox(height: 20),
+                  // Daily streak card
+                  DuoDailyStreakCard(
+                    streak: _currentStreak,
+                    isClaimed: _dailyRewardClaimed,
+                    onClaim: _dailyRewardClaimed ? null : _claimDailyReward,
+                  ),
+                  const SizedBox(height: 20),
+                  // Progress section
+                  _buildProgressSection(),
+                  const SizedBox(height: 20),
+                  // Quick actions
+                  _buildQuickActions(),
+                  const SizedBox(height: 24),
+                  // Recent activity section
+                  const Text(
+                    'Atividade Recente',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Recent activity list
+                  _buildRecentActivityList(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.trending_up_rounded, color: DuoColors.green, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Progresso por Unidade',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ..._progressByUnit.entries.map((entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // User stats header
-                UserStatsHeader(
-                  userName: _userName,
-                  level: _level,
-                  xp: _xp,
-                  xpToNextLevel: _xpToNextLevel,
-                  coins: _coins,
-                ),
-                const SizedBox(height: 24),
-                // Daily streak
-                DailyStreakCard(
-                  currentStreak: _currentStreak,
-                  onClaimReward: _dailyRewardClaimed ? null : _claimDailyReward,
-                ),
-                const SizedBox(height: 16),
-                // Progress overview
-                ProgressOverviewCard(
-                  progressByUnit: _progressByUnit,
-                ),
-                const SizedBox(height: 16),
-                // Quick actions
-                QuickActions(
-                  onStartLesson: () {
-                    Navigator.of(context).pushNamed(AppRoutes.lessonMap);
-                  },
-                  onViewLeaderboard: () {
-                    Navigator.of(context).pushNamed(AppRoutes.leaderboard);
-                  },
-                  onOpenSettings: () {
-                    Navigator.of(context).pushNamed(AppRoutes.settings);
-                  },
-                ),
-                const SizedBox(height: 24),
-                // Recent activity section
-                Text(
-                  'Atividade Recente',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      entry.key,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 13,
                       ),
+                    ),
+                    Text(
+                      '${(entry.value * 100).toInt()}%',
+                      style: const TextStyle(
+                        color: DuoColors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                // Recent activity list
-                _buildRecentActivityList(),
+                const SizedBox(height: 6),
+                DuoProgressBar(
+                  progress: entry.value,
+                  color: _getColorForUnit(entry.key),
+                  height: 8,
+                ),
               ],
             ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Color _getColorForUnit(String unit) {
+    switch (unit) {
+      case 'Números': return DuoColors.green;
+      case 'Álgebra': return DuoColors.blue;
+      case 'Geometria': return DuoColors.purple;
+      case 'Grandezas': return DuoColors.orange;
+      case 'Estatística': return DuoColors.yellow;
+      default: return DuoColors.green;
+    }
+  }
+
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.play_arrow_rounded,
+            label: 'Começar',
+            color: DuoColors.green,
+            onTap: () => Navigator.of(context).pushNamed(AppRoutes.lessonMap),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.leaderboard_rounded,
+            label: 'Ranking',
+            color: DuoColors.yellow,
+            onTap: () => Navigator.of(context).pushNamed(AppRoutes.leaderboard),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.settings_rounded,
+            label: 'Config',
+            color: DuoColors.gray,
+            onTap: () => Navigator.of(context).pushNamed(AppRoutes.settings),
           ),
         ),
       ],
@@ -287,32 +378,136 @@ class _HomeContentState extends State<_HomeContent> {
   Widget _buildRecentActivityList() {
     // Show placeholder if no activity
     if (_xp == 0) {
-      return Card(
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.grey[300],
-            child: const Icon(Icons.play_arrow, color: Colors.grey),
-          ),
-          title: const Text('Comece sua jornada!'),
-          subtitle: const Text('Complete sua primeira lição'),
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: DuoColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: DuoColors.gray.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.play_arrow_rounded, color: DuoColors.gray),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Comece sua jornada!',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Complete sua primeira lição',
+                    style: TextStyle(color: DuoColors.gray, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    return Card(
-      child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: Color(0xFF6C63FF),
-          child: Icon(Icons.check, color: Colors.white),
-        ),
-        title: const Text('Lição Completada'),
-        subtitle: const Text('Continue estudando!'),
-        trailing: Text(
-          '+$_xp XP',
-          style: TextStyle(
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: DuoColors.green.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check_rounded, color: DuoColors.green),
           ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Lição Completada',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Continue estudando!',
+                  style: TextStyle(color: DuoColors.gray, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: DuoColors.green.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '+$_xp XP',
+              style: const TextStyle(
+                color: DuoColors.green,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Quick Action Button for home screen
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -712,7 +907,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   }
 }
 
-/// Embedded Profile content
+/// Embedded Profile content - Duolingo Style
 class _ProfilePlaceholder extends StatefulWidget {
   const _ProfilePlaceholder();
 
@@ -722,17 +917,24 @@ class _ProfilePlaceholder extends StatefulWidget {
 
 class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
     with SingleTickerProviderStateMixin {
+  static const String _selectedAvatarKey = 'selected_avatar';
+  static const String _purchasedItemsKey = 'purchased_items';
+
   late TabController _tabController;
   final _authRepository = AuthRepositoryImpl();
 
   String _username = 'Estudante';
-  String? _avatarUrl;
+  String _avatarEmoji = '🎓';
+  String? _avatarId;
+  String _avatarRarity = 'common';
+  int _avatarColor = 0xFF58CC02;
   int _level = 1;
   int _streak = 0;
   int _totalXp = 0;
   int _achievementsCount = 0;
   int _totalQuestions = 0;
   int _correctQuestions = 0;
+  Set<String> _purchasedAvatars = {};
   Map<String, double> _progressByUnit = {};
   bool _isLoading = true;
 
@@ -740,6 +942,7 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() => setState(() {}));
     _loadUserData();
   }
 
@@ -747,12 +950,40 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
     final prefs = await SharedPreferences.getInstance();
     final currentUser = _authRepository.currentUser;
 
+    // Load purchased avatars
+    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? [];
+    final purchasedAvatars = <String>{};
+    for (final item in purchasedList) {
+      if (item.startsWith('avatar_')) purchasedAvatars.add(item);
+    }
+    // Free avatars are always available
+    for (final avatar in DuoAvatars.all) {
+      if (avatar['price'] == 0) purchasedAvatars.add(avatar['id'] as String);
+    }
+
+    // Load selected avatar
+    final selectedAvatarId = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    String emoji = '🎓';
+    String rarity = 'common';
+    int color = 0xFF58CC02;
+    for (final avatar in DuoAvatars.all) {
+      if (avatar['id'] == selectedAvatarId) {
+        emoji = avatar['emoji'] as String;
+        rarity = avatar['rarity'] as String;
+        color = avatar['color'] as int;
+        break;
+      }
+    }
+
     if (mounted) {
       setState(() {
         _username = currentUser?.displayName ??
             prefs.getString('user_name') ??
             'Estudante';
-        _avatarUrl = currentUser?.photoUrl;
+        _avatarEmoji = emoji;
+        _avatarId = selectedAvatarId;
+        _avatarRarity = rarity;
+        _avatarColor = color;
         _level = prefs.getInt('user_level') ?? 1;
         _streak = prefs.getInt('current_streak') ?? 0;
         _totalXp = prefs.getInt('user_xp') ?? 0;
@@ -768,9 +999,48 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
           'Grandezas': prefs.getDouble('progress_Grandezas') ?? 0.0,
           'Estatística': prefs.getDouble('progress_Estatística') ?? 0.0,
         };
+        _purchasedAvatars = purchasedAvatars;
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _selectAvatar(Map<String, dynamic> avatar) async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = avatar['id'] as String;
+    await prefs.setString(_selectedAvatarKey, id);
+    setState(() {
+      _avatarId = id;
+      _avatarEmoji = avatar['emoji'] as String;
+      _avatarRarity = avatar['rarity'] as String;
+      _avatarColor = avatar['color'] as int;
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Avatar atualizado!'),
+          ],
+        ),
+        backgroundColor: DuoColors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showAvatarSelector() {
+    showDialog(
+      context: context,
+      builder: (ctx) => DuoAvatarSelectionDialog(
+        currentAvatarId: _avatarId,
+        purchasedAvatars: _purchasedAvatars,
+        onSelect: _selectAvatar,
+      ),
+    );
   }
 
   @override
@@ -787,170 +1057,159 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: DuoColors.green));
     }
 
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverToBoxAdapter(
-            child: Padding(
+    return Container(
+      color: DuoColors.bgDark,
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Header with settings
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: DuoColors.purple.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_rounded, color: DuoColors.purple, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Meu Perfil',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        DuoIconButton(
+                          icon: Icons.settings_rounded,
+                          color: DuoColors.bgCard,
+                          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    // Avatar and user info
+                    DuoProfileAvatar(
+                      emoji: _avatarEmoji,
+                      level: _level,
+                      username: _username,
+                      colorValue: _avatarColor,
+                      rarity: _avatarRarity,
+                      onTap: _showAvatarSelector,
+                    ),
+                    const SizedBox(height: 24),
+                    // Quick stats
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DuoQuickStat(
+                            icon: Icons.local_fire_department_rounded,
+                            value: '$_streak',
+                            label: 'Sequência',
+                            color: DuoColors.orange,
+                          ),
+                        ),
+                        Expanded(
+                          child: DuoQuickStat(
+                            icon: Icons.star_rounded,
+                            value: '$_totalXp',
+                            label: 'XP Total',
+                            color: DuoColors.yellow,
+                          ),
+                        ),
+                        Expanded(
+                          child: DuoQuickStat(
+                            icon: Icons.emoji_events_rounded,
+                            value: '$_achievementsCount',
+                            label: 'Conquistas',
+                            color: DuoColors.purple,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _DuoTabBarDelegate(
+                DuoTabBar(
+                  tabs: const ['Estatísticas', 'Conquistas'],
+                  icons: const [Icons.bar_chart_rounded, Icons.emoji_events_rounded],
+                  selectedIndex: _tabController.index,
+                  onTabSelected: (index) {
+                    _tabController.animateTo(index);
+                  },
+                ),
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Header with settings
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 28),
-                      const SizedBox(width: 12),
-                      Text('Perfil',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.settings),
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed(AppRoutes.settings),
-                      ),
-                    ],
-                  ),
+                  DuoStatCard(title: 'Questões Respondidas', stats: {
+                    'Total': '$_totalQuestions',
+                    'Corretas': '$_correctQuestions',
+                    'Taxa de Acerto': _calculateAccuracy()
+                  }),
                   const SizedBox(height: 16),
-                  // Avatar and user info
-                  AvatarDisplay(
-                      avatarUrl: _avatarUrl,
-                      level: _level,
-                      username: _username),
-                  const SizedBox(height: 24),
-                  // Quick stats
-                  Row(
-                    children: [
-                      Expanded(
-                          child: _QuickStat(
-                              icon: Icons.local_fire_department,
-                              value: '$_streak',
-                              label: 'Sequência',
-                              color: Colors.orange)),
-                      Expanded(
-                          child: _QuickStat(
-                              icon: Icons.star,
-                              value: '$_totalXp',
-                              label: 'XP Total',
-                              color: Colors.amber)),
-                      Expanded(
-                          child: _QuickStat(
-                              icon: Icons.emoji_events,
-                              value: '$_achievementsCount',
-                              label: 'Conquistas',
-                              color: Colors.purple)),
-                    ],
-                  ),
+                  DuoStatCard(title: 'Progresso por Unidade', stats: {
+                    for (final entry in _progressByUnit.entries)
+                      entry.key: '${(entry.value * 100).toInt()}%'
+                  }),
+                  const SizedBox(height: 16),
+                  DuoStatCard(title: 'Informações Gerais', stats: {
+                    'Nível': '$_level',
+                    'XP Total': '$_totalXp',
+                    'Sequência Atual': '$_streak dias'
+                  }),
                 ],
               ),
             ),
-          ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabBarDelegate(
-              TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Estatísticas'),
-                  Tab(text: 'Conquistas')
-                ],
-              ),
-            ),
-          ),
-        ];
-      },
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                StatsCard(title: 'Questões Respondidas', stats: {
-                  'Total': '$_totalQuestions',
-                  'Corretas': '$_correctQuestions',
-                  'Taxa de Acerto': _calculateAccuracy()
-                }),
-                const SizedBox(height: 16),
-                StatsCard(title: 'Progresso por Unidade', stats: {
-                  for (final entry in _progressByUnit.entries)
-                    entry.key: '${(entry.value * 100).toInt()}%'
-                }),
-                const SizedBox(height: 16),
-                StatsCard(title: 'Informações Gerais', stats: {
-                  'Nível': '$_level',
-                  'XP Total': '$_totalXp',
-                  'Sequência Atual': '$_streak dias'
-                }),
-              ],
-            ),
-          ),
-          const AchievementGrid(),
-        ],
+            const AchievementGrid(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _QuickStat extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  const _QuickStat(
-      {required this.icon,
-      required this.value,
-      required this.label,
-      required this.color});
+class _DuoTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget _tabBar;
+  _DuoTabBarDelegate(this._tabBar);
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(value,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold)),
-        Text(label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.grey[600])),
-      ],
+  double get minExtent => 56;
+  @override
+  double get maxExtent => 56;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: DuoColors.bgDark,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: _tabBar,
     );
   }
-}
-
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
-  _TabBarDelegate(this._tabBar);
 
   @override
-  double get minExtent => _tabBar.preferredSize.height;
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-        color: Theme.of(context).scaffoldBackgroundColor, child: _tabBar);
-  }
-
-  @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(_DuoTabBarDelegate oldDelegate) => false;
 }

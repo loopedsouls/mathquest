@@ -69,6 +69,7 @@ class DuoButton extends StatefulWidget {
   final double height;
   final bool isLoading;
   final bool disabled;
+  final bool small;
 
   const DuoButton({
     super.key,
@@ -80,6 +81,7 @@ class DuoButton extends StatefulWidget {
     this.height = 56,
     this.isLoading = false,
     this.disabled = false,
+    this.small = false,
   });
 
   @override
@@ -94,6 +96,8 @@ class _DuoButtonState extends State<DuoButton> {
     return hsl.withLightness((hsl.lightness - 0.15).clamp(0.0, 1.0)).toColor();
   }
 
+  double get _buttonHeight => widget.small ? 40 : widget.height;
+
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.disabled || widget.isLoading;
@@ -105,7 +109,7 @@ class _DuoButtonState extends State<DuoButton> {
       onTap: isDisabled ? null : widget.onPressed,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
-        height: widget.height,
+        height: _buttonHeight,
         transform: Matrix4.translationValues(0, _isPressed ? 4 : 0, 0),
         child: Stack(
           children: [
@@ -115,10 +119,10 @@ class _DuoButtonState extends State<DuoButton> {
               right: 0,
               bottom: 0,
               child: Container(
-                height: widget.height - 4,
+                height: _buttonHeight - 4,
                 decoration: BoxDecoration(
                   color: isDisabled ? DuoColors.grayDark : _darkerColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(widget.small ? 12 : 16),
                 ),
               ),
             ),
@@ -129,18 +133,18 @@ class _DuoButtonState extends State<DuoButton> {
               top: 0,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 100),
-                height: widget.height - (_isPressed ? 0 : 4),
+                height: _buttonHeight - (_isPressed ? 0 : 4),
                 decoration: BoxDecoration(
                   color: isDisabled ? DuoColors.gray : widget.color,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(widget.small ? 12 : 16),
                 ),
                 child: Center(
                   child: widget.isLoading
                       ? SizedBox(
-                          width: 24,
-                          height: 24,
+                          width: widget.small ? 18 : 24,
+                          height: widget.small ? 18 : 24,
                           child: CircularProgressIndicator(
-                            strokeWidth: 3,
+                            strokeWidth: widget.small ? 2 : 3,
                             color: widget.textColor ?? Colors.white,
                           ),
                         )
@@ -151,7 +155,7 @@ class _DuoButtonState extends State<DuoButton> {
                               Icon(
                                 widget.icon,
                                 color: widget.textColor ?? Colors.white,
-                                size: 24,
+                                size: widget.small ? 18 : 24,
                               ),
                               const SizedBox(width: 8),
                             ],
@@ -159,7 +163,7 @@ class _DuoButtonState extends State<DuoButton> {
                               widget.text,
                               style: TextStyle(
                                 color: widget.textColor ?? Colors.white,
-                                fontSize: 18,
+                                fontSize: widget.small ? 14 : 18,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -669,40 +673,26 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                   // Price or status
                   if (widget.isPurchased)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: DuoColors.green,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check, color: Colors.white, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Adquirido',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: const Icon(Icons.check, color: Colors.white, size: 16),
                     )
                   else if (widget.price == 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: DuoColors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: DuoColors.green),
                       ),
                       child: const Text(
                         'GRÁTIS',
                         style: TextStyle(
                           color: DuoColors.green,
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1750,6 +1740,834 @@ class DuoBadge extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+// ============================================================================
+// GAMIFIED NAVIGATION BAR
+// ============================================================================
+
+class DuoNavigationBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  const DuoNavigationBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(
+              icon: Icons.home_rounded,
+              label: 'Início',
+              isSelected: selectedIndex == 0,
+              color: DuoColors.blue,
+              onTap: () => onDestinationSelected(0),
+            ),
+            _NavItem(
+              icon: Icons.map_rounded,
+              label: 'Mapa',
+              isSelected: selectedIndex == 1,
+              color: DuoColors.green,
+              onTap: () => onDestinationSelected(1),
+            ),
+            _NavItem(
+              icon: Icons.storefront_rounded,
+              label: 'Loja',
+              isSelected: selectedIndex == 2,
+              color: DuoColors.orange,
+              onTap: () => onDestinationSelected(2),
+            ),
+            _NavItem(
+              icon: Icons.person_rounded,
+              label: 'Perfil',
+              isSelected: selectedIndex == 3,
+              color: DuoColors.purple,
+              onTap: () => onDestinationSelected(3),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.isSelected ? 16 : 12,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isSelected 
+                ? widget.color.withValues(alpha: 0.2) 
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: widget.isSelected ? widget.color : Colors.transparent,
+                  shape: BoxShape.circle,
+                  boxShadow: widget.isSelected
+                      ? [
+                          BoxShadow(
+                            color: widget.color.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  widget.icon,
+                  color: widget.isSelected ? Colors.white : DuoColors.gray,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: widget.isSelected ? widget.color : DuoColors.gray,
+                  fontSize: 11,
+                  fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// GAMIFIED PROFILE COMPONENTS
+// ============================================================================
+
+/// Gamified Avatar Display with emoji selection
+class DuoProfileAvatar extends StatelessWidget {
+  final String emoji;
+  final int level;
+  final String username;
+  final int colorValue;
+  final String rarity;
+  final VoidCallback? onTap;
+
+  const DuoProfileAvatar({
+    super.key,
+    required this.emoji,
+    required this.level,
+    required this.username,
+    this.colorValue = 0xFF58CC02,
+    this.rarity = 'common',
+    this.onTap,
+  });
+
+  Color get _rarityGlow {
+    switch (rarity) {
+      case 'rare':
+        return DuoColors.blue;
+      case 'epic':
+        return DuoColors.purple;
+      case 'legendary':
+        return DuoColors.yellow;
+      default:
+        return Colors.transparent;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          // Avatar with level badge
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Glow effect for rare+ avatars
+              if (rarity != 'common')
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _rarityGlow.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              // Main avatar
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Color(colorValue).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: rarity != 'common' ? _rarityGlow : Color(colorValue),
+                    width: 4,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    emoji,
+                    style: const TextStyle(fontSize: 48),
+                  ),
+                ),
+              ),
+              // Level badge
+              Positioned(
+                bottom: -5,
+                right: -5,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DuoColors.green,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: DuoColors.bgDark, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DuoColors.green.withValues(alpha: 0.4),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'Nv. $level',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+              // Edit icon
+              if (onTap != null)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: DuoColors.blue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: DuoColors.bgDark, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.edit_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Username
+          Text(
+            username,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gamified Stat Card
+class DuoStatCard extends StatelessWidget {
+  final String title;
+  final Map<String, String> stats;
+
+  const DuoStatCard({
+    super.key,
+    required this.title,
+    required this.stats,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: DuoColors.bgCard.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...stats.entries.map((entry) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  entry.key,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  entry.value,
+                  style: const TextStyle(
+                    color: DuoColors.green,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gamified Quick Stat
+class DuoQuickStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const DuoQuickStat({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 2),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Avatar Selection Dialog
+class DuoAvatarSelectionDialog extends StatelessWidget {
+  final String? currentAvatarId;
+  final Set<String> purchasedAvatars;
+  final ValueChanged<Map<String, dynamic>> onSelect;
+
+  const DuoAvatarSelectionDialog({
+    super.key,
+    this.currentAvatarId,
+    required this.purchasedAvatars,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final availableAvatars = DuoAvatars.all.where((a) {
+      final id = a['id'] as String;
+      final price = a['price'] as int;
+      return purchasedAvatars.contains(id) || price == 0;
+    }).toList();
+
+    return Dialog(
+      backgroundColor: DuoColors.bgDark,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Escolher Avatar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 300,
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 0.9,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: availableAvatars.length,
+                itemBuilder: (context, index) {
+                  final avatar = availableAvatars[index];
+                  final id = avatar['id'] as String;
+                  final isSelected = currentAvatarId == id;
+                  return GestureDetector(
+                    onTap: () {
+                      onSelect(avatar);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: DuoColors.bgCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? DuoColors.green : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            avatar['emoji'] as String,
+                            style: const TextStyle(fontSize: 32),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            avatar['name'] as String,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            DuoButton(
+              text: 'Fechar',
+              color: DuoColors.gray,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// HOME SCREEN COMPONENTS
+// ============================================================================
+
+/// Gamified User Header
+class DuoUserHeader extends StatelessWidget {
+  final String username;
+  final String emoji;
+  final int level;
+  final int xp;
+  final int xpToNext;
+  final int coins;
+  final VoidCallback? onCoinsTap;
+
+  const DuoUserHeader({
+    super.key,
+    required this.username,
+    required this.emoji,
+    required this.level,
+    required this.xp,
+    required this.xpToNext,
+    required this.coins,
+    this.onCoinsTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: DuoColors.bgCard,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          // Mini avatar
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: DuoColors.green.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: DuoColors.green, width: 2),
+            ),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Name and level
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // XP Progress bar
+                Row(
+                  children: [
+                    Text(
+                      'Nv. $level',
+                      style: const TextStyle(
+                        color: DuoColors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DuoProgressBar(
+                        progress: xp / xpToNext,
+                        color: DuoColors.green,
+                        height: 8,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$xp/$xpToNext',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Coins
+          GestureDetector(
+            onTap: onCoinsTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: DuoColors.yellow.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: DuoColors.yellow),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const DuoCoinIcon(size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$coins',
+                    style: const TextStyle(
+                      color: DuoColors.yellow,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gamified Daily Streak Card
+class DuoDailyStreakCard extends StatelessWidget {
+  final int streak;
+  final bool isClaimed;
+  final VoidCallback? onClaim;
+
+  const DuoDailyStreakCard({
+    super.key,
+    required this.streak,
+    required this.isClaimed,
+    this.onClaim,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            DuoColors.orange,
+            DuoColors.orange.withValues(alpha: 0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: DuoColors.orange.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Fire icon
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.local_fire_department_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Streak info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$streak dias',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+                Text(
+                  'Sequência de estudos',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Claim button
+          if (!isClaimed)
+            DuoButton(
+              text: 'Resgatar',
+              color: Colors.white,
+              textColor: DuoColors.orange,
+              small: true,
+              onPressed: onClaim,
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Journey Map Header
+class DuoJourneyHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback? onFilterTap;
+
+  const DuoJourneyHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.onFilterTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: DuoColors.green.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.map_rounded,
+              color: DuoColors.green,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onFilterTap != null)
+            DuoIconButton(
+              icon: Icons.filter_list_rounded,
+              color: DuoColors.bgCard,
+              onPressed: onFilterTap,
+            ),
+        ],
+      ),
     );
   }
 }

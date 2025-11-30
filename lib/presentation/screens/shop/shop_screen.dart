@@ -249,9 +249,9 @@ class _ShopScreenState extends State<ShopScreen>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: DuoColors.bgDark,
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(color: DuoColors.green),
         ),
       );

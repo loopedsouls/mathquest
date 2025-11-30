@@ -160,7 +160,7 @@ class AnimatedGrid extends Component {
 
   @override
   void render(Canvas canvas) {
-    final spacing = 60.0;
+    const spacing = 60.0;
     final paint = Paint()
       ..color = color.withValues(alpha: 0.03)
       ..strokeWidth = 1;
@@ -342,7 +342,9 @@ class RisingXpNumber extends PositionComponent {
 
 /// Sparkle for XP gain
 class XpSparkle extends PositionComponent {
+  @override
   final Vector2 center;
+  @override
   final double angle;
   final Color color;
   final double delay;
@@ -387,7 +389,7 @@ class XpSparkle extends PositionComponent {
 
     // Star shape
     final path = Path();
-    final size = 6.0;
+    const size = 6.0;
     for (int i = 0; i < 4; i++) {
       final a = (i / 4) * 2 * pi;
       final x = cos(a) * size;
@@ -623,7 +625,7 @@ class LevelRays extends Component {
 
     for (int i = 0; i < 16; i++) {
       final angle = (i / 16) * 2 * pi + _time * 0.2;
-      final innerRadius = 60.0;
+      const innerRadius = 60.0;
       final outerRadius = 120.0 + sin(_time * 4 + i) * 20;
 
       canvas.drawLine(

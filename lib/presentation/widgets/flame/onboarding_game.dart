@@ -190,6 +190,7 @@ class FloatingEquation extends PositionComponent {
 
 /// Orbiting symbols around center
 class OrbitingSymbols extends PositionComponent {
+  @override
   final Vector2 center;
   final Color color;
 
@@ -210,7 +211,7 @@ class OrbitingSymbols extends PositionComponent {
   void render(Canvas canvas) {
     for (int i = 0; i < symbols.length; i++) {
       final angle = _time * 0.3 + (i * 2 * pi / symbols.length);
-      final radius = 120.0;
+      const radius = 120.0;
       final x = cos(angle) * radius;
       final y = sin(angle) * radius * 0.3; // Elliptical orbit
 
@@ -436,6 +437,7 @@ class _BurstStar {
 
 /// Animated progress bar
 class AnimatedProgressBar extends PositionComponent {
+  @override
   final double width;
   final Color color;
   final double delay;
@@ -509,9 +511,9 @@ class RisingChart extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final barWidth = 20.0;
-    final maxHeight = 80.0;
-    final spacing = 8.0;
+    const barWidth = 20.0;
+    const maxHeight = 80.0;
+    const spacing = 8.0;
     final totalWidth = (_barHeights.length * (barWidth + spacing)) - spacing;
     final startX = -totalWidth / 2;
 

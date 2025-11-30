@@ -171,7 +171,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         // Top 3 header
         SliverToBoxAdapter(
           child: LeaderboardHeader(
-            first: entries.length > 0 ? entries[0] : null,
+            first: entries.isNotEmpty ? entries[0] : null,
             second: entries.length > 1 ? entries[1] : null,
             third: entries.length > 2 ? entries[2] : null,
           ),

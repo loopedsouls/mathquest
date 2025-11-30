@@ -31,31 +31,31 @@ class _GameplayScreenState extends State<GameplayScreen>
 
   // Sample questions - TODO: Load from repository
   final List<QuestionData> _questions = [
-    QuestionData(
+    const QuestionData(
       text: 'Qual é o resultado de 15 + 27?',
       options: ['32', '42', '52', '62'],
       correctIndex: 1,
       explanation: '15 + 27 = 42. Somamos unidades (5+7=12, escrevemos 2 e levamos 1) e depois dezenas (1+2+1=4).',
     ),
-    QuestionData(
+    const QuestionData(
       text: 'Qual é o menor múltiplo comum de 4 e 6?',
       options: ['6', '12', '24', '36'],
       correctIndex: 1,
       explanation: 'Os múltiplos de 4 são: 4, 8, 12, 16... Os múltiplos de 6 são: 6, 12, 18... O menor comum é 12.',
     ),
-    QuestionData(
+    const QuestionData(
       text: 'Qual número é divisor de 20?',
       options: ['3', '6', '7', '5'],
       correctIndex: 3,
       explanation: '20 ÷ 5 = 4, sem resto. Portanto, 5 é divisor de 20.',
     ),
-    QuestionData(
+    const QuestionData(
       text: 'Quanto é 8 × 7?',
       options: ['54', '56', '48', '64'],
       correctIndex: 1,
       explanation: '8 × 7 = 56. Uma forma de lembrar: 7 × 8 = 56 (os números 5, 6, 7, 8 em sequência).',
     ),
-    QuestionData(
+    const QuestionData(
       text: 'Qual é o resultado de 100 - 37?',
       options: ['73', '67', '63', '53'],
       correctIndex: 2,

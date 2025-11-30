@@ -27,7 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         children: [
           // Sound section
-          _SectionHeader(title: 'Som'),
+          const _SectionHeader(title: 'Som'),
           SwitchListTile(
             title: const Text('Efeitos Sonoros'),
             subtitle: const Text('Sons de acerto, erro, etc.'),
@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           // Notifications section
-          _SectionHeader(title: 'Notificações'),
+          const _SectionHeader(title: 'Notificações'),
           SwitchListTile(
             title: const Text('Lembretes de Estudo'),
             subtitle: const Text('Receba lembretes para manter sua sequência'),
@@ -63,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           // Appearance section
-          _SectionHeader(title: 'Aparência'),
+          const _SectionHeader(title: 'Aparência'),
           SwitchListTile(
             title: const Text('Modo Escuro'),
             subtitle: const Text('Tema escuro para o aplicativo'),
@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           // Account section
-          _SectionHeader(title: 'Conta'),
+          const _SectionHeader(title: 'Conta'),
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Editar Perfil'),
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           // About section
-          _SectionHeader(title: 'Sobre'),
+          const _SectionHeader(title: 'Sobre'),
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('Sobre o MathQuest'),

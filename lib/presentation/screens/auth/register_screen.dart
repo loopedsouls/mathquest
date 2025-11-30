@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 // School year dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedYear,
+                  initialValue: _selectedYear,
                   decoration: InputDecoration(
                     labelText: 'Ano Escolar',
                     prefixIcon: const Icon(Icons.school_outlined),

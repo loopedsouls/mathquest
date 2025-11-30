@@ -45,18 +45,18 @@ class _ProfileScreenState extends State<ProfileScreen>
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   children: [
                     // Avatar and user info
-                    const AvatarDisplay(
+                    AvatarDisplay(
                       avatarUrl: null, // TODO: Get from user data
                       level: 5,
                       username: 'Estudante',
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     // Quick stats
                     Row(
                       children: [
@@ -106,12 +106,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         },
         body: TabBarView(
           controller: _tabController,
-          children: [
+          children: const [
             // Statistics tab
             SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
-                children: const [
+                children: [
                   StatsCard(
                     title: 'Questões Respondidas',
                     stats: {
@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             // Achievements tab
-            const AchievementGrid(),
+            AchievementGrid(),
           ],
         ),
       ),

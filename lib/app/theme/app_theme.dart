@@ -110,8 +110,9 @@ class AppTheme {
   ];
 
   // Primary gradient
+  // ignore: prefer_const_constructors
   static LinearGradient primaryGradient = LinearGradient(
-    colors: [AppColors.primary, AppColors.primaryDark],
+    colors: const [AppColors.primary, AppColors.primaryDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -177,7 +177,7 @@ class ApiService {
     int maxResults = 20,
   }) async {
     try {
-      final url = ApiEndpoints.arxivSearch;
+      const url = ApiEndpoints.arxivSearch;
       final queryParams = {
         'search_query': 'all:$query',
         'start': '0',

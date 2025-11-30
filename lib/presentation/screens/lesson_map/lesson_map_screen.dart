@@ -27,37 +27,37 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
 
   // Sample lesson data - TODO: Replace with data from repository
   final List<LessonNodeData> _lessons = [
-    LessonNodeData(
+    const LessonNodeData(
       id: '1',
       title: 'Números Naturais',
       status: LessonStatus.completed,
       stars: 3,
     ),
-    LessonNodeData(
+    const LessonNodeData(
       id: '2',
       title: 'Operações Básicas',
       status: LessonStatus.completed,
       stars: 2,
     ),
-    LessonNodeData(
+    const LessonNodeData(
       id: '3',
       title: 'Múltiplos e Divisores',
       status: LessonStatus.current,
       stars: 0,
     ),
-    LessonNodeData(
+    const LessonNodeData(
       id: '4',
       title: 'Números Primos',
       status: LessonStatus.locked,
       stars: 0,
     ),
-    LessonNodeData(
+    const LessonNodeData(
       id: '5',
       title: 'MMC e MDC',
       status: LessonStatus.locked,
       stars: 0,
     ),
-    LessonNodeData(
+    const LessonNodeData(
       id: '6',
       title: 'Frações',
       status: LessonStatus.locked,

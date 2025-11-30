@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/routes.dart';
 
 /// Progress overview card showing progress by unit
 class ProgressOverviewCard extends StatelessWidget {
@@ -32,7 +33,7 @@ class ProgressOverviewCard extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to detailed progress
+                    Navigator.of(context).pushNamed(AppRoutes.profile);
                   },
                   child: const Text('Ver mais'),
                 ),

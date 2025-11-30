@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/shop/shop_item_card.dart';
 import '../../widgets/shop/coins_display.dart';
 
@@ -12,104 +13,131 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen>
     with SingleTickerProviderStateMixin {
+  static const String _userCoinsKey = 'user_coins';
+  static const String _purchasedItemsKey = 'purchased_items';
+
   late TabController _tabController;
-  int _userCoins = 250; // TODO: Get from provider
+  int _userCoins = 0;
+  Set<String> _purchasedItems = {};
+  bool _isLoading = true;
 
-  // Sample shop items - TODO: Load from repository
-  final List<ShopItem> _avatars = [
-    const ShopItem(
-      id: 'avatar_1',
-      name: 'Astronauta',
-      description: 'Um avatar espacial',
-      price: 100,
-      imageAsset: 'assets/avatars/astronaut.png',
-      category: ShopCategory.avatar,
-      isPurchased: true,
-    ),
-    const ShopItem(
-      id: 'avatar_2',
-      name: 'Cientista',
-      description: 'Avatar de cientista',
-      price: 150,
-      imageAsset: 'assets/avatars/scientist.png',
-      category: ShopCategory.avatar,
-      isPurchased: false,
-    ),
-    const ShopItem(
-      id: 'avatar_3',
-      name: 'Super-herói',
-      description: 'Avatar de super-herói',
-      price: 200,
-      imageAsset: 'assets/avatars/superhero.png',
-      category: ShopCategory.avatar,
-      isPurchased: false,
-    ),
-  ];
-
-  final List<ShopItem> _themes = [
-    const ShopItem(
-      id: 'theme_1',
-      name: 'Tema Escuro',
-      description: 'Modo escuro elegante',
-      price: 0,
-      imageAsset: 'assets/themes/dark.png',
-      category: ShopCategory.theme,
-      isPurchased: true,
-    ),
-    const ShopItem(
-      id: 'theme_2',
-      name: 'Tema Oceano',
-      description: 'Tons de azul',
-      price: 100,
-      imageAsset: 'assets/themes/ocean.png',
-      category: ShopCategory.theme,
-      isPurchased: false,
-    ),
-    const ShopItem(
-      id: 'theme_3',
-      name: 'Tema Floresta',
-      description: 'Tons de verde',
-      price: 100,
-      imageAsset: 'assets/themes/forest.png',
-      category: ShopCategory.theme,
-      isPurchased: false,
-    ),
-  ];
-
-  final List<ShopItem> _powerups = [
-    const ShopItem(
-      id: 'powerup_1',
-      name: 'Dica Extra',
-      description: '+1 dica por lição',
-      price: 50,
-      imageAsset: 'assets/powerups/hint.png',
-      category: ShopCategory.powerup,
-      isPurchased: false,
-    ),
-    const ShopItem(
-      id: 'powerup_2',
-      name: 'Tempo Extra',
-      description: '+10 segundos por questão',
-      price: 75,
-      imageAsset: 'assets/powerups/time.png',
-      category: ShopCategory.powerup,
-      isPurchased: false,
-    ),
-    const ShopItem(
-      id: 'powerup_3',
-      name: 'Segunda Chance',
-      description: 'Pode tentar novamente',
-      price: 100,
-      imageAsset: 'assets/powerups/retry.png',
-      category: ShopCategory.powerup,
-      isPurchased: false,
-    ),
-  ];
+  // Shop items
+  late List<ShopItem> _avatars;
+  late List<ShopItem> _themes;
+  late List<ShopItem> _powerups;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _initializeItems();
+    _loadUserData();
+  }
+
+  void _initializeItems() {
+    _avatars = [
+      ShopItem(
+        id: 'avatar_1',
+        name: 'Astronauta',
+        description: 'Um avatar espacial',
+        price: 100,
+        imageAsset: 'assets/avatars/astronaut.png',
+        category: ShopCategory.avatar,
+      ),
+      ShopItem(
+        id: 'avatar_2',
+        name: 'Cientista',
+        description: 'Avatar de cientista',
+        price: 150,
+        imageAsset: 'assets/avatars/scientist.png',
+        category: ShopCategory.avatar,
+      ),
+      ShopItem(
+        id: 'avatar_3',
+        name: 'Super-herói',
+        description: 'Avatar de super-herói',
+        price: 200,
+        imageAsset: 'assets/avatars/superhero.png',
+        category: ShopCategory.avatar,
+      ),
+    ];
+
+    _themes = [
+      ShopItem(
+        id: 'theme_1',
+        name: 'Tema Escuro',
+        description: 'Modo escuro elegante',
+        price: 0,
+        imageAsset: 'assets/themes/dark.png',
+        category: ShopCategory.theme,
+      ),
+      ShopItem(
+        id: 'theme_2',
+        name: 'Tema Oceano',
+        description: 'Tons de azul',
+        price: 100,
+        imageAsset: 'assets/themes/ocean.png',
+        category: ShopCategory.theme,
+      ),
+      ShopItem(
+        id: 'theme_3',
+        name: 'Tema Floresta',
+        description: 'Tons de verde',
+        price: 100,
+        imageAsset: 'assets/themes/forest.png',
+        category: ShopCategory.theme,
+      ),
+    ];
+
+    _powerups = [
+      ShopItem(
+        id: 'powerup_1',
+        name: 'Dica Extra',
+        description: '+1 dica por lição',
+        price: 50,
+        imageAsset: 'assets/powerups/hint.png',
+        category: ShopCategory.powerup,
+      ),
+      ShopItem(
+        id: 'powerup_2',
+        name: 'Tempo Extra',
+        description: '+10 segundos por questão',
+        price: 75,
+        imageAsset: 'assets/powerups/time.png',
+        category: ShopCategory.powerup,
+      ),
+      ShopItem(
+        id: 'powerup_3',
+        name: 'Segunda Chance',
+        description: 'Pode tentar novamente',
+        price: 100,
+        imageAsset: 'assets/powerups/retry.png',
+        category: ShopCategory.powerup,
+      ),
+    ];
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final coins = prefs.getInt(_userCoinsKey) ?? 0;
+    final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? ['theme_1']; // Dark theme is free
+
+    setState(() {
+      _userCoins = coins;
+      _purchasedItems = purchasedList.toSet();
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _savePurchase(String itemId, int newCoins) async {
+    final prefs = await SharedPreferences.getInstance();
+    _purchasedItems.add(itemId);
+    await prefs.setStringList(_purchasedItemsKey, _purchasedItems.toList());
+    await prefs.setInt(_userCoinsKey, newCoins);
+  }
+
+  bool _isItemPurchased(String itemId) {
+    return _purchasedItems.contains(itemId);
   }
 
   @override
@@ -119,7 +147,9 @@ class _ShopScreenState extends State<ShopScreen>
   }
 
   void _purchaseItem(ShopItem item) {
-    if (item.isPurchased) {
+    final isPurchased = _isItemPurchased(item.id);
+    
+    if (isPurchased) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Você já possui este item!')),
       );
@@ -147,11 +177,15 @@ class _ShopScreenState extends State<ShopScreen>
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              final newCoins = _userCoins - item.price;
+              await _savePurchase(item.id, newCoins);
+              
               setState(() {
-                _userCoins -= item.price;
-                // TODO: Mark item as purchased
+                _userCoins = newCoins;
               });
+              
+              if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -169,6 +203,13 @@ class _ShopScreenState extends State<ShopScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Loja')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Loja'),
@@ -207,10 +248,19 @@ class _ShopScreenState extends State<ShopScreen>
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
+        final item = items[index];
         return ShopItemCard(
-          item: items[index],
+          item: ShopItem(
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            imageAsset: item.imageAsset,
+            category: item.category,
+            isPurchased: _isItemPurchased(item.id),
+          ),
           userCoins: _userCoins,
-          onPurchase: () => _purchaseItem(items[index]),
+          onPurchase: () => _purchaseItem(item),
         );
       },
     );
@@ -227,14 +277,14 @@ class ShopItem {
   final ShopCategory category;
   final bool isPurchased;
 
-  const ShopItem({
+  ShopItem({
     required this.id,
     required this.name,
     required this.description,
     required this.price,
     required this.imageAsset,
     required this.category,
-    required this.isPurchased,
+    this.isPurchased = false,
   });
 }
 

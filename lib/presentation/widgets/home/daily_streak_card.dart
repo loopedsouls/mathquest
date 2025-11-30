@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 /// Daily streak card widget
 class DailyStreakCard extends StatelessWidget {
   final int currentStreak;
-  final VoidCallback onClaimReward;
+  final VoidCallback? onClaimReward;
 
   const DailyStreakCard({
     super.key,
     required this.currentStreak,
-    required this.onClaimReward,
+    this.onClaimReward,
   });
 
   @override
   Widget build(BuildContext context) {
+    final canClaim = onClaimReward != null;
+    
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -72,15 +74,16 @@ class DailyStreakCard extends StatelessWidget {
             ),
             // Claim button
             ElevatedButton(
-              onPressed: onClaimReward,
+              onPressed: canClaim ? onClaimReward : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.deepOrange,
+                disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('Resgatar'),
+              child: Text(canClaim ? 'Resgatar' : 'Resgatado ✓'),
             ),
           ],
         ),

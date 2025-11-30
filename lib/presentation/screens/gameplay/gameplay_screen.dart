@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app/routes.dart';
+import '../../../data/models/question_model.dart';
+import '../../../data/repositories/lesson_repository_impl.dart';
 import '../../widgets/gameplay/answer_option.dart';
 import '../../widgets/gameplay/question_card.dart';
 import '../../widgets/gameplay/progress_bar.dart';
@@ -25,43 +27,13 @@ class _GameplayScreenState extends State<GameplayScreen>
   int _selectedAnswerIndex = -1;
   bool _hasAnswered = false;
   bool _isLoading = true;
+  String? _errorMessage;
 
   late AnimationController _animationController;
   late Animation<double> _shakeAnimation;
 
-  // Sample questions - TODO: Load from repository
-  final List<QuestionData> _questions = [
-    const QuestionData(
-      text: 'Qual é o resultado de 15 + 27?',
-      options: ['32', '42', '52', '62'],
-      correctIndex: 1,
-      explanation: '15 + 27 = 42. Somamos unidades (5+7=12, escrevemos 2 e levamos 1) e depois dezenas (1+2+1=4).',
-    ),
-    const QuestionData(
-      text: 'Qual é o menor múltiplo comum de 4 e 6?',
-      options: ['6', '12', '24', '36'],
-      correctIndex: 1,
-      explanation: 'Os múltiplos de 4 são: 4, 8, 12, 16... Os múltiplos de 6 são: 6, 12, 18... O menor comum é 12.',
-    ),
-    const QuestionData(
-      text: 'Qual número é divisor de 20?',
-      options: ['3', '6', '7', '5'],
-      correctIndex: 3,
-      explanation: '20 ÷ 5 = 4, sem resto. Portanto, 5 é divisor de 20.',
-    ),
-    const QuestionData(
-      text: 'Quanto é 8 × 7?',
-      options: ['54', '56', '48', '64'],
-      correctIndex: 1,
-      explanation: '8 × 7 = 56. Uma forma de lembrar: 7 × 8 = 56 (os números 5, 6, 7, 8 em sequência).',
-    ),
-    const QuestionData(
-      text: 'Qual é o resultado de 100 - 37?',
-      options: ['73', '67', '63', '53'],
-      correctIndex: 2,
-      explanation: '100 - 37 = 63. Podemos calcular: 100 - 40 = 60, depois 60 + 3 = 63.',
-    ),
-  ];
+  final LessonRepositoryImpl _lessonRepository = LessonRepositoryImpl();
+  List<QuestionModel> _questions = [];
 
   @override
   void initState() {
@@ -78,10 +50,28 @@ class _GameplayScreenState extends State<GameplayScreen>
   }
 
   Future<void> _loadQuestions() async {
-    // TODO: Load questions from repository based on lessonId
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      setState(() => _isLoading = false);
+    try {
+      final questions = await _lessonRepository.getLessonQuestions(widget.lessonId);
+      if (mounted) {
+        if (questions.isEmpty) {
+          setState(() {
+            _errorMessage = 'Nenhuma questão encontrada para esta lição.';
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _questions = questions;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Erro ao carregar questões. Tente novamente.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -99,7 +89,12 @@ class _GameplayScreenState extends State<GameplayScreen>
       _hasAnswered = true;
     });
 
-    final isCorrect = index == _questions[_currentQuestionIndex].correctIndex;
+    final currentQuestion = _questions[_currentQuestionIndex];
+    final selectedAnswer = index >= 0 && index < currentQuestion.options.length 
+        ? currentQuestion.options[index] 
+        : '';
+    final isCorrect = currentQuestion.isCorrect(selectedAnswer);
+    
     if (isCorrect) {
       _correctAnswers++;
     } else {
@@ -161,7 +156,45 @@ class _GameplayScreenState extends State<GameplayScreen>
       );
     }
 
+    if (_errorMessage != null || _questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Erro'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage ?? 'Nenhuma questão disponível.',
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _errorMessage = null;
+                  });
+                  _loadQuestions();
+                },
+                child: const Text('Tentar novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentQuestion = _questions[_currentQuestionIndex];
+    final correctAnswerIndex = currentQuestion.options.indexOf(currentQuestion.correctAnswer);
 
     return Scaffold(
       appBar: AppBar(
@@ -200,7 +233,7 @@ class _GameplayScreenState extends State<GameplayScreen>
                     );
                   },
                   child: QuestionCard(
-                    question: currentQuestion.text,
+                    question: currentQuestion.question,
                   ),
                 ),
               ),
@@ -208,7 +241,7 @@ class _GameplayScreenState extends State<GameplayScreen>
               // Answer options
               ...List.generate(currentQuestion.options.length, (index) {
                 final isSelected = _selectedAnswerIndex == index;
-                final isCorrect = index == currentQuestion.correctIndex;
+                final isCorrect = index == correctAnswerIndex;
                 final showResult = _hasAnswered;
 
                 return Padding(
@@ -224,7 +257,7 @@ class _GameplayScreenState extends State<GameplayScreen>
                 );
               }),
               // Explanation (shown after answering)
-              if (_hasAnswered)
+              if (_hasAnswered && currentQuestion.explanation != null)
                 AnimatedOpacity(
                   opacity: _hasAnswered ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 300),
@@ -243,7 +276,7 @@ class _GameplayScreenState extends State<GameplayScreen>
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            currentQuestion.explanation,
+                            currentQuestion.explanation!,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -282,19 +315,4 @@ class _GameplayScreenState extends State<GameplayScreen>
       ),
     );
   }
-}
-
-/// Data class for questions
-class QuestionData {
-  final String text;
-  final List<String> options;
-  final int correctIndex;
-  final String explanation;
-
-  const QuestionData({
-    required this.text,
-    required this.options,
-    required this.correctIndex,
-    required this.explanation,
-  });
 }

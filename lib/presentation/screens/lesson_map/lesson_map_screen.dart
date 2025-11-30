@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
+import '../../../data/repositories/lesson_repository_impl.dart';
 import '../../widgets/lesson_map/lesson_node.dart';
 import '../../widgets/lesson_map/map_path.dart';
 
@@ -14,6 +16,10 @@ class LessonMapScreen extends StatefulWidget {
 class _LessonMapScreenState extends State<LessonMapScreen> {
   String _selectedUnit = 'Números';
   String _selectedYear = '6º ano';
+  bool _isLoading = true;
+  List<LessonNodeData> _lessons = [];
+  
+  final LessonRepositoryImpl _lessonRepository = LessonRepositoryImpl();
 
   final List<String> _units = [
     'Números',
@@ -25,45 +31,115 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
 
   final List<String> _years = ['6º ano', '7º ano', '8º ano', '9º ano'];
 
-  // Sample lesson data - TODO: Replace with data from repository
-  final List<LessonNodeData> _lessons = [
-    const LessonNodeData(
-      id: '1',
-      title: 'Números Naturais',
-      status: LessonStatus.completed,
-      stars: 3,
-    ),
-    const LessonNodeData(
-      id: '2',
-      title: 'Operações Básicas',
-      status: LessonStatus.completed,
-      stars: 2,
-    ),
-    const LessonNodeData(
-      id: '3',
-      title: 'Múltiplos e Divisores',
-      status: LessonStatus.current,
-      stars: 0,
-    ),
-    const LessonNodeData(
-      id: '4',
-      title: 'Números Primos',
-      status: LessonStatus.locked,
-      stars: 0,
-    ),
-    const LessonNodeData(
-      id: '5',
-      title: 'MMC e MDC',
-      status: LessonStatus.locked,
-      stars: 0,
-    ),
-    const LessonNodeData(
-      id: '6',
-      title: 'Frações',
-      status: LessonStatus.locked,
-      stars: 0,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadLessons();
+  }
+
+  Future<void> _loadLessons() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      // Get lessons from repository filtered by unit and year
+      final allLessons = await _lessonRepository.getAllLessons();
+      final filteredLessons = allLessons
+          .where((l) => l.thematicUnit == _selectedUnit && l.schoolYear == _selectedYear)
+          .toList();
+      
+      // Sort by order
+      filteredLessons.sort((a, b) => a.order.compareTo(b.order));
+      
+      // Get completed lessons from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final completedLessons = prefs.getStringList('completed_lessons') ?? [];
+      final lessonStars = prefs.getString('lesson_stars');
+      final starsMap = lessonStars != null 
+          ? Map<String, int>.from(
+              (lessonStars.isNotEmpty ? _parseStarsMap(lessonStars) : {})
+            )
+          : <String, int>{};
+      
+      // Check which lessons are unlocked
+      final unlockedIds = prefs.getStringList('unlocked_lessons') ?? 
+          ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
+      
+      // Convert to LessonNodeData
+      final lessonNodes = <LessonNodeData>[];
+      for (int i = 0; i < filteredLessons.length; i++) {
+        final lesson = filteredLessons[i];
+        final isCompleted = completedLessons.contains(lesson.id);
+        final isUnlocked = unlockedIds.contains(lesson.id) || !lesson.isLocked;
+        
+        // Determine status
+        LessonStatus status;
+        if (isCompleted) {
+          status = LessonStatus.completed;
+        } else if (isUnlocked) {
+          status = LessonStatus.current;
+        } else {
+          status = LessonStatus.locked;
+        }
+        
+        lessonNodes.add(LessonNodeData(
+          id: lesson.id,
+          title: lesson.title,
+          status: status,
+          stars: starsMap[lesson.id] ?? 0,
+        ));
+      }
+      
+      if (mounted) {
+        setState(() {
+          _lessons = lessonNodes;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _lessons = [];
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Map<String, int> _parseStarsMap(String json) {
+    try {
+      final Map<String, dynamic> decoded = Map<String, dynamic>.from(
+        json.isNotEmpty ? _simpleJsonParse(json) : {}
+      );
+      return decoded.map((key, value) => MapEntry(key, value as int));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Map<String, dynamic> _simpleJsonParse(String json) {
+    // Simple JSON parsing for stars map
+    try {
+      final trimmed = json.trim();
+      if (trimmed.isEmpty || trimmed == '{}') return {};
+      
+      final content = trimmed.substring(1, trimmed.length - 1);
+      if (content.isEmpty) return {};
+      
+      final result = <String, dynamic>{};
+      final pairs = content.split(',');
+      for (final pair in pairs) {
+        final parts = pair.split(':');
+        if (parts.length == 2) {
+          final key = parts[0].trim().replaceAll('"', '');
+          final value = int.tryParse(parts[1].trim()) ?? 0;
+          result[key] = value;
+        }
+      }
+      return result;
+    } catch (_) {
+      return {};
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,23 +177,47 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
           ),
           // Lesson map
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Column(
-                  children: [
-                    for (int i = 0; i < _lessons.length; i++) ...[
-                      if (i > 0)
-                        const MapPath(height: 40),
-                      LessonNode(
-                        data: _lessons[i],
-                        onTap: () => _onLessonTap(_lessons[i]),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _lessons.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.school_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Nenhuma lição disponível\npara $_selectedUnit - $_selectedYear',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              for (int i = 0; i < _lessons.length; i++) ...[
+                                if (i > 0)
+                                  const MapPath(height: 40),
+                                LessonNode(
+                                  data: _lessons[i],
+                                  onTap: () => _onLessonTap(_lessons[i]),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -170,6 +270,7 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
                       if (selected) {
                         setState(() => _selectedUnit = unit);
                         Navigator.pop(context);
+                        _loadLessons();
                       }
                     },
                   );
@@ -191,6 +292,7 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
                       if (selected) {
                         setState(() => _selectedYear = year);
                         Navigator.pop(context);
+                        _loadLessons();
                       }
                     },
                   );
@@ -220,6 +322,7 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
               onTap: () {
                 setState(() => _selectedUnit = _units[index]);
                 Navigator.pop(context);
+                _loadLessons();
               },
             );
           },
@@ -244,6 +347,7 @@ class _LessonMapScreenState extends State<LessonMapScreen> {
               onTap: () {
                 setState(() => _selectedYear = _years[index]);
                 Navigator.pop(context);
+                _loadLessons();
               },
             );
           },

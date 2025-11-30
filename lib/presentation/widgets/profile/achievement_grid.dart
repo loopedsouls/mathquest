@@ -1,57 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Achievement grid for profile
-class AchievementGrid extends StatelessWidget {
+class AchievementGrid extends StatefulWidget {
   const AchievementGrid({super.key});
 
-  // Sample achievements - TODO: Load from repository
-  static const List<_AchievementData> _achievements = [
+  @override
+  State<AchievementGrid> createState() => _AchievementGridState();
+}
+
+class _AchievementGridState extends State<AchievementGrid> {
+  static const String _unlockedAchievementsKey = 'unlocked_achievements';
+
+  // All available achievements
+  static const List<_AchievementData> _allAchievements = [
     _AchievementData(
-      id: '1',
+      id: 'primeiro_passo',
       title: 'Primeiro Passo',
       description: 'Complete sua primeira lição',
       icon: Icons.play_arrow,
-      isUnlocked: true,
     ),
     _AchievementData(
-      id: '2',
+      id: 'sequencia_7',
       title: 'Sequência de 7 Dias',
       description: 'Estude por 7 dias seguidos',
       icon: Icons.local_fire_department,
-      isUnlocked: true,
     ),
     _AchievementData(
-      id: '3',
+      id: 'nota_maxima',
       title: 'Nota Máxima',
       description: 'Obtenha 100% em uma lição',
       icon: Icons.star,
-      isUnlocked: true,
     ),
     _AchievementData(
-      id: '4',
+      id: 'explorador',
       title: 'Explorador',
       description: 'Complete lições em todas as unidades',
       icon: Icons.explore,
-      isUnlocked: false,
     ),
     _AchievementData(
-      id: '5',
+      id: 'mestre_tempo',
       title: 'Mestre do Tempo',
       description: 'Complete uma lição em menos de 2 minutos',
       icon: Icons.timer,
-      isUnlocked: false,
     ),
     _AchievementData(
-      id: '6',
+      id: 'colecionador',
       title: 'Colecionador',
       description: 'Desbloqueie 10 conquistas',
       icon: Icons.emoji_events,
-      isUnlocked: false,
+    ),
+    _AchievementData(
+      id: 'dedicado',
+      title: 'Dedicado',
+      description: 'Estude por 30 dias seguidos',
+      icon: Icons.calendar_month,
+    ),
+    _AchievementData(
+      id: 'mestre_numeros',
+      title: 'Mestre dos Números',
+      description: 'Complete todas as lições de Números',
+      icon: Icons.numbers,
     ),
   ];
 
+  Set<String> _unlockedIds = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAchievements();
+  }
+
+  Future<void> _loadAchievements() async {
+    final prefs = await SharedPreferences.getInstance();
+    final unlockedList = prefs.getStringList(_unlockedAchievementsKey) ?? [];
+    
+    setState(() {
+      _unlockedIds = unlockedList.toSet();
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -60,10 +97,14 @@ class AchievementGrid extends StatelessWidget {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: _achievements.length,
+      itemCount: _allAchievements.length,
       itemBuilder: (context, index) {
-        final achievement = _achievements[index];
-        return _AchievementCard(data: achievement);
+        final achievement = _allAchievements[index];
+        final isUnlocked = _unlockedIds.contains(achievement.id);
+        return _AchievementCard(
+          data: achievement,
+          isUnlocked: isUnlocked,
+        );
       },
     );
   }
@@ -74,21 +115,23 @@ class _AchievementData {
   final String title;
   final String description;
   final IconData icon;
-  final bool isUnlocked;
 
   const _AchievementData({
     required this.id,
     required this.title,
     required this.description,
     required this.icon,
-    required this.isUnlocked,
   });
 }
 
 class _AchievementCard extends StatelessWidget {
   final _AchievementData data;
+  final bool isUnlocked;
 
-  const _AchievementCard({required this.data});
+  const _AchievementCard({
+    required this.data,
+    required this.isUnlocked,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +146,26 @@ class _AchievementCard extends StatelessWidget {
             context: context,
             builder: (context) => AlertDialog(
               title: Text(data.title),
-              content: Text(data.description),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    data.icon,
+                    size: 48,
+                    color: isUnlocked ? Colors.amber : Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(data.description),
+                  const SizedBox(height: 8),
+                  Text(
+                    isUnlocked ? '✅ Desbloqueada!' : '🔒 Bloqueada',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isUnlocked ? Colors.green : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -118,7 +180,7 @@ class _AchievementCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: data.isUnlocked
+            color: isUnlocked
                 ? null
                 : Colors.grey[100],
           ),
@@ -128,14 +190,14 @@ class _AchievementCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: data.isUnlocked
+                  color: isUnlocked
                       ? Colors.amber.withValues(alpha: 0.2)
                       : Colors.grey[200],
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   data.icon,
-                  color: data.isUnlocked ? Colors.amber : Colors.grey,
+                  color: isUnlocked ? Colors.amber : Colors.grey,
                   size: 28,
                 ),
               ),
@@ -146,12 +208,12 @@ class _AchievementCard extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
-                  color: data.isUnlocked ? null : Colors.grey,
+                  color: isUnlocked ? null : Colors.grey,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (!data.isUnlocked)
+              if (!isUnlocked)
                 const Icon(
                   Icons.lock,
                   size: 14,

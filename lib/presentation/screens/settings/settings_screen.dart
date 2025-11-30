@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../app/routes.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 
 /// Settings screen
 class SettingsScreen extends StatefulWidget {
@@ -10,16 +13,61 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const String _soundEnabledKey = 'sound_enabled';
+  static const String _musicEnabledKey = 'music_enabled';
+  static const String _notificationsEnabledKey = 'notifications_enabled';
+  static const String _themeModeKey = 'theme_mode';
+  static const String _languageKey = 'app_language';
+
+  final _authRepository = AuthRepositoryImpl();
+
   bool _soundEnabled = true;
   bool _musicEnabled = true;
   bool _notificationsEnabled = true;
   bool _darkMode = true;
   String _selectedLanguage = 'Português';
+  bool _isLoading = true;
 
   final List<String> _languages = ['Português', 'English', 'Español'];
 
   @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _soundEnabled = prefs.getBool(_soundEnabledKey) ?? true;
+      _musicEnabled = prefs.getBool(_musicEnabledKey) ?? true;
+      _notificationsEnabled = prefs.getBool(_notificationsEnabledKey) ?? true;
+      _darkMode = (prefs.getInt(_themeModeKey) ?? 2) == 2; // 2 = dark
+      _selectedLanguage = prefs.getString(_languageKey) ?? 'Português';
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _savePreference(String key, dynamic value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value is bool) {
+      await prefs.setBool(key, value);
+    } else if (value is int) {
+      await prefs.setInt(key, value);
+    } else if (value is String) {
+      await prefs.setString(key, value);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Configurações')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configurações'),
@@ -35,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _soundEnabled,
             onChanged: (value) {
               setState(() => _soundEnabled = value);
-              // TODO: Save to preferences
+              _savePreference(_soundEnabledKey, value);
             },
           ),
           SwitchListTile(
@@ -45,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _musicEnabled,
             onChanged: (value) {
               setState(() => _musicEnabled = value);
-              // TODO: Save to preferences
+              _savePreference(_musicEnabledKey, value);
             },
           ),
           const Divider(),
@@ -58,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _notificationsEnabled,
             onChanged: (value) {
               setState(() => _notificationsEnabled = value);
-              // TODO: Save to preferences
+              _savePreference(_notificationsEnabledKey, value);
             },
           ),
           const Divider(),
@@ -71,7 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _darkMode,
             onChanged: (value) {
               setState(() => _darkMode = value);
-              // TODO: Save to preferences and update theme
+              _savePreference(_themeModeKey, value ? 2 : 1); // 2 = dark, 1 = light
             },
           ),
           ListTile(
@@ -89,25 +137,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Editar Perfil'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigate to edit profile
+              Navigator.of(context).pushNamed(AppRoutes.profile);
             },
           ),
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text('Alterar Senha'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to change password
-            },
+            onTap: _showChangePasswordDialog,
           ),
           ListTile(
             leading: const Icon(Icons.download),
             title: const Text('Exportar Dados'),
             subtitle: const Text('Baixe uma cópia dos seus dados'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Export user data
-            },
+            onTap: _exportUserData,
           ),
           const Divider(),
           // About section
@@ -122,17 +166,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.description),
             title: const Text('Termos de Uso'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to terms
-            },
+            onTap: () => _openUrl('https://mathquest.app/terms'),
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: const Text('Política de Privacidade'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to privacy policy
-            },
+            onTap: () => _openUrl('https://mathquest.app/privacy'),
           ),
           const Divider(),
           // Logout
@@ -160,6 +200,111 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir o link')),
+      );
+    }
+  }
+
+  void _showChangePasswordDialog() {
+    final emailController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Redefinir Senha'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Digite seu email para receber um link de redefinição de senha.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty) return;
+              try {
+                await _authRepository.sendPasswordResetEmail(email);
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Email de redefinição enviado!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$e'.replaceAll('Exception: ', '')),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _exportUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final allKeys = prefs.getKeys();
+    final userData = <String, dynamic>{};
+    
+    for (final key in allKeys) {
+      userData[key] = prefs.get(key);
+    }
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Seus Dados'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Dados armazenados localmente:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              ...userData.entries.map((e) => Text('${e.key}: ${e.value}')),
+              if (userData.isEmpty) const Text('Nenhum dado encontrado'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showLanguagePicker() {
     showModalBottomSheet(
       context: context,
@@ -176,8 +321,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : null,
               onTap: () {
                 setState(() => _selectedLanguage = language);
+                _savePreference(_languageKey, language);
                 Navigator.pop(context);
-                // TODO: Update app locale
+                // Show restart hint
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Reinicie o app para aplicar o idioma'),
+                  ),
+                );
               },
             );
           },
@@ -218,9 +369,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: Implement logout
+              try {
+                await _authRepository.signOut();
+              } catch (e) {
+                // Ignore errors on sign out
+              }
+              if (!mounted) return;
               Navigator.of(context).pushNamedAndRemoveUntil(
                 AppRoutes.login,
                 (route) => false,

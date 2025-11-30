@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/animated_logo.dart';
 
 /// Splash screen shown on app launch
@@ -12,6 +14,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  static const String _onboardingCompleteKey = 'onboarding_complete';
+  
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -52,9 +56,22 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    // TODO: Implement proper onboarding/auth check
-    // For now, navigate directly to onboarding
-    Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+    // Check onboarding and auth status
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingComplete = prefs.getBool(_onboardingCompleteKey) ?? false;
+    
+    if (!onboardingComplete) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      return;
+    }
+
+    // Check if user is logged in
+    final authRepository = AuthRepositoryImpl();
+    if (authRepository.isSignedIn) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    }
   }
 
   @override

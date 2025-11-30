@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/routes.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/loading_button.dart';
 
@@ -15,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authRepository = AuthRepositoryImpl();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -31,8 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement actual login with Firebase Auth
-      await Future.delayed(const Duration(seconds: 1)); // Simulated delay
+      await _authRepository.signInWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
@@ -40,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao fazer login: $e'),
+          content: Text('$e'.replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -53,8 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement Google Sign In
-      await Future.delayed(const Duration(seconds: 1));
+      await _authRepository.signInWithGoogle();
 
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
@@ -62,12 +65,44 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao fazer login com Google: $e'),
+          content: Text('$e'.replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite um email válido para redefinir a senha'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await _authRepository.sendPasswordResetEmail(email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email de redefinição enviado! Verifique sua caixa de entrada.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$e'.replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -154,9 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Implement forgot password
-                    },
+                    onPressed: _forgotPassword,
                     child: const Text('Esqueceu a senha?'),
                   ),
                 ),

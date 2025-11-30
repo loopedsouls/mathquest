@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/utils/sound_manager.dart';
 
 /// Sound settings provider
 class SoundProvider extends ChangeNotifier {
+  static const String _soundEnabledKey = 'sound_enabled';
+  static const String _musicEnabledKey = 'music_enabled';
+  static const String _soundVolumeKey = 'sound_volume';
+  static const String _musicVolumeKey = 'music_volume';
+
   final SoundManager _soundManager;
 
   bool _soundEnabled = true;
@@ -18,7 +24,12 @@ class SoundProvider extends ChangeNotifier {
   double get musicVolume => _musicVolume;
 
   Future<void> init() async {
-    // TODO: Load settings from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    _soundEnabled = prefs.getBool(_soundEnabledKey) ?? true;
+    _musicEnabled = prefs.getBool(_musicEnabledKey) ?? true;
+    _soundVolume = prefs.getDouble(_soundVolumeKey) ?? 1.0;
+    _musicVolume = prefs.getDouble(_musicVolumeKey) ?? 0.5;
+    notifyListeners();
   }
 
   void setSoundEnabled(bool enabled) {
@@ -70,6 +81,10 @@ class SoundProvider extends ChangeNotifier {
   }
 
   Future<void> _saveSettings() async {
-    // TODO: Save settings to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_soundEnabledKey, _soundEnabled);
+    await prefs.setBool(_musicEnabledKey, _musicEnabled);
+    await prefs.setDouble(_soundVolumeKey, _soundVolume);
+    await prefs.setDouble(_musicVolumeKey, _musicVolume);
   }
 }

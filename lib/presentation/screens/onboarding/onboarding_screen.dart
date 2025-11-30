@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 
 /// Onboarding screen for first-time users
@@ -10,6 +11,8 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  static const String _onboardingCompleteKey = 'onboarding_complete';
+  
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -63,8 +66,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _completeOnboarding() {
-    // TODO: Save onboarding completion to SharedPreferences
+  Future<void> _completeOnboarding() async {
+    // Save onboarding completion to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingCompleteKey, true);
+    
+    if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/loading_button.dart';
 
@@ -17,6 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authRepository = AuthRepositoryImpl();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -54,8 +57,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement actual registration with Firebase Auth
-      await Future.delayed(const Duration(seconds: 1));
+      // Create account with Firebase Auth
+      final user = await _authRepository.createUserWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      // Update profile with display name
+      await _authRepository.updateProfile(
+        displayName: _nameController.text.trim(),
+      );
+
+      // Save selected school year to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_school_year', _selectedYear!);
+      await prefs.setString('user_id', user.id);
 
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
@@ -63,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao criar conta: $e'),
+          content: Text('$e'.replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );

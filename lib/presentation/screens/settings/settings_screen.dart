@@ -85,27 +85,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.bgDark,
-        appBar: AppBar(
-          backgroundColor: theme.bgCard,
-          title: Text('Configurações', style: TextStyle(color: theme.textPrimary)),
-          iconTheme: IconThemeData(color: theme.iconColor),
-        ),
         body: Center(child: CircularProgressIndicator(color: theme.accent)),
       );
     }
 
     return Scaffold(
       backgroundColor: theme.bgDark,
-      appBar: AppBar(
-        backgroundColor: theme.bgCard,
-        elevation: 0,
-        title: Text(
-          'Configurações',
-          style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        iconTheme: IconThemeData(color: theme.iconColor),
-      ),
-      body: ListView(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom App Bar - same style as shop
+            _buildAppBar(theme),
+            // Content
+            Expanded(
+              child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildSectionCard(
@@ -270,7 +263,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(color: theme.textSecondary, fontSize: 13),
             ),
           ),
-          const SizedBox(height: 32),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(DuoThemeColors theme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Back button
+          DuoIconButton(
+            icon: Icons.arrow_back_rounded,
+            color: theme.bgCard,
+            size: 44,
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 16),
+          // Title
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Configurações',
+                  style: TextStyle(
+                    color: theme.textPrimary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Personalize sua experiência',
+                  style: TextStyle(
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

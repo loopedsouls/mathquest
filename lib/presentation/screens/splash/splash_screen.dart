@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/animated_logo.dart';
 import '../../widgets/flame/splash_game.dart';
@@ -93,7 +94,27 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Cores baseadas no tema
+    final backgroundColor = isDark 
+        ? AppColors.darkBackground 
+        : AppColors.lightBackground;
+    final overlayColor = isDark 
+        ? const Color(0xFF1a1a2e) 
+        : const Color(0xFFE8E8F0);
+    final textPrimaryColor = isDark 
+        ? AppColors.darkTextPrimary 
+        : AppColors.lightTextPrimary;
+    final textSecondaryColor = isDark 
+        ? AppColors.darkTextSecondary 
+        : AppColors.lightTextSecondary;
+    final progressColor = isDark 
+        ? Colors.white 
+        : AppColors.primary;
+    
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: Stack(
         children: [
           // Flame animated background
@@ -114,8 +135,8 @@ class _SplashScreenState extends State<SplashScreen>
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    const Color(0xFF1a1a2e).withValues(alpha: 0.3),
-                    const Color(0xFF1a1a2e).withValues(alpha: 0.7),
+                    overlayColor.withValues(alpha: 0.3),
+                    overlayColor.withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -141,7 +162,7 @@ class _SplashScreenState extends State<SplashScreen>
                               .textTheme
                               .headlineLarge
                               ?.copyWith(
-                                color: Colors.white,
+                                color: textPrimaryColor,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                               ),
@@ -151,17 +172,17 @@ class _SplashScreenState extends State<SplashScreen>
                           'Aprenda Matemática Jogando',
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Colors.white70,
+                                    color: textSecondaryColor,
                                   ),
                         ),
                         const SizedBox(height: 48),
-                        const SizedBox(
+                        SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                                AlwaysStoppedAnimation<Color>(progressColor),
                           ),
                         ),
                       ],

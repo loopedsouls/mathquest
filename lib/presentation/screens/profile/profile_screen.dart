@@ -35,7 +35,14 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
     _loadUserData();
+  }
+
+  void _handleTabChange() {
+    if (_tabController.indexIsChanging) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -72,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -277,6 +285,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
+    return _tabBar != oldDelegate._tabBar;
   }
 }

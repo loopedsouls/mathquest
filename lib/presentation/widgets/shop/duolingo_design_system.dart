@@ -904,22 +904,26 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
     super.dispose();
   }
 
-  Color get _rarityBorderColor {
-    switch (widget.rarity) {
-      case 'rare':
-        return DuoColors.blue;
-      case 'epic':
-        return DuoColors.purple;
-      case 'legendary':
-        return DuoColors.orange;
-      default:
-        return DuoColors.grayDark;
-    }
+  Color get _baseColor => Color(widget.color);
+
+  Color get _darkerColor {
+    final hsl = HSLColor.fromColor(_baseColor);
+    return hsl.withLightness((hsl.lightness * 0.6).clamp(0.0, 1.0)).toColor();
   }
+
+  Color get _lighterColor {
+    final hsl = HSLColor.fromColor(_baseColor);
+    return hsl.withLightness((hsl.lightness * 1.2).clamp(0.0, 1.0)).toColor();
+  }
+
+  List<Color> get _gradientColors => [
+    _darkerColor,
+    _baseColor,
+    _lighterColor,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.duoTheme;
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -938,37 +942,42 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
               child: Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: _rarityBorderColor.withValues(alpha: 0.5),
+                  color: _darkerColor.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
             ),
-            // Main card
+            // Main card with gradient (like theme cards)
             Container(
               height: _isPressed ? 144 : 140,
-              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.bgCard,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: widget.isSelected ? theme.accent : _rarityBorderColor,
-                  width: widget.isSelected ? 3 : 2,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: _gradientColors,
                 ),
+                borderRadius: BorderRadius.circular(20),
+                border: widget.isSelected
+                    ? Border.all(color: DuoColors.green, width: 3)
+                    : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Avatar/Emoji
+                  // Avatar/Emoji with white background circle
                   Container(
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Color(widget.color).withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Color(widget.color),
-                        width: 2,
-                      ),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _baseColor.withValues(alpha: 0.5),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Text(
@@ -977,62 +986,90 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // Name
-                  Text(
-                    widget.name,
-                    style: TextStyle(
-                      color: theme.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  const SizedBox(height: 12),
+                  // Name with dark background (like theme cards)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: Text(
+                      widget.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  // Price or status
+                  const SizedBox(height: 8),
+                  // Price or status (like theme cards)
                   if (widget.isPurchased)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: DuoColors.green,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.check, color: Colors.white, size: 16),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check, color: Colors.white, size: 14),
+                          SizedBox(width: 4),
+                          Text(
+                            'Adquirido',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     )
                   else if (widget.price == 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: DuoColors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: DuoColors.green),
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white),
                       ),
                       child: const Text(
                         'GRÁTIS',
                         style: TextStyle(
-                          color: DuoColors.green,
-                          fontSize: 10,
+                          color: Colors.white,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     )
                   else
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const DuoCoinIcon(size: 18),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${widget.price}',
-                          style: const TextStyle(
-                            color: DuoColors.yellow,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const DuoCoinIcon(size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${widget.price}',
+                            style: const TextStyle(
+                              color: DuoColors.yellow,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -2339,6 +2376,9 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final theme = context.duoTheme;
+    final selectedColor = theme.accent;
+    final baseColor = widget.isSelected ? selectedColor : theme.textSecondary;
+    
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
@@ -2356,9 +2396,15 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
           ),
           decoration: BoxDecoration(
             color: widget.isSelected 
-                ? widget.color.withValues(alpha: 0.2) 
+                ? selectedColor.withValues(alpha: 0.15) 
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
+            border: widget.isSelected
+                ? Border.all(
+                    color: selectedColor.withValues(alpha: 0.3),
+                    width: 1.5,
+                  )
+                : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -2367,32 +2413,42 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.isSelected ? widget.color : Colors.transparent,
+                  color: widget.isSelected 
+                      ? selectedColor.withValues(alpha: 0.2)
+                      : Colors.transparent,
                   shape: BoxShape.circle,
+                  border: widget.isSelected
+                      ? Border.all(
+                          color: selectedColor.withValues(alpha: 0.4),
+                          width: 2,
+                        )
+                      : null,
                   boxShadow: widget.isSelected
                       ? [
                           BoxShadow(
-                            color: widget.color.withValues(alpha: 0.4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: selectedColor.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ]
                       : null,
                 ),
                 child: Icon(
                   widget.icon,
-                  color: widget.isSelected ? Colors.white : theme.textSecondary,
+                  color: widget.isSelected ? selectedColor : theme.textSecondary,
                   size: 24,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                widget.label,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  color: widget.isSelected ? widget.color : theme.textSecondary,
+                  color: baseColor,
                   fontSize: 11,
-                  fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: widget.isSelected ? 0.2 : 0,
                 ),
+                child: Text(widget.label),
               ),
             ],
           ),

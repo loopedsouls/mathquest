@@ -61,6 +61,8 @@ class _SplashScreenState extends State<SplashScreen>
     final onboardingComplete = prefs.getBool(_onboardingCompleteKey) ?? false;
     final isGuest = prefs.getBool('is_guest') ?? false;
     
+    if (!mounted) return;
+    
     if (!onboardingComplete) {
       Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       return;

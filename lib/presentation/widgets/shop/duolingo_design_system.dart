@@ -2436,8 +2436,8 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final theme = context.duoTheme;
-    final selectedColor = theme.accent;
-    final baseColor = widget.isSelected ? selectedColor : theme.textSecondary;
+    final itemColor = widget.color;
+    final baseColor = widget.isSelected ? itemColor : theme.textSecondary;
     
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
@@ -2455,15 +2455,20 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            color: widget.isSelected 
-                ? selectedColor.withValues(alpha: 0.15) 
-                : Colors.transparent,
+            color: widget.isSelected ? itemColor : theme.bgElevated,
             borderRadius: BorderRadius.circular(16),
-            border: widget.isSelected
-                ? Border.all(
-                    color: selectedColor.withValues(alpha: 0.3),
-                    width: 1.5,
-                  )
+            border: Border.all(
+              color: widget.isSelected ? itemColor : theme.bgElevated,
+              width: 1.5,
+            ),
+            boxShadow: widget.isSelected
+                ? [
+                    BoxShadow(
+                      color: itemColor.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
                 : null,
           ),
           child: Column(
@@ -2474,28 +2479,22 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: widget.isSelected 
-                      ? selectedColor.withValues(alpha: 0.2)
-                      : Colors.transparent,
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : theme.bgCard,
                   shape: BoxShape.circle,
-                  border: widget.isSelected
-                      ? Border.all(
-                          color: selectedColor.withValues(alpha: 0.4),
-                          width: 2,
-                        )
-                      : null,
                   boxShadow: widget.isSelected
                       ? [
                           BoxShadow(
-                            color: selectedColor.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
                         ]
                       : null,
                 ),
                 child: Icon(
                   widget.icon,
-                  color: widget.isSelected ? selectedColor : theme.textSecondary,
+                  color: widget.isSelected ? Colors.white : theme.textSecondary,
                   size: 24,
                 ),
               ),
@@ -2503,7 +2502,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  color: baseColor,
+                  color: widget.isSelected ? Colors.white : baseColor,
                   fontSize: 11,
                   fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
                   letterSpacing: widget.isSelected ? 0.2 : 0,

@@ -30,6 +30,8 @@ class _GameplayScreenState extends State<GameplayScreen>
   bool _hasAnswered = false;
   bool _isLoading = true;
   String? _errorMessage;
+  String _lessonTitle = '';
+  String _lessonSubtitle = '';
 
   late AnimationController _animationController;
   late Animation<double> _shakeAnimation;
@@ -53,6 +55,13 @@ class _GameplayScreenState extends State<GameplayScreen>
 
   Future<void> _loadQuestions() async {
     try {
+      // Load lesson details first
+      final lesson = await _lessonRepository.getLessonById(widget.lessonId);
+      if (lesson != null) {
+        _lessonTitle = lesson.title;
+        _lessonSubtitle = '${lesson.schoolYear} • ${lesson.thematicUnit}';
+      }
+
       final questions =
           await _lessonRepository.getLessonQuestions(widget.lessonId);
       if (mounted) {
@@ -216,31 +225,49 @@ class _GameplayScreenState extends State<GameplayScreen>
           SafeArea(
             child: Column(
               children: [
-                // Custom AppBar
+                // Custom AppBar with lesson title
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
+                  child: Column(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => _showExitDialog(),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Questão ${_currentQuestionIndex + 1}/${_questions.length}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                      // Lesson title row
+                      if (_lessonTitle.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            _lessonTitle,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.amber,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      TimerWidget(
-                        duration: 30,
-                        onTimeUp: _onTimeUp,
-                        key: ValueKey(_currentQuestionIndex),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white),
+                            onPressed: () => _showExitDialog(),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Questão ${_currentQuestionIndex + 1}/${_questions.length}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          TimerWidget(
+                            duration: 30,
+                            onTimeUp: _onTimeUp,
+                            key: ValueKey(_currentQuestionIndex),
+                          ),
+                        ],
                       ),
                     ],
                   ),

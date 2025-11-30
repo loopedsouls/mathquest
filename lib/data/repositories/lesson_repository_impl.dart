@@ -11,7 +11,8 @@ class LessonRepositoryImpl implements LessonRepository {
   static const String _cachedQuestionsKey = 'cached_questions';
 
   /// Singleton instance
-  static final LessonRepositoryImpl _instance = LessonRepositoryImpl._internal();
+  static final LessonRepositoryImpl _instance =
+      LessonRepositoryImpl._internal();
   factory LessonRepositoryImpl() => _instance;
   LessonRepositoryImpl._internal();
 
@@ -27,7 +28,10 @@ class LessonRepositoryImpl implements LessonRepository {
       thematicUnit: 'Números',
       bnccCode: 'EF06MA01',
       order: 1,
-      objectives: ['Compreender números naturais', 'Realizar operações básicas'],
+      objectives: [
+        'Compreender números naturais',
+        'Realizar operações básicas'
+      ],
       estimatedMinutes: 15,
       difficulty: 'fácil',
       isLocked: false,
@@ -162,7 +166,10 @@ class LessonRepositoryImpl implements LessonRepository {
       bnccCode: 'EF06MA22',
       order: 3,
       prerequisites: ['geometria_6_2'],
-      objectives: ['Identificar eixos de simetria', 'Desenhar figuras simétricas'],
+      objectives: [
+        'Identificar eixos de simetria',
+        'Desenhar figuras simétricas'
+      ],
       estimatedMinutes: 15,
       difficulty: 'fácil',
       isLocked: true,
@@ -238,7 +245,10 @@ class LessonRepositoryImpl implements LessonRepository {
       thematicUnit: 'Números',
       bnccCode: 'EF07MA04',
       order: 1,
-      objectives: ['Compreender números negativos', 'Realizar operações com inteiros'],
+      objectives: [
+        'Compreender números negativos',
+        'Realizar operações com inteiros'
+      ],
       estimatedMinutes: 20,
       difficulty: 'médio',
       isLocked: false,
@@ -268,7 +278,10 @@ class LessonRepositoryImpl implements LessonRepository {
       bnccCode: 'EF07MA02',
       order: 3,
       prerequisites: ['numeros_7_2'],
-      objectives: ['Calcular porcentagens', 'Resolver problemas com porcentagem'],
+      objectives: [
+        'Calcular porcentagens',
+        'Resolver problemas com porcentagem'
+      ],
       estimatedMinutes: 20,
       difficulty: 'médio',
       isLocked: true,
@@ -678,7 +691,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['32', '42', '52', '62'],
         correctAnswer: '42',
-        explanation: '15 + 27 = 42. Somamos unidades (5+7=12, escrevemos 2 e levamos 1) e depois dezenas (1+2+1=4).',
+        explanation:
+            '15 + 27 = 42. Somamos unidades (5+7=12, escrevemos 2 e levamos 1) e depois dezenas (1+2+1=4).',
         difficulty: 'fácil',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -690,7 +704,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['54', '56', '48', '64'],
         correctAnswer: '56',
-        explanation: '8 × 7 = 56. Uma forma de lembrar: 7 × 8 = 56 (os números 5, 6, 7, 8 em sequência).',
+        explanation:
+            '8 × 7 = 56. Uma forma de lembrar: 7 × 8 = 56 (os números 5, 6, 7, 8 em sequência).',
         difficulty: 'fácil',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -702,7 +717,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['73', '67', '63', '53'],
         correctAnswer: '63',
-        explanation: '100 - 37 = 63. Podemos calcular: 100 - 40 = 60, depois 60 + 3 = 63.',
+        explanation:
+            '100 - 37 = 63. Podemos calcular: 100 - 40 = 60, depois 60 + 3 = 63.',
         difficulty: 'fácil',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -726,7 +742,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['53', '63', '73', '83'],
         correctAnswer: '63',
-        explanation: '25 + 38 = 63. Somamos: 5 + 8 = 13 (escrevemos 3, levamos 1), depois 2 + 3 + 1 = 6.',
+        explanation:
+            '25 + 38 = 63. Somamos: 5 + 8 = 13 (escrevemos 3, levamos 1), depois 2 + 3 + 1 = 6.',
         difficulty: 'fácil',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -740,7 +757,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['6', '12', '24', '36'],
         correctAnswer: '12',
-        explanation: 'Os múltiplos de 4 são: 4, 8, 12, 16... Os múltiplos de 6 são: 6, 12, 18... O menor comum é 12.',
+        explanation:
+            'Os múltiplos de 4 são: 4, 8, 12, 16... Os múltiplos de 6 são: 6, 12, 18... O menor comum é 12.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -762,9 +780,15 @@ class LessonRepositoryImpl implements LessonRepository {
         lessonId: 'numeros_6_2',
         question: 'Quais são todos os divisores de 12?',
         type: QuestionType.multipleChoice,
-        options: ['1, 2, 3, 4, 6, 12', '1, 2, 4, 6, 12', '2, 3, 4, 6', '1, 3, 4, 12'],
+        options: [
+          '1, 2, 3, 4, 6, 12',
+          '1, 2, 4, 6, 12',
+          '2, 3, 4, 6',
+          '1, 3, 4, 12'
+        ],
         correctAnswer: '1, 2, 3, 4, 6, 12',
-        explanation: 'Os divisores de 12 são os números que dividem 12 exatamente: 12÷1=12, 12÷2=6, 12÷3=4, 12÷4=3, 12÷6=2, 12÷12=1.',
+        explanation:
+            'Os divisores de 12 são os números que dividem 12 exatamente: 12÷1=12, 12÷2=6, 12÷3=4, 12÷4=3, 12÷6=2, 12÷12=1.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -776,7 +800,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['4', '6', '5', '7'],
         correctAnswer: '5',
-        explanation: '15 ÷ 5 = 3, sem resto. Portanto, 15 é múltiplo de 5 (15 = 5 × 3).',
+        explanation:
+            '15 ÷ 5 = 3, sem resto. Portanto, 15 é múltiplo de 5 (15 = 5 × 3).',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -788,7 +813,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['2', '3', '6', '12'],
         correctAnswer: '6',
-        explanation: 'Divisores de 18: 1,2,3,6,9,18. Divisores de 24: 1,2,3,4,6,8,12,24. O maior comum é 6.',
+        explanation:
+            'Divisores de 18: 1,2,3,6,9,18. Divisores de 24: 1,2,3,4,6,8,12,24. O maior comum é 6.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '6º ano',
@@ -802,7 +828,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['14', '11', '10', '9'],
         correctAnswer: '11',
-        explanation: 'Primeiro fazemos a multiplicação: 4 × 2 = 8. Depois a soma: 3 + 8 = 11.',
+        explanation:
+            'Primeiro fazemos a multiplicação: 4 × 2 = 8. Depois a soma: 3 + 8 = 11.',
         difficulty: 'médio',
         thematicUnit: 'Álgebra',
         schoolYear: '6º ano',
@@ -814,7 +841,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['11', '13', '16', '10'],
         correctAnswer: '16',
-        explanation: 'Primeiro resolvemos o parêntese: 5 + 3 = 8. Depois multiplicamos: 8 × 2 = 16.',
+        explanation:
+            'Primeiro resolvemos o parêntese: 5 + 3 = 8. Depois multiplicamos: 8 × 2 = 16.',
         difficulty: 'médio',
         thematicUnit: 'Álgebra',
         schoolYear: '6º ano',
@@ -826,7 +854,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['11', '13', '16', '8'],
         correctAnswer: '11',
-        explanation: 'Primeiro multiplicação e divisão: 20 ÷ 4 = 5 e 3 × 2 = 6. Depois soma: 5 + 6 = 11.',
+        explanation:
+            'Primeiro multiplicação e divisão: 20 ÷ 4 = 5 e 3 × 2 = 6. Depois soma: 5 + 6 = 11.',
         difficulty: 'médio',
         thematicUnit: 'Álgebra',
         schoolYear: '6º ano',
@@ -838,7 +867,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['16', '12', '8', '14'],
         correctAnswer: '12',
-        explanation: 'Primeiro o parêntese: 10 - 4 = 6. Depois multiplicamos: 2 × 6 = 12.',
+        explanation:
+            'Primeiro o parêntese: 10 - 4 = 6. Depois multiplicamos: 2 × 6 = 12.',
         difficulty: 'médio',
         thematicUnit: 'Álgebra',
         schoolYear: '6º ano',
@@ -850,7 +880,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['13', '6', '3', '9'],
         correctAnswer: '3',
-        explanation: 'Primeiro o parêntese: 2 + 4 = 6. Depois dividimos: 18 ÷ 6 = 3.',
+        explanation:
+            'Primeiro o parêntese: 2 + 4 = 6. Depois dividimos: 18 ÷ 6 = 3.',
         difficulty: 'médio',
         thematicUnit: 'Álgebra',
         schoolYear: '6º ano',
@@ -864,7 +895,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['-13', '-3', '3', '13'],
         correctAnswer: '3',
-        explanation: '-5 + 8 = 3. Quando somamos um positivo maior que o negativo, o resultado é positivo.',
+        explanation:
+            '-5 + 8 = 3. Quando somamos um positivo maior que o negativo, o resultado é positivo.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '7º ano',
@@ -888,7 +920,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['-15', '-5', '5', '15'],
         correctAnswer: '-15',
-        explanation: '-10 - 5 = -15. Subtrair é o mesmo que somar o oposto: -10 + (-5) = -15.',
+        explanation:
+            '-10 - 5 = -15. Subtrair é o mesmo que somar o oposto: -10 + (-5) = -15.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '7º ano',
@@ -912,7 +945,8 @@ class LessonRepositoryImpl implements LessonRepository {
         type: QuestionType.multipleChoice,
         options: ['-4', '2', '-1', '3'],
         correctAnswer: '-1',
-        explanation: 'Na reta numérica, -1 está entre -3 e 1. A ordem é: -3, -2, -1, 0, 1.',
+        explanation:
+            'Na reta numérica, -1 está entre -3 e 1. A ordem é: -3, -2, -1, 0, 1.',
         difficulty: 'médio',
         thematicUnit: 'Números',
         schoolYear: '7º ano',
@@ -931,7 +965,8 @@ class LessonRepositoryImpl implements LessonRepository {
   }
 
   @override
-  Future<List<LessonModel>> getLessonsByThematicUnit(String thematicUnit) async {
+  Future<List<LessonModel>> getLessonsByThematicUnit(
+      String thematicUnit) async {
     return _lessons.where((l) => l.thematicUnit == thematicUnit).toList();
   }
 
@@ -947,8 +982,9 @@ class LessonRepositoryImpl implements LessonRepository {
   @override
   Future<List<LessonModel>> getNextLessonsForUser(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ?? ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
-    
+    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ??
+        ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
+
     return _lessons.where((l) => unlockedIds.contains(l.id)).toList();
   }
 
@@ -970,7 +1006,8 @@ class LessonRepositoryImpl implements LessonRepository {
     return _getDefaultQuestions(lessonId);
   }
 
-  Future<List<QuestionModel>> _getCachedQuestionsForLesson(String lessonId) async {
+  Future<List<QuestionModel>> _getCachedQuestionsForLesson(
+      String lessonId) async {
     final prefs = await SharedPreferences.getInstance();
     final cachedJson = prefs.getString('${_cachedQuestionsKey}_$lessonId');
     if (cachedJson == null) return [];
@@ -984,7 +1021,51 @@ class LessonRepositoryImpl implements LessonRepository {
   }
 
   List<QuestionModel> _getDefaultQuestions(String lessonId) {
-    // Generate basic default questions
+    // Get the lesson to use its actual data
+    LessonModel? lesson;
+    try {
+      lesson = _lessons.firstWhere((l) => l.id == lessonId);
+    } catch (_) {
+      lesson = null;
+    }
+
+    final thematicUnit = lesson?.thematicUnit ?? 'Números';
+    final schoolYear = lesson?.schoolYear ?? '6º ano';
+    final difficulty = lesson?.difficulty ?? 'fácil';
+
+    // Generate questions based on thematic unit
+    return _generateQuestionsForUnit(
+        lessonId, thematicUnit, schoolYear, difficulty);
+  }
+
+  List<QuestionModel> _generateQuestionsForUnit(
+    String lessonId,
+    String thematicUnit,
+    String schoolYear,
+    String difficulty,
+  ) {
+    switch (thematicUnit) {
+      case 'Álgebra':
+        return _getAlgebraQuestions(
+            lessonId, thematicUnit, schoolYear, difficulty);
+      case 'Geometria':
+        return _getGeometriaQuestions(
+            lessonId, thematicUnit, schoolYear, difficulty);
+      case 'Grandezas e Medidas':
+        return _getGrandezasQuestions(
+            lessonId, thematicUnit, schoolYear, difficulty);
+      case 'Probabilidade e Estatística':
+        return _getEstatisticaQuestions(
+            lessonId, thematicUnit, schoolYear, difficulty);
+      case 'Números':
+      default:
+        return _getNumerosQuestions(
+            lessonId, thematicUnit, schoolYear, difficulty);
+    }
+  }
+
+  List<QuestionModel> _getNumerosQuestions(String lessonId, String thematicUnit,
+      String schoolYear, String difficulty) {
     return [
       QuestionModel(
         id: 'default_1_$lessonId',
@@ -994,9 +1075,9 @@ class LessonRepositoryImpl implements LessonRepository {
         options: const ['10', '15', '20', '25'],
         correctAnswer: '15',
         explanation: '10 + 5 = 15',
-        difficulty: 'fácil',
-        thematicUnit: 'Números',
-        schoolYear: '6º ano',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
       ),
       QuestionModel(
         id: 'default_2_$lessonId',
@@ -1006,9 +1087,9 @@ class LessonRepositoryImpl implements LessonRepository {
         options: const ['20', '22', '24', '26'],
         correctAnswer: '24',
         explanation: '6 × 4 = 24',
-        difficulty: 'fácil',
-        thematicUnit: 'Números',
-        schoolYear: '6º ano',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
       ),
       QuestionModel(
         id: 'default_3_$lessonId',
@@ -1018,9 +1099,9 @@ class LessonRepositoryImpl implements LessonRepository {
         options: const ['28', '32', '38', '42'],
         correctAnswer: '32',
         explanation: '50 - 18 = 32',
-        difficulty: 'fácil',
-        thematicUnit: 'Números',
-        schoolYear: '6º ano',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
       ),
       QuestionModel(
         id: 'default_4_$lessonId',
@@ -1030,9 +1111,9 @@ class LessonRepositoryImpl implements LessonRepository {
         options: const ['4', '5', '6', '7'],
         correctAnswer: '6',
         explanation: '36 ÷ 6 = 6',
-        difficulty: 'fácil',
-        thematicUnit: 'Números',
-        schoolYear: '6º ano',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
       ),
       QuestionModel(
         id: 'default_5_$lessonId',
@@ -1042,9 +1123,285 @@ class LessonRepositoryImpl implements LessonRepository {
         options: const ['54', '56', '58', '64'],
         correctAnswer: '56',
         explanation: '7 × 8 = 56',
-        difficulty: 'fácil',
-        thematicUnit: 'Números',
-        schoolYear: '6º ano',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+    ];
+  }
+
+  List<QuestionModel> _getAlgebraQuestions(String lessonId, String thematicUnit,
+      String schoolYear, String difficulty) {
+    return [
+      QuestionModel(
+        id: 'default_1_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é o resultado de 3 + 4 × 2?',
+        type: QuestionType.multipleChoice,
+        options: const ['14', '11', '10', '9'],
+        correctAnswer: '11',
+        explanation:
+            'Primeiro a multiplicação: 4 × 2 = 8. Depois a soma: 3 + 8 = 11.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_2_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é o resultado de (5 + 3) × 2?',
+        type: QuestionType.multipleChoice,
+        options: const ['11', '13', '16', '10'],
+        correctAnswer: '16',
+        explanation:
+            'Primeiro o parêntese: 5 + 3 = 8. Depois multiplicamos: 8 × 2 = 16.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_3_$lessonId',
+        lessonId: lessonId,
+        question: 'Se x + 5 = 12, qual é o valor de x?',
+        type: QuestionType.multipleChoice,
+        options: const ['5', '6', '7', '17'],
+        correctAnswer: '7',
+        explanation: 'x + 5 = 12, então x = 12 - 5 = 7.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_4_$lessonId',
+        lessonId: lessonId,
+        question: 'Quanto é 2 × (10 - 4)?',
+        type: QuestionType.multipleChoice,
+        options: const ['16', '12', '8', '14'],
+        correctAnswer: '12',
+        explanation:
+            'Primeiro o parêntese: 10 - 4 = 6. Depois multiplicamos: 2 × 6 = 12.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_5_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é o resultado de 18 ÷ (2 + 4)?',
+        type: QuestionType.multipleChoice,
+        options: const ['13', '6', '3', '9'],
+        correctAnswer: '3',
+        explanation:
+            'Primeiro o parêntese: 2 + 4 = 6. Depois dividimos: 18 ÷ 6 = 3.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+    ];
+  }
+
+  List<QuestionModel> _getGeometriaQuestions(String lessonId,
+      String thematicUnit, String schoolYear, String difficulty) {
+    return [
+      QuestionModel(
+        id: 'default_1_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos lados tem um triângulo?',
+        type: QuestionType.multipleChoice,
+        options: const ['2', '3', '4', '5'],
+        correctAnswer: '3',
+        explanation: 'Um triângulo é uma figura geométrica com 3 lados.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_2_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é o perímetro de um quadrado com lado 5 cm?',
+        type: QuestionType.multipleChoice,
+        options: const ['10 cm', '15 cm', '20 cm', '25 cm'],
+        correctAnswer: '20 cm',
+        explanation: 'Perímetro = 4 × lado = 4 × 5 = 20 cm.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_3_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é a área de um retângulo com base 6 cm e altura 4 cm?',
+        type: QuestionType.multipleChoice,
+        options: const ['10 cm²', '20 cm²', '24 cm²', '30 cm²'],
+        correctAnswer: '24 cm²',
+        explanation: 'Área = base × altura = 6 × 4 = 24 cm².',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_4_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos ângulos tem um quadrilátero?',
+        type: QuestionType.multipleChoice,
+        options: const ['2', '3', '4', '5'],
+        correctAnswer: '4',
+        explanation: 'Um quadrilátero é uma figura com 4 lados e 4 ângulos.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_5_$lessonId',
+        lessonId: lessonId,
+        question:
+            'Qual figura tem todos os lados iguais e todos os ângulos retos?',
+        type: QuestionType.multipleChoice,
+        options: const ['Retângulo', 'Quadrado', 'Triângulo', 'Trapézio'],
+        correctAnswer: 'Quadrado',
+        explanation: 'O quadrado tem 4 lados iguais e 4 ângulos de 90°.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+    ];
+  }
+
+  List<QuestionModel> _getGrandezasQuestions(String lessonId,
+      String thematicUnit, String schoolYear, String difficulty) {
+    return [
+      QuestionModel(
+        id: 'default_1_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos centímetros tem 1 metro?',
+        type: QuestionType.multipleChoice,
+        options: const ['10 cm', '50 cm', '100 cm', '1000 cm'],
+        correctAnswer: '100 cm',
+        explanation: '1 metro = 100 centímetros.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_2_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos gramas tem 1 quilograma?',
+        type: QuestionType.multipleChoice,
+        options: const ['10 g', '100 g', '500 g', '1000 g'],
+        correctAnswer: '1000 g',
+        explanation: '1 quilograma = 1000 gramas.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_3_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos minutos tem 1 hora?',
+        type: QuestionType.multipleChoice,
+        options: const ['30', '45', '60', '100'],
+        correctAnswer: '60',
+        explanation: '1 hora = 60 minutos.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_4_$lessonId',
+        lessonId: lessonId,
+        question: 'Quantos mililitros tem 1 litro?',
+        type: QuestionType.multipleChoice,
+        options: const ['10 ml', '100 ml', '500 ml', '1000 ml'],
+        correctAnswer: '1000 ml',
+        explanation: '1 litro = 1000 mililitros.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_5_$lessonId',
+        lessonId: lessonId,
+        question: '2,5 metros equivalem a quantos centímetros?',
+        type: QuestionType.multipleChoice,
+        options: const ['25 cm', '125 cm', '250 cm', '2500 cm'],
+        correctAnswer: '250 cm',
+        explanation: '2,5 × 100 = 250 centímetros.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+    ];
+  }
+
+  List<QuestionModel> _getEstatisticaQuestions(String lessonId,
+      String thematicUnit, String schoolYear, String difficulty) {
+    return [
+      QuestionModel(
+        id: 'default_1_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é a média de 4, 6 e 8?',
+        type: QuestionType.multipleChoice,
+        options: const ['4', '5', '6', '7'],
+        correctAnswer: '6',
+        explanation: 'Média = (4 + 6 + 8) ÷ 3 = 18 ÷ 3 = 6.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_2_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é a moda do conjunto {2, 3, 3, 4, 5}?',
+        type: QuestionType.multipleChoice,
+        options: const ['2', '3', '4', '5'],
+        correctAnswer: '3',
+        explanation: 'A moda é o valor que mais aparece. O 3 aparece 2 vezes.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_3_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual tipo de gráfico usa barras para representar dados?',
+        type: QuestionType.multipleChoice,
+        options: const [
+          'Gráfico de pizza',
+          'Gráfico de barras',
+          'Gráfico de linha',
+          'Histograma'
+        ],
+        correctAnswer: 'Gráfico de barras',
+        explanation: 'O gráfico de barras usa barras horizontais ou verticais.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_4_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é a mediana do conjunto {1, 3, 5, 7, 9}?',
+        type: QuestionType.multipleChoice,
+        options: const ['3', '4', '5', '7'],
+        correctAnswer: '5',
+        explanation:
+            'A mediana é o valor central. Em {1, 3, 5, 7, 9}, o valor central é 5.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
+      ),
+      QuestionModel(
+        id: 'default_5_$lessonId',
+        lessonId: lessonId,
+        question: 'Qual é a probabilidade de tirar cara ao jogar uma moeda?',
+        type: QuestionType.multipleChoice,
+        options: const ['1/4', '1/3', '1/2', '1/1'],
+        correctAnswer: '1/2',
+        explanation:
+            'Uma moeda tem 2 lados (cara e coroa), então a probabilidade de cara é 1/2 ou 50%.',
+        difficulty: difficulty,
+        thematicUnit: thematicUnit,
+        schoolYear: schoolYear,
       ),
     ];
   }
@@ -1069,7 +1426,8 @@ class LessonRepositoryImpl implements LessonRepository {
   }) async {
     final allQuestions = _questionsByLesson.values.expand((q) => q).toList();
     return allQuestions
-        .where((q) => q.thematicUnit == thematicUnit && q.schoolYear == schoolYear)
+        .where(
+            (q) => q.thematicUnit == thematicUnit && q.schoolYear == schoolYear)
         .take(limit)
         .toList();
   }
@@ -1078,10 +1436,10 @@ class LessonRepositoryImpl implements LessonRepository {
   Future<void> cacheQuestion(QuestionModel question) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '${_cachedQuestionsKey}_${question.lessonId}';
-    
+
     final existingJson = prefs.getString(key);
     List<QuestionModel> existing = [];
-    
+
     if (existingJson != null) {
       try {
         final List<dynamic> decoded = jsonDecode(existingJson);
@@ -1090,26 +1448,29 @@ class LessonRepositoryImpl implements LessonRepository {
         // Ignore errors
       }
     }
-    
+
     // Add new question if not duplicate
     if (!existing.any((q) => q.id == question.id)) {
       existing.add(question);
-      await prefs.setString(key, jsonEncode(existing.map((q) => q.toJson()).toList()));
+      await prefs.setString(
+          key, jsonEncode(existing.map((q) => q.toJson()).toList()));
     }
   }
 
   @override
   Future<bool> isLessonUnlocked(String userId, String lessonId) async {
     final prefs = await SharedPreferences.getInstance();
-    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ?? ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
+    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ??
+        ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
     return unlockedIds.contains(lessonId);
   }
 
   @override
   Future<void> unlockLesson(String userId, String lessonId) async {
     final prefs = await SharedPreferences.getInstance();
-    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ?? ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
-    
+    final unlockedIds = prefs.getStringList(_unlockedLessonsKey) ??
+        ['numeros_6_1', 'algebra_6_1', 'numeros_7_1'];
+
     if (!unlockedIds.contains(lessonId)) {
       unlockedIds.add(lessonId);
       await prefs.setStringList(_unlockedLessonsKey, unlockedIds);

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'data/datasources/remote/firebase_service.dart';
 import 'app/theme/app_theme.dart';
+import 'app/routes.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -17,25 +18,40 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 // Verificar se Firebase está disponível na plataforma atual
+// Desktop (Windows, Linux, macOS) usa configuração web do Firebase
 bool get firebaseAvailable {
-  // Firebase não funciona no Linux desktop
-  if (!kIsWeb) {
-    try {
-      return !Platform.isLinux;
-    } catch (e) {
-      // Se Platform falhar, assumir que não está disponível
-      return false;
-    }
-  }
-  // Na web, Firebase funciona
+  // Firebase está disponível em todas as plataformas
+  // Desktop usa a configuração web
   return true;
+}
+
+// Verificar se é plataforma desktop
+bool get isDesktopPlatform {
+  if (kIsWeb) return false;
+  try {
+    return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Verificar se Analytics está disponível (não funciona em desktop nativo)
+bool get analyticsAvailable {
+  return !isDesktopPlatform;
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Carregar variáveis de ambiente
-  await dotenv.load(fileName: ".env");
+  // Carregar variáveis de ambiente (opcional - não falha se arquivo não existir)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // Arquivo .env não encontrado - continua sem variáveis de ambiente
+    if (kDebugMode) {
+      print('Arquivo .env não encontrado - continuando sem variáveis de ambiente');
+    }
+  }
 
   // Inicializar Firebase apenas se disponível na plataforma
   if (firebaseAvailable) {
@@ -43,37 +59,37 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Inicializar Firebase App Check
-    try {
-      await FirebaseAppCheck.instance.activate();
-      print('Firebase App Check ativado com sucesso');
-    } catch (e) {
-      // App Check pode falhar em algumas plataformas (como Windows) ou durante desenvolvimento
-      // mas isso não deve impedir o funcionamento do app
-      print('Erro ao inicializar App Check (normal em desenvolvimento): $e');
+    // Inicializar Firebase App Check (não disponível em desktop)
+    if (!isDesktopPlatform) {
+      try {
+        await FirebaseAppCheck.instance.activate();
+        print('Firebase App Check ativado com sucesso');
+      } catch (e) {
+        print('Erro ao inicializar App Check (normal em desenvolvimento): $e');
+      }
     }
 
-    // Inicializar Remote Config
-    try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(hours: 1),
-      ));
-      await remoteConfig.fetchAndActivate();
-    } catch (e) {
-      // Remote Config pode falhar em algumas plataformas (como Windows)
-      // mas isso não deve impedir o funcionamento do app
-      print('Erro ao inicializar Remote Config: $e');
+    // Inicializar Remote Config (não disponível em desktop)
+    if (!isDesktopPlatform) {
+      try {
+        final remoteConfig = FirebaseRemoteConfig.instance;
+        await remoteConfig.setConfigSettings(RemoteConfigSettings(
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: const Duration(hours: 1),
+        ));
+        await remoteConfig.fetchAndActivate();
+      } catch (e) {
+        print('Erro ao inicializar Remote Config: $e');
+      }
     }
 
-    // Inicializar Crashlytics após Remote Config
-    try {
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-    } catch (e) {
-      // Crashlytics pode falhar em algumas plataformas (como Windows)
-      // mas isso não deve impedir o funcionamento do app
-      print('Erro ao inicializar Crashlytics: $e');
+    // Inicializar Crashlytics (não disponível em desktop)
+    if (!isDesktopPlatform) {
+      try {
+        await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+      } catch (e) {
+        print('Erro ao inicializar Crashlytics: $e');
+      }
     }
 
     // Inicializar OpenAI API
@@ -121,7 +137,8 @@ class MathTutorApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Usar tema escuro como padrão
-      navigatorObservers: firebaseAvailable
+      onGenerateRoute: AppRoutes.generateRoute,
+      navigatorObservers: analyticsAvailable
           ? [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)]
           : [],
       home: const ResponsiveWrapper(

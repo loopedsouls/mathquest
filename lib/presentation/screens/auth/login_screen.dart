@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/routes.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -104,6 +105,15 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _continueAsGuest() async {
+    // Save guest mode preference
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_guest', true);
+    
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
   @override
@@ -244,6 +254,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Cadastre-se'),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+                // Guest mode
+                TextButton.icon(
+                  onPressed: _continueAsGuest,
+                  icon: Icon(
+                    Icons.person_outline,
+                    color: Colors.grey[600],
+                  ),
+                  label: Text(
+                    'Continuar como Convidado',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Seus dados serão salvos apenas neste dispositivo',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
                 ),
               ],
             ),

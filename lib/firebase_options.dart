@@ -22,12 +22,28 @@ class DefaultFirebaseOptions {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
+      case TargetPlatform.iOS:
+        return ios;
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+        // Desktop platforms use web configuration
+        return web;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
+
+  // iOS placeholder - configure with FlutterFire CLI if needed
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDPOO03OQwROqzvpdTKRLPwYvESoolCxaU',
+    appId: '1:11203362979:ios:placeholder',
+    messagingSenderId: '11203362979',
+    projectId: 'mathquest6969',
+    storageBucket: 'mathquest6969.firebasestorage.app',
+  );
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDPOO03OQwROqzvpdTKRLPwYvESoolCxaU',

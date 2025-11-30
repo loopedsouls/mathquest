@@ -59,9 +59,16 @@ class _SplashScreenState extends State<SplashScreen>
     // Check onboarding and auth status
     final prefs = await SharedPreferences.getInstance();
     final onboardingComplete = prefs.getBool(_onboardingCompleteKey) ?? false;
+    final isGuest = prefs.getBool('is_guest') ?? false;
     
     if (!onboardingComplete) {
       Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      return;
+    }
+
+    // If guest mode, go directly to home
+    if (isGuest) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       return;
     }
 

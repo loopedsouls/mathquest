@@ -75,6 +75,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
+  Future<void> _continueAsGuest() async {
+    // Save onboarding completion and guest mode
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingCompleteKey, true);
+    await prefs.setBool('is_guest', true);
+    
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -155,6 +165,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            // Guest mode option (shown only on last page)
+            if (_currentPage == _pages.length - 1)
+              TextButton.icon(
+                onPressed: _continueAsGuest,
+                icon: Icon(
+                  Icons.person_outline,
+                  color: Colors.grey[600],
+                  size: 20,
+                ),
+                label: Text(
+                  'Continuar como Convidado',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ),
             const SizedBox(height: 32),
           ],
         ),

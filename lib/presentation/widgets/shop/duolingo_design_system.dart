@@ -84,7 +84,7 @@ class DuoThemeColors {
   });
 
   /// Default dark theme
-  static const DuoThemeColors defaultTheme = DuoThemeColors(
+  static const DuoThemeColors defaultDarkTheme = DuoThemeColors(
     bgDark: DuoColors.bgDark,
     bgCard: DuoColors.bgCard,
     bgElevated: DuoColors.bgElevated,
@@ -95,8 +95,48 @@ class DuoThemeColors {
     iconColor: Colors.white,
   );
 
-  /// Create theme from theme data
+  /// Default light theme
+  static const DuoThemeColors defaultLightTheme = DuoThemeColors(
+    bgDark: Color(0xFFF5F5F5),
+    bgCard: Color(0xFFFFFFFF),
+    bgElevated: Color(0xFFE8E8E8),
+    accent: DuoColors.green,
+    gradientColors: [Color(0xFFF5F5F5), Color(0xFFFFFFFF), Color(0xFFE8E8E8)],
+    textPrimary: Color(0xFF1A1A2E),
+    textSecondary: Color(0xFF6B7280),
+    iconColor: Color(0xFF1A1A2E),
+  );
+
+  /// Legacy: Default theme (dark for backwards compatibility)
+  static const DuoThemeColors defaultTheme = defaultDarkTheme;
+
+  /// Create theme from theme variant data (light or dark map)
+  factory DuoThemeColors.fromVariant(Map<String, dynamic> variantData) {
+    return DuoThemeColors(
+      bgDark: Color(variantData['bgDark'] as int),
+      bgCard: Color(variantData['bgCard'] as int),
+      bgElevated: Color(variantData['bgElevated'] as int),
+      accent: Color(variantData['accent'] as int),
+      gradientColors: [
+        Color(variantData['bgDark'] as int),
+        Color(variantData['bgCard'] as int),
+        Color(variantData['bgElevated'] as int),
+      ],
+      textPrimary: Color(variantData['textPrimary'] as int),
+      textSecondary: Color(variantData['textSecondary'] as int),
+      iconColor: Color(variantData['iconColor'] as int),
+    );
+  }
+
+  /// Legacy: Create theme from old theme data format
   factory DuoThemeColors.fromThemeData(Map<String, dynamic> themeData) {
+    // Check if it's the new format with light/dark variants
+    if (themeData.containsKey('light') && themeData.containsKey('dark')) {
+      // Default to dark variant for legacy calls
+      return DuoThemeColors.fromVariant(themeData['dark'] as Map<String, dynamic>);
+    }
+    
+    // Old format with 'colors' array
     final colors = (themeData['colors'] as List).cast<int>();
     final bgColor = Color(colors[0]);
     
@@ -122,15 +162,21 @@ class DuoThemeColors {
     );
   }
 
-  /// Get theme by ID
-  static DuoThemeColors getThemeById(String? themeId) {
-    if (themeId == null) return defaultTheme;
+  /// Get theme by ID with brightness (light/dark)
+  static DuoThemeColors getThemeById(String? themeId, {required bool isDarkMode}) {
+    if (themeId == null || themeId == 'theme_system') {
+      return isDarkMode ? defaultDarkTheme : defaultLightTheme;
+    }
+    
     for (final theme in DuoThemes.all) {
       if (theme['id'] == themeId) {
-        return DuoThemeColors.fromThemeData(theme);
+        final variant = isDarkMode ? 'dark' : 'light';
+        if (theme.containsKey(variant)) {
+          return DuoThemeColors.fromVariant(theme[variant] as Map<String, dynamic>);
+        }
       }
     }
-    return defaultTheme;
+    return isDarkMode ? defaultDarkTheme : defaultLightTheme;
   }
 }
 
@@ -151,34 +197,86 @@ class DuoThemeProvider extends StatefulWidget {
   State<DuoThemeProvider> createState() => DuoThemeProviderState();
 }
 
-class DuoThemeProviderState extends State<DuoThemeProvider> {
+class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingObserver {
   static const String _selectedThemeKey = 'selected_theme';
   static const String _previewThemeKey = 'preview_theme';
+  static const String _themeBrightnessKey = 'theme_brightness'; // 0=light, 1=dark, 2=system
 
   String? _selectedThemeId;
   String? _previewThemeId;
-  DuoThemeColors _currentTheme = DuoThemeColors.defaultTheme;
+  ThemeBrightness _themeBrightness = ThemeBrightness.system;
+  DuoThemeColors _currentTheme = DuoThemeColors.defaultDarkTheme;
 
   DuoThemeColors get theme => _currentTheme;
   String? get selectedThemeId => _selectedThemeId;
   String? get previewThemeId => _previewThemeId;
   bool get isPreviewActive => _previewThemeId != null;
+  ThemeBrightness get themeBrightness => _themeBrightness;
+  
+  /// Returns true if currently showing dark mode
+  bool get isDarkMode {
+    if (_themeBrightness == ThemeBrightness.system) {
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+    }
+    return _themeBrightness == ThemeBrightness.dark;
+  }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadTheme();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    // System brightness changed, update theme if using system mode
+    if (_themeBrightness == ThemeBrightness.system) {
+      _updateCurrentTheme();
+    }
   }
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_dark';
+    var selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_system';
     final previewTheme = prefs.getString(_previewThemeKey);
+    final brightnessIndex = prefs.getInt(_themeBrightnessKey) ?? 2; // Default to system
+    
+    // Migrate old 'theme_dark' to 'theme_system'
+    if (selectedTheme == 'theme_dark') {
+      selectedTheme = 'theme_system';
+      await prefs.setString(_selectedThemeKey, selectedTheme);
+    }
     
     setState(() {
       _selectedThemeId = selectedTheme;
       _previewThemeId = previewTheme;
-      _currentTheme = DuoThemeColors.getThemeById(previewTheme ?? selectedTheme);
+      _themeBrightness = ThemeBrightness.values[brightnessIndex];
+      _updateCurrentTheme();
+    });
+  }
+
+  void _updateCurrentTheme() {
+    final themeId = _previewThemeId ?? _selectedThemeId;
+    setState(() {
+      _currentTheme = DuoThemeColors.getThemeById(themeId, isDarkMode: isDarkMode);
+    });
+  }
+
+  /// Set brightness mode (light, dark, or system)
+  Future<void> setBrightness(ThemeBrightness brightness) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_themeBrightnessKey, brightness.index);
+    
+    setState(() {
+      _themeBrightness = brightness;
+      _updateCurrentTheme();
     });
   }
 
@@ -186,7 +284,7 @@ class DuoThemeProviderState extends State<DuoThemeProvider> {
   void setPreviewTheme(String? themeId) {
     setState(() {
       _previewThemeId = themeId;
-      _currentTheme = DuoThemeColors.getThemeById(themeId ?? _selectedThemeId);
+      _updateCurrentTheme();
     });
     // Save preview state
     SharedPreferences.getInstance().then((prefs) {
@@ -207,7 +305,7 @@ class DuoThemeProviderState extends State<DuoThemeProvider> {
     setState(() {
       _selectedThemeId = themeId;
       _previewThemeId = null;
-      _currentTheme = DuoThemeColors.getThemeById(themeId);
+      _updateCurrentTheme();
     });
   }
 
@@ -222,6 +320,8 @@ class DuoThemeProviderState extends State<DuoThemeProvider> {
       theme: _currentTheme,
       selectedThemeId: _selectedThemeId,
       previewThemeId: _previewThemeId,
+      themeBrightness: _themeBrightness,
+      isDarkMode: isDarkMode,
       child: widget.child,
     );
   }
@@ -231,11 +331,15 @@ class _DuoThemeInherited extends InheritedWidget {
   final DuoThemeColors theme;
   final String? selectedThemeId;
   final String? previewThemeId;
+  final ThemeBrightness themeBrightness;
+  final bool isDarkMode;
 
   const _DuoThemeInherited({
     required this.theme,
     required this.selectedThemeId,
     required this.previewThemeId,
+    required this.themeBrightness,
+    required this.isDarkMode,
     required super.child,
   });
 
@@ -247,7 +351,9 @@ class _DuoThemeInherited extends InheritedWidget {
   bool updateShouldNotify(_DuoThemeInherited oldWidget) {
     return theme != oldWidget.theme || 
            selectedThemeId != oldWidget.selectedThemeId ||
-           previewThemeId != oldWidget.previewThemeId;
+           previewThemeId != oldWidget.previewThemeId ||
+           themeBrightness != oldWidget.themeBrightness ||
+           isDarkMode != oldWidget.isDarkMode;
   }
 }
 
@@ -261,6 +367,16 @@ extension DuoThemeExtension on BuildContext {
   bool get isThemePreviewActive {
     final inherited = _DuoThemeInherited.of(this);
     return inherited?.previewThemeId != null;
+  }
+
+  bool get isDuoThemeDark {
+    final inherited = _DuoThemeInherited.of(this);
+    return inherited?.isDarkMode ?? true;
+  }
+
+  ThemeBrightness get duoThemeBrightness {
+    final inherited = _DuoThemeInherited.of(this);
+    return inherited?.themeBrightness ?? ThemeBrightness.system;
   }
 }
 
@@ -1513,60 +1629,219 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
 }
 
 // ============================================================================
-// PREDEFINED THEMES
+// PREDEFINED THEMES - Each theme has light and dark variants
 // ============================================================================
 
+/// Theme brightness mode
+enum ThemeBrightness { light, dark, system }
+
 class DuoThemes {
-  static const List<Map<String, dynamic>> all = [
-    {
-      'id': 'theme_dark',
-      'name': 'Escuro',
-      'price': 0,
-      'colors': [0xFF131F24, 0xFF1A2B33, 0xFF233640],
+  /// System default theme (adapts to light/dark mode)
+  static const Map<String, dynamic> systemTheme = {
+    'id': 'theme_system',
+    'name': 'Padrão',
+    'price': 0,
+    'isSystem': true,
+    'light': {
+      'bgDark': 0xFFF5F5F5,
+      'bgCard': 0xFFFFFFFF,
+      'bgElevated': 0xFFE8E8E8,
+      'accent': 0xFF58CC02,
+      'textPrimary': 0xFF1A1A2E,
+      'textSecondary': 0xFF6B7280,
+      'iconColor': 0xFF1A1A2E,
     },
+    'dark': {
+      'bgDark': 0xFF131F24,
+      'bgCard': 0xFF1A2B33,
+      'bgElevated': 0xFF233640,
+      'accent': 0xFF58CC02,
+      'textPrimary': 0xFFFFFFFF,
+      'textSecondary': 0xFF9CA3AF,
+      'iconColor': 0xFFFFFFFF,
+    },
+  };
+
+  /// Premium themes with light/dark variants
+  static const List<Map<String, dynamic>> premiumThemes = [
     {
       'id': 'theme_ocean',
       'name': 'Oceano',
       'price': 100,
-      'colors': [0xFF0077B6, 0xFF00B4D8, 0xFF90E0EF],
+      'light': {
+        'bgDark': 0xFFE6F4F9,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFD0ECFC,
+        'accent': 0xFF0077B6,
+        'textPrimary': 0xFF023E5C,
+        'textSecondary': 0xFF4A7A94,
+        'iconColor': 0xFF0077B6,
+      },
+      'dark': {
+        'bgDark': 0xFF001D2E,
+        'bgCard': 0xFF003049,
+        'bgElevated': 0xFF004666,
+        'accent': 0xFF00B4D8,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFF90E0EF,
+        'iconColor': 0xFF00B4D8,
+      },
     },
     {
       'id': 'theme_forest',
       'name': 'Floresta',
       'price': 100,
-      'colors': [0xFF2D6A4F, 0xFF40916C, 0xFF74C69D],
+      'light': {
+        'bgDark': 0xFFE8F5EF,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFD4EDDA,
+        'accent': 0xFF2D6A4F,
+        'textPrimary': 0xFF1B4332,
+        'textSecondary': 0xFF4A7C59,
+        'iconColor': 0xFF2D6A4F,
+      },
+      'dark': {
+        'bgDark': 0xFF0D1F17,
+        'bgCard': 0xFF1B4332,
+        'bgElevated': 0xFF2D6A4F,
+        'accent': 0xFF74C69D,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFB7E4C7,
+        'iconColor': 0xFF74C69D,
+      },
     },
     {
       'id': 'theme_sunset',
       'name': 'Pôr do Sol',
       'price': 150,
-      'colors': [0xFFFF6B6B, 0xFFFFE66D, 0xFF4ECDC4],
+      'light': {
+        'bgDark': 0xFFFFF0E6,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFFFE0CC,
+        'accent': 0xFFFF6B6B,
+        'textPrimary': 0xFF8B2500,
+        'textSecondary': 0xFFB35A3A,
+        'iconColor': 0xFFFF6B6B,
+      },
+      'dark': {
+        'bgDark': 0xFF2D1A1A,
+        'bgCard': 0xFF4A2C2A,
+        'bgElevated': 0xFF6B3A38,
+        'accent': 0xFFFF6B6B,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFFFB8A8,
+        'iconColor': 0xFFFF6B6B,
+      },
     },
     {
       'id': 'theme_galaxy',
       'name': 'Galáxia',
       'price': 200,
-      'colors': [0xFF2D00F7, 0xFF6A00F4, 0xFFDB00B6],
+      'light': {
+        'bgDark': 0xFFF0E6FF,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFE0CCFF,
+        'accent': 0xFF6A00F4,
+        'textPrimary': 0xFF2D0070,
+        'textSecondary': 0xFF6B4D9E,
+        'iconColor': 0xFF6A00F4,
+      },
+      'dark': {
+        'bgDark': 0xFF0D0024,
+        'bgCard': 0xFF1A0040,
+        'bgElevated': 0xFF2D0070,
+        'accent': 0xFFDB00B6,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFE0A0FF,
+        'iconColor': 0xFFDB00B6,
+      },
     },
     {
       'id': 'theme_candy',
       'name': 'Doce',
       'price': 150,
-      'colors': [0xFFFF86D0, 0xFFFF4EB8, 0xFFCE82FF],
+      'light': {
+        'bgDark': 0xFFFFF0F8,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFFFE0F0,
+        'accent': 0xFFFF4EB8,
+        'textPrimary': 0xFF8B0050,
+        'textSecondary': 0xFFB35A8A,
+        'iconColor': 0xFFFF4EB8,
+      },
+      'dark': {
+        'bgDark': 0xFF2D0A20,
+        'bgCard': 0xFF4A1535,
+        'bgElevated': 0xFF6B2050,
+        'accent': 0xFFFF86D0,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFFFB8E0,
+        'iconColor': 0xFFFF86D0,
+      },
     },
     {
       'id': 'theme_fire',
       'name': 'Fogo',
       'price': 200,
-      'colors': [0xFFFF4500, 0xFFFF6600, 0xFFFFD700],
+      'light': {
+        'bgDark': 0xFFFFF4E6,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFFFE6CC,
+        'accent': 0xFFFF4500,
+        'textPrimary': 0xFF8B2500,
+        'textSecondary': 0xFFB35A3A,
+        'iconColor': 0xFFFF4500,
+      },
+      'dark': {
+        'bgDark': 0xFF1F0A00,
+        'bgCard': 0xFF3D1500,
+        'bgElevated': 0xFF5C2000,
+        'accent': 0xFFFF6600,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFFFD0A0,
+        'iconColor': 0xFFFF6600,
+      },
     },
     {
       'id': 'theme_aurora',
       'name': 'Aurora',
       'price': 250,
-      'colors': [0xFF00F5D4, 0xFF00BBF9, 0xFF9B5DE5],
+      'light': {
+        'bgDark': 0xFFE6FFFC,
+        'bgCard': 0xFFFFFFFF,
+        'bgElevated': 0xFFCCFFF8,
+        'accent': 0xFF00BBF9,
+        'textPrimary': 0xFF004D66,
+        'textSecondary': 0xFF4A8A99,
+        'iconColor': 0xFF00BBF9,
+      },
+      'dark': {
+        'bgDark': 0xFF001A1F,
+        'bgCard': 0xFF003340,
+        'bgElevated': 0xFF004D5C,
+        'accent': 0xFF00F5D4,
+        'textPrimary': 0xFFFFFFFF,
+        'textSecondary': 0xFFA0FFF0,
+        'iconColor': 0xFF00F5D4,
+      },
     },
   ];
+
+  /// Get all themes (system + premium)
+  static List<Map<String, dynamic>> get all => [systemTheme, ...premiumThemes];
+
+  /// Legacy getter for backwards compatibility (returns dark variants)
+  static List<Map<String, dynamic>> get allLegacy {
+    return all.map((theme) {
+      final dark = theme['dark'] as Map<String, dynamic>;
+      return {
+        'id': theme['id'],
+        'name': theme['name'],
+        'price': theme['price'],
+        'colors': [dark['bgDark'], dark['bgCard'], dark['bgElevated']],
+      };
+    }).toList();
+  }
 }
 
 // ============================================================================

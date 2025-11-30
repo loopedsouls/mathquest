@@ -591,7 +591,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     final coins = prefs.getInt(_userCoinsKey) ?? 500;
     final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? [];
     final selectedAvatar = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
-    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_dark';
+    final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_system';
 
     // Free items are always purchased
     final allPurchased = {...purchasedList};
@@ -909,6 +909,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   }
 
   Widget _buildThemesGrid() {
+    final isDark = context.isDuoThemeDark;
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -921,11 +922,21 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
       itemBuilder: (context, index) {
         final theme = DuoThemes.all[index];
         final id = theme['id'] as String;
-        final colors = (theme['colors'] as List).cast<int>().map((c) => Color(c)).toList();
+        final isSystem = theme['isSystem'] == true;
+        
+        // Get colors from the appropriate variant (light or dark)
+        final variant = isDark ? 'dark' : 'light';
+        final variantData = theme[variant] as Map<String, dynamic>;
+        final colors = [
+          Color(variantData['bgDark'] as int),
+          Color(variantData['bgCard'] as int),
+          Color(variantData['accent'] as int),
+        ];
+        
         final isPurchased = _isItemPurchased(id);
         return DuoThemeCard(
           id: id,
-          name: theme['name'] as String,
+          name: isSystem ? 'Padrão (${isDark ? "Escuro" : "Claro"})' : theme['name'] as String,
           price: theme['price'] as int,
           colors: colors,
           isPurchased: isPurchased,

@@ -17,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const String _soundEnabledKey = 'sound_enabled';
   static const String _musicEnabledKey = 'music_enabled';
   static const String _notificationsEnabledKey = 'notifications_enabled';
-  static const String _themeModeKey = 'theme_mode';
   static const String _languageKey = 'app_language';
 
   final _authRepository = AuthRepositoryImpl();
@@ -25,7 +24,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _soundEnabled = true;
   bool _musicEnabled = true;
   bool _notificationsEnabled = true;
-  bool _darkMode = true;
   String _selectedLanguage = 'Português';
   bool _isLoading = true;
 
@@ -43,7 +41,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _soundEnabled = prefs.getBool(_soundEnabledKey) ?? true;
       _musicEnabled = prefs.getBool(_musicEnabledKey) ?? true;
       _notificationsEnabled = prefs.getBool(_notificationsEnabledKey) ?? true;
-      _darkMode = (prefs.getInt(_themeModeKey) ?? 2) == 2;
       _selectedLanguage = prefs.getString(_languageKey) ?? 'Português';
       _isLoading = false;
     });
@@ -57,6 +54,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.setInt(key, value);
     } else if (value is String) {
       await prefs.setString(key, value);
+    }
+  }
+
+  String _getBrightnessLabel(ThemeBrightness brightness) {
+    switch (brightness) {
+      case ThemeBrightness.light:
+        return 'Claro';
+      case ThemeBrightness.dark:
+        return 'Escuro';
+      case ThemeBrightness.system:
+        return 'Sistema';
+    }
+  }
+
+  IconData _getBrightnessIcon(ThemeBrightness brightness) {
+    switch (brightness) {
+      case ThemeBrightness.light:
+        return Icons.light_mode_rounded;
+      case ThemeBrightness.dark:
+        return Icons.dark_mode_rounded;
+      case ThemeBrightness.system:
+        return Icons.brightness_auto_rounded;
     }
   }
 
@@ -141,15 +160,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.palette_rounded,
             iconColor: DuoColors.purple,
             children: [
-              _buildSwitchTile(
-                title: 'Modo Escuro',
-                subtitle: 'Tema escuro para o aplicativo',
-                icon: Icons.dark_mode_rounded,
-                value: _darkMode,
-                onChanged: (value) {
-                  setState(() => _darkMode = value);
-                  _savePreference(_themeModeKey, value ? 2 : 1);
-                },
+              _buildListTile(
+                title: 'Modo de Cor',
+                subtitle: _getBrightnessLabel(context.duoThemeBrightness),
+                icon: _getBrightnessIcon(context.duoThemeBrightness),
+                onTap: _showBrightnessPicker,
               ),
               _buildDivider(),
               _buildListTile(
@@ -554,6 +569,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBrightnessPicker() {
+    final theme = context.duoTheme;
+    final currentBrightness = context.duoThemeBrightness;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.bgCard,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: DuoColors.gray.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Modo de Cor', style: TextStyle(color: theme.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            ...ThemeBrightness.values.map((brightness) {
+              final isSelected = currentBrightness == brightness;
+              return ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? theme.accent.withValues(alpha: 0.15) : theme.bgElevated,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(_getBrightnessIcon(brightness), color: isSelected ? theme.accent : DuoColors.gray),
+                ),
+                title: Text(
+                  _getBrightnessLabel(brightness),
+                  style: TextStyle(color: isSelected ? theme.accent : theme.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                ),
+                subtitle: Text(
+                  brightness == ThemeBrightness.system 
+                      ? 'Segue as configurações do dispositivo' 
+                      : brightness == ThemeBrightness.dark 
+                          ? 'Sempre usar tema escuro'
+                          : 'Sempre usar tema claro',
+                  style: TextStyle(color: theme.textSecondary, fontSize: 12),
+                ),
+                trailing: isSelected ? Icon(Icons.check_circle_rounded, color: theme.accent) : null,
+                onTap: () {
+                  DuoThemeProvider.of(context)?.setBrightness(brightness);
+                  Navigator.pop(ctx);
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
     );
   }
 

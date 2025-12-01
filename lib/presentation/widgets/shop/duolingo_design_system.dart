@@ -13,43 +13,43 @@ class DuoColors {
   static const Color green = Color(0xFF58CC02);
   static const Color greenDark = Color(0xFF58A700);
   static const Color greenLight = Color(0xFF89E219);
-  
+
   // Secondary colors
   static const Color blue = Color(0xFF1CB0F6);
   static const Color blueDark = Color(0xFF1899D6);
   static const Color blueLight = Color(0xFF49C0F8);
-  
+
   // Accent colors
   static const Color orange = Color(0xFFFF9600);
   static const Color orangeDark = Color(0xFFE58600);
   static const Color orangeLight = Color(0xFFFFB020);
-  
+
   static const Color red = Color(0xFFFF4B4B);
   static const Color redDark = Color(0xFFEA2B2B);
   static const Color redLight = Color(0xFFFF6B6B);
-  
+
   static const Color purple = Color(0xFFCE82FF);
   static const Color purpleDark = Color(0xFFA855F7);
   static const Color purpleLight = Color(0xFFE0B0FF);
-  
+
   static const Color pink = Color(0xFFFF86D0);
   static const Color pinkDark = Color(0xFFFF4EB8);
   static const Color pinkLight = Color(0xFFFFB8E6);
-  
+
   static const Color yellow = Color(0xFFFFD900);
   static const Color yellowDark = Color(0xFFE5C000);
   static const Color yellowLight = Color(0xFFFFE54C);
-  
+
   // Neutral colors
   static const Color gray = Color(0xFF777777);
   static const Color grayLight = Color(0xFFAFAFAF);
   static const Color grayDark = Color(0xFF4B4B4B);
-  
+
   // Background colors
   static const Color bgDark = Color(0xFF131F24);
   static const Color bgCard = Color(0xFF1A2B33);
   static const Color bgElevated = Color(0xFF233640);
-  
+
   // Rarity colors
   static const Color rarityCommon = gray;
   static const Color rarityRare = blue;
@@ -133,23 +133,24 @@ class DuoThemeColors {
     // Check if it's the new format with light/dark variants
     if (themeData.containsKey('light') && themeData.containsKey('dark')) {
       // Default to dark variant for legacy calls
-      return DuoThemeColors.fromVariant(themeData['dark'] as Map<String, dynamic>);
+      return DuoThemeColors.fromVariant(
+          themeData['dark'] as Map<String, dynamic>);
     }
-    
+
     // Old format with 'colors' array
     final colors = (themeData['colors'] as List).cast<int>();
     final bgColor = Color(colors[0]);
-    
+
     // Calculate text colors based on background brightness
     final brightness = ThemeData.estimateBrightnessForColor(bgColor);
     final isDark = brightness == Brightness.dark;
-    
+
     final textPrimary = isDark ? Colors.white : const Color(0xFF1A1A2E);
-    final textSecondary = isDark 
-        ? Colors.white.withValues(alpha: 0.7) 
+    final textSecondary = isDark
+        ? Colors.white.withValues(alpha: 0.7)
         : const Color(0xFF1A1A2E).withValues(alpha: 0.7);
     final iconColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
-    
+
     return DuoThemeColors(
       bgDark: bgColor,
       bgCard: Color(colors[1]),
@@ -163,16 +164,18 @@ class DuoThemeColors {
   }
 
   /// Get theme by ID with brightness (light/dark)
-  static DuoThemeColors getThemeById(String? themeId, {required bool isDarkMode}) {
+  static DuoThemeColors getThemeById(String? themeId,
+      {required bool isDarkMode}) {
     if (themeId == null || themeId == 'theme_system') {
       return isDarkMode ? defaultDarkTheme : defaultLightTheme;
     }
-    
+
     for (final theme in DuoThemes.all) {
       if (theme['id'] == themeId) {
         final variant = isDarkMode ? 'dark' : 'light';
         if (theme.containsKey(variant)) {
-          return DuoThemeColors.fromVariant(theme[variant] as Map<String, dynamic>);
+          return DuoThemeColors.fromVariant(
+              theme[variant] as Map<String, dynamic>);
         }
       }
     }
@@ -197,10 +200,12 @@ class DuoThemeProvider extends StatefulWidget {
   State<DuoThemeProvider> createState() => DuoThemeProviderState();
 }
 
-class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingObserver {
+class DuoThemeProviderState extends State<DuoThemeProvider>
+    with WidgetsBindingObserver {
   static const String _selectedThemeKey = 'selected_theme';
   static const String _previewThemeKey = 'preview_theme';
-  static const String _themeBrightnessKey = 'theme_brightness'; // 0=light, 1=dark, 2=system
+  static const String _themeBrightnessKey =
+      'theme_brightness'; // 0=light, 1=dark, 2=system
 
   String? _selectedThemeId;
   String? _previewThemeId;
@@ -212,11 +217,12 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
   String? get previewThemeId => _previewThemeId;
   bool get isPreviewActive => _previewThemeId != null;
   ThemeBrightness get themeBrightness => _themeBrightness;
-  
+
   /// Returns true if currently showing dark mode
   bool get isDarkMode {
     if (_themeBrightness == ThemeBrightness.system) {
-      return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
     }
     return _themeBrightness == ThemeBrightness.dark;
   }
@@ -246,14 +252,15 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
     final prefs = await SharedPreferences.getInstance();
     var selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_system';
     final previewTheme = prefs.getString(_previewThemeKey);
-    final brightnessIndex = prefs.getInt(_themeBrightnessKey) ?? 2; // Default to system
-    
+    final brightnessIndex =
+        prefs.getInt(_themeBrightnessKey) ?? 2; // Default to system
+
     // Migrate old 'theme_dark' to 'theme_system'
     if (selectedTheme == 'theme_dark') {
       selectedTheme = 'theme_system';
       await prefs.setString(_selectedThemeKey, selectedTheme);
     }
-    
+
     setState(() {
       _selectedThemeId = selectedTheme;
       _previewThemeId = previewTheme;
@@ -264,14 +271,15 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
 
   void _updateCurrentTheme() {
     final themeId = _previewThemeId ?? _selectedThemeId;
-    _currentTheme = DuoThemeColors.getThemeById(themeId, isDarkMode: isDarkMode);
+    _currentTheme =
+        DuoThemeColors.getThemeById(themeId, isDarkMode: isDarkMode);
   }
 
   /// Set brightness mode (light, dark, or system)
   Future<void> setBrightness(ThemeBrightness brightness) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_themeBrightnessKey, brightness.index);
-    
+
     _themeBrightness = brightness;
     _updateCurrentTheme();
     setState(() {});
@@ -297,7 +305,7 @@ class DuoThemeProviderState extends State<DuoThemeProvider> with WidgetsBindingO
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedThemeKey, themeId);
     await prefs.remove(_previewThemeKey);
-    
+
     _selectedThemeId = themeId;
     _previewThemeId = null;
     _updateCurrentTheme();
@@ -344,11 +352,11 @@ class _DuoThemeInherited extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_DuoThemeInherited oldWidget) {
-    return theme != oldWidget.theme || 
-           selectedThemeId != oldWidget.selectedThemeId ||
-           previewThemeId != oldWidget.previewThemeId ||
-           themeBrightness != oldWidget.themeBrightness ||
-           isDarkMode != oldWidget.isDarkMode;
+    return theme != oldWidget.theme ||
+        selectedThemeId != oldWidget.selectedThemeId ||
+        previewThemeId != oldWidget.previewThemeId ||
+        themeBrightness != oldWidget.themeBrightness ||
+        isDarkMode != oldWidget.isDarkMode;
   }
 }
 
@@ -358,7 +366,7 @@ extension DuoThemeExtension on BuildContext {
     final inherited = _DuoThemeInherited.of(this);
     return inherited?.theme ?? DuoThemeColors.defaultTheme;
   }
-  
+
   bool get isThemePreviewActive {
     final inherited = _DuoThemeInherited.of(this);
     return inherited?.previewThemeId != null;
@@ -420,7 +428,7 @@ class _DuoButtonState extends State<DuoButton> {
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.disabled || widget.isLoading;
-    
+
     return GestureDetector(
       onTapDown: isDisabled ? null : (_) => setState(() => _isPressed = true),
       onTapUp: isDisabled ? null : (_) => setState(() => _isPressed = false),
@@ -627,7 +635,8 @@ class DuoCoinDisplay extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.bgCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DuoColors.yellow.withValues(alpha: 0.3), width: 2),
+        border: Border.all(
+            color: DuoColors.yellow.withValues(alpha: 0.3), width: 2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -667,7 +676,11 @@ class DuoCoinIcon extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [DuoColors.yellowLight, DuoColors.yellow, DuoColors.orangeLight],
+          colors: [
+            DuoColors.yellowLight,
+            DuoColors.yellow,
+            DuoColors.orangeLight
+          ],
         ),
         boxShadow: [
           BoxShadow(
@@ -821,30 +834,142 @@ class DuoAvatar extends StatelessWidget {
 class DuoAvatars {
   static const List<Map<String, dynamic>> all = [
     // Free avatars
-    {'id': 'avatar_default', 'emoji': '😊', 'name': 'Feliz', 'price': 0, 'rarity': 'common', 'color': 0xFF58CC02},
-    {'id': 'avatar_cool', 'emoji': '😎', 'name': 'Estiloso', 'price': 0, 'rarity': 'common', 'color': 0xFF1CB0F6},
-    {'id': 'avatar_nerd', 'emoji': '🤓', 'name': 'Estudioso', 'price': 0, 'rarity': 'common', 'color': 0xFF9B59B6},
-    
+    {
+      'id': 'avatar_default',
+      'emoji': '😊',
+      'name': 'Feliz',
+      'price': 0,
+      'rarity': 'common',
+      'color': 0xFF58CC02
+    },
+    {
+      'id': 'avatar_cool',
+      'emoji': '😎',
+      'name': 'Estiloso',
+      'price': 0,
+      'rarity': 'common',
+      'color': 0xFF1CB0F6
+    },
+    {
+      'id': 'avatar_nerd',
+      'emoji': '🤓',
+      'name': 'Estudioso',
+      'price': 0,
+      'rarity': 'common',
+      'color': 0xFF9B59B6
+    },
+
     // Common avatars
-    {'id': 'avatar_think', 'emoji': '🤔', 'name': 'Pensador', 'price': 50, 'rarity': 'common', 'color': 0xFFFF9600},
-    {'id': 'avatar_star', 'emoji': '🌟', 'name': 'Estrela', 'price': 75, 'rarity': 'common', 'color': 0xFFFFD900},
-    {'id': 'avatar_rocket', 'emoji': '🚀', 'name': 'Foguete', 'price': 100, 'rarity': 'common', 'color': 0xFFE74C3C},
-    
+    {
+      'id': 'avatar_think',
+      'emoji': '🤔',
+      'name': 'Pensador',
+      'price': 50,
+      'rarity': 'common',
+      'color': 0xFFFF9600
+    },
+    {
+      'id': 'avatar_star',
+      'emoji': '🌟',
+      'name': 'Estrela',
+      'price': 75,
+      'rarity': 'common',
+      'color': 0xFFFFD900
+    },
+    {
+      'id': 'avatar_rocket',
+      'emoji': '🚀',
+      'name': 'Foguete',
+      'price': 100,
+      'rarity': 'common',
+      'color': 0xFFE74C3C
+    },
+
     // Rare avatars
-    {'id': 'avatar_robot', 'emoji': '🤖', 'name': 'Robô', 'price': 200, 'rarity': 'rare', 'color': 0xFF3498DB},
-    {'id': 'avatar_alien', 'emoji': '👽', 'name': 'Alien', 'price': 250, 'rarity': 'rare', 'color': 0xFF2ECC71},
-    {'id': 'avatar_wizard', 'emoji': '🧙', 'name': 'Mago', 'price': 300, 'rarity': 'rare', 'color': 0xFF8E44AD},
-    {'id': 'avatar_ninja', 'emoji': '🥷', 'name': 'Ninja', 'price': 350, 'rarity': 'rare', 'color': 0xFF2C3E50},
-    
+    {
+      'id': 'avatar_robot',
+      'emoji': '🤖',
+      'name': 'Robô',
+      'price': 200,
+      'rarity': 'rare',
+      'color': 0xFF3498DB
+    },
+    {
+      'id': 'avatar_alien',
+      'emoji': '👽',
+      'name': 'Alien',
+      'price': 250,
+      'rarity': 'rare',
+      'color': 0xFF2ECC71
+    },
+    {
+      'id': 'avatar_wizard',
+      'emoji': '🧙',
+      'name': 'Mago',
+      'price': 300,
+      'rarity': 'rare',
+      'color': 0xFF8E44AD
+    },
+    {
+      'id': 'avatar_ninja',
+      'emoji': '🥷',
+      'name': 'Ninja',
+      'price': 350,
+      'rarity': 'rare',
+      'color': 0xFF2C3E50
+    },
+
     // Epic avatars
-    {'id': 'avatar_dragon', 'emoji': '🐉', 'name': 'Dragão', 'price': 500, 'rarity': 'epic', 'color': 0xFFE74C3C},
-    {'id': 'avatar_unicorn', 'emoji': '🦄', 'name': 'Unicórnio', 'price': 600, 'rarity': 'epic', 'color': 0xFFCE82FF},
-    {'id': 'avatar_phoenix', 'emoji': '🔥', 'name': 'Fênix', 'price': 700, 'rarity': 'epic', 'color': 0xFFFF4500},
-    
+    {
+      'id': 'avatar_dragon',
+      'emoji': '🐉',
+      'name': 'Dragão',
+      'price': 500,
+      'rarity': 'epic',
+      'color': 0xFFE74C3C
+    },
+    {
+      'id': 'avatar_unicorn',
+      'emoji': '🦄',
+      'name': 'Unicórnio',
+      'price': 600,
+      'rarity': 'epic',
+      'color': 0xFFCE82FF
+    },
+    {
+      'id': 'avatar_phoenix',
+      'emoji': '🔥',
+      'name': 'Fênix',
+      'price': 700,
+      'rarity': 'epic',
+      'color': 0xFFFF4500
+    },
+
     // Legendary avatars
-    {'id': 'avatar_crown', 'emoji': '👑', 'name': 'Rei', 'price': 1000, 'rarity': 'legendary', 'color': 0xFFFFD700},
-    {'id': 'avatar_diamond', 'emoji': '💎', 'name': 'Diamante', 'price': 1500, 'rarity': 'legendary', 'color': 0xFF00BFFF},
-    {'id': 'avatar_infinity', 'emoji': '♾️', 'name': 'Infinito', 'price': 2000, 'rarity': 'legendary', 'color': 0xFFFF00FF},
+    {
+      'id': 'avatar_crown',
+      'emoji': '👑',
+      'name': 'Rei',
+      'price': 1000,
+      'rarity': 'legendary',
+      'color': 0xFFFFD700
+    },
+    {
+      'id': 'avatar_diamond',
+      'emoji': '💎',
+      'name': 'Diamante',
+      'price': 1500,
+      'rarity': 'legendary',
+      'color': 0xFF00BFFF
+    },
+    {
+      'id': 'avatar_infinity',
+      'emoji': '♾️',
+      'name': 'Infinito',
+      'price': 2000,
+      'rarity': 'legendary',
+      'color': 0xFFFF00FF
+    },
   ];
 }
 
@@ -882,7 +1007,8 @@ class DuoShopCard extends StatefulWidget {
   State<DuoShopCard> createState() => _DuoShopCardState();
 }
 
-class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStateMixin {
+class _DuoShopCardState extends State<DuoShopCard>
+    with SingleTickerProviderStateMixin {
   bool _isPressed = false;
   late AnimationController _shimmerController;
 
@@ -930,10 +1056,10 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
   }
 
   List<Color> get _gradientColors => [
-    _darkerColor,
-    _baseColor,
-    _lighterColor,
-  ];
+        _darkerColor,
+        _baseColor,
+        _lighterColor,
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -996,7 +1122,9 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                 border: widget.isSelected
                     ? Border.all(color: DuoColors.green, width: 3)
                     : widget.rarity != 'common'
-                        ? Border.all(color: _rarityGlowColor.withValues(alpha: 0.5), width: 2)
+                        ? Border.all(
+                            color: _rarityGlowColor.withValues(alpha: 0.5),
+                            width: 2)
                         : null,
               ),
               child: Column(
@@ -1031,7 +1159,8 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
                   const SizedBox(height: 10),
                   // Name badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.35),
                       borderRadius: BorderRadius.circular(10),
@@ -1127,7 +1256,8 @@ class _DuoShopCardState extends State<DuoShopCard> with SingleTickerProviderStat
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+          border: Border.all(
+              color: Colors.white.withValues(alpha: 0.8), width: 1.5),
         ),
         child: const Text(
           'GRÁTIS',
@@ -1278,122 +1408,127 @@ class _DuoPowerUpCardState extends State<DuoPowerUpCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         transform: Matrix4.translationValues(0, _isPressed ? 4 : 0, 0),
-        child: Stack(
-          children: [
-            // Shadow
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                height: 100,
+        child: SizedBox(
+          height: _isPressed ? 104 : 100,
+          child: Stack(
+            children: [
+              // Shadow
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: _darkerColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+              // Main card
+              Container(
+                height: _isPressed ? 104 : 100,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: _darkerColor,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _color,
+                      _darkerColor,
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-            ),
-            // Main card
-            Container(
-              height: _isPressed ? 104 : 100,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    _color,
-                    _darkerColor,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  // Icon
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
+                child: Row(
+                  children: [
+                    // Icon
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.description,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 12,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Price / Quantity
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
+                    const SizedBox(width: 12),
+                    // Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const DuoCoinIcon(size: 20),
-                          const SizedBox(width: 4),
                           Text(
-                            '${widget.price}',
+                            widget.name,
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.description,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 12,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
-                      if (widget.quantity > 0) ...[
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'x${widget.quantity}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                    ),
+                    // Price / Quantity
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            const DuoCoinIcon(size: 20),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${widget.price}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (widget.quantity > 0) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'x${widget.quantity}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1546,7 +1681,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                               decoration: BoxDecoration(
                                 color: c,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: c.withValues(alpha: 0.5),
@@ -1560,7 +1696,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                   const SizedBox(height: 12),
                   // Name
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
@@ -1578,7 +1715,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                   // Price or status
                   if (widget.isPurchased)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: DuoColors.green,
                         borderRadius: BorderRadius.circular(12),
@@ -1601,7 +1739,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                     )
                   else if (widget.price == 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -1618,7 +1757,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                     )
                   else
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
@@ -1666,7 +1806,8 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: DuoColors.purple,
                     borderRadius: BorderRadius.circular(8),
@@ -1695,7 +1836,9 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                 ),
               ),
             // Preview button for unpurchased themes
-            if (!widget.isPurchased && widget.price > 0 && widget.onPreview != null)
+            if (!widget.isPurchased &&
+                widget.price > 0 &&
+                widget.onPreview != null)
               Positioned(
                 top: 8,
                 right: 8,
@@ -1708,7 +1851,9 @@ class _DuoThemeCardState extends State<DuoThemeCard> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      widget.isPreview ? Icons.visibility_off : Icons.visibility,
+                      widget.isPreview
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.white,
                       size: 18,
                     ),
@@ -1955,7 +2100,7 @@ class DuoStreakIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = streak > 0;
-    
+
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -2167,7 +2312,8 @@ class DuoTabBar extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected ? Colors.white : theme.textSecondary,
                         fontSize: 10,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -2282,7 +2428,9 @@ class DuoBadge extends StatelessWidget {
               height: size,
               margin: const EdgeInsets.only(top: 4),
               decoration: BoxDecoration(
-                color: isLocked ? DuoColors.grayDark : color.withValues(alpha: 0.5),
+                color: isLocked
+                    ? DuoColors.grayDark
+                    : color.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
             ),
@@ -2411,7 +2559,8 @@ class _NavItem extends StatefulWidget {
   State<_NavItem> createState() => _NavItemState();
 }
 
-class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+class _NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -2438,7 +2587,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
     final theme = context.duoTheme;
     final itemColor = widget.color;
     final baseColor = widget.isSelected ? itemColor : theme.textSecondary;
-    
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
@@ -2478,7 +2627,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.isSelected 
+                  color: widget.isSelected
                       ? Colors.white.withValues(alpha: 0.2)
                       : theme.bgCard,
                   shape: BoxShape.circle,
@@ -2504,7 +2653,8 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 style: TextStyle(
                   color: widget.isSelected ? Colors.white : baseColor,
                   fontSize: 11,
-                  fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight:
+                      widget.isSelected ? FontWeight.w700 : FontWeight.w500,
                   letterSpacing: widget.isSelected ? 0.2 : 0,
                 ),
                 child: Text(widget.label),
@@ -2604,7 +2754,8 @@ class DuoProfileAvatar extends StatelessWidget {
                 bottom: -5,
                 right: -5,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: theme.accent,
                     borderRadius: BorderRadius.circular(12),
@@ -2697,28 +2848,28 @@ class DuoStatCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...stats.entries.map((entry) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  entry.key,
-                  style: TextStyle(
-                    color: theme.textSecondary,
-                    fontSize: 14,
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      entry.key,
+                      style: TextStyle(
+                        color: theme.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      entry.value,
+                      style: TextStyle(
+                        color: theme.accent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  entry.value,
-                  style: TextStyle(
-                    color: theme.accent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );

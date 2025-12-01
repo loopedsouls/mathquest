@@ -92,7 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Email de redefinição enviado! Verifique sua caixa de entrada.'),
+          content: Text(
+              'Email de redefinição enviado! Verifique sua caixa de entrada.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -111,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Save guest mode preference
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_guest', true);
-    
+
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
@@ -139,17 +140,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   'MathQuest',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Entre para continuar sua jornada',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const SizedBox(height: 48),
                 // Email field
@@ -211,6 +212,35 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: 'Entrar',
                 ),
                 const SizedBox(height: 16),
+                // Guest mode - moved up for better visibility
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _continueAsGuest,
+                    icon: Icon(
+                      Icons.person_outline,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    label: Text(
+                      'Continuar como Convidado',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    'Seus dados serão salvos apenas neste dispositivo',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 // Divider
                 Row(
                   children: [
@@ -254,28 +284,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Cadastre-se'),
                     ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                // Guest mode
-                TextButton.icon(
-                  onPressed: _continueAsGuest,
-                  icon: Icon(
-                    Icons.person_outline,
-                    color: Colors.grey[600],
-                  ),
-                  label: Text(
-                    'Continuar como Convidado',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Seus dados serão salvos apenas neste dispositivo',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
                 ),
               ],
             ),

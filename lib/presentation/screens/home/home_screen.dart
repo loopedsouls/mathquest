@@ -101,7 +101,8 @@ class _HomeContentState extends State<_HomeContent> {
         currentUser?.displayName ?? prefs.getString('user_name') ?? 'Estudante';
 
     // Load avatar emoji
-    final selectedAvatarId = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    final selectedAvatarId =
+        prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
     String userEmoji = '🎓';
     for (final avatar in DuoAvatars.all) {
       if (avatar['id'] == selectedAvatarId) {
@@ -201,77 +202,80 @@ class _HomeContentState extends State<_HomeContent> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: DuoColors.green));
+      return const Center(
+          child: CircularProgressIndicator(color: DuoColors.green));
     }
 
     final theme = context.duoTheme;
 
-    return Container(
-      color: theme.bgDark,
-      child: Stack(
-        children: [
-          // Flame animated background with theme colors
-          Positioned.fill(
-            child: GameWidget(
-              game: HomeBackgroundGame(
-                primaryColor: theme.gradientColors.isNotEmpty 
-                    ? theme.gradientColors[1] 
-                    : DuoColors.green,
+    return SizedBox.expand(
+      child: Container(
+        color: theme.bgDark,
+        child: Stack(
+          children: [
+            // Flame animated background with theme colors
+            Positioned.fill(
+              child: GameWidget(
+                game: HomeBackgroundGame(
+                  primaryColor: theme.gradientColors.isNotEmpty
+                      ? theme.gradientColors[1]
+                      : DuoColors.green,
+                ),
               ),
             ),
-          ),
-          // Content
-          RefreshIndicator(
-            color: DuoColors.green,
-            backgroundColor: theme.bgCard,
-            onRefresh: _refreshData,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Gamified User Header
-                  DuoUserHeader(
-                    username: _userName,
-                    emoji: _userEmoji,
-                    level: _level,
-                    xp: _xp,
-                    xpToNext: _xpToNextLevel,
-                    coins: _coins,
-                    onCoinsTap: () {},
-                  ),
-                  const SizedBox(height: 20),
-                  // Daily streak card
-                  DuoDailyStreakCard(
-                    streak: _currentStreak,
-                    isClaimed: _dailyRewardClaimed,
-                    onClaim: _dailyRewardClaimed ? null : _claimDailyReward,
-                  ),
-                  const SizedBox(height: 20),
-                  // Progress section
-                  _buildProgressSection(),
-                  const SizedBox(height: 20),
-                  // Quick actions
-                  _buildQuickActions(),
-                  const SizedBox(height: 24),
-                  // Recent activity section
-                  Text(
-                    'Atividade Recente',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: theme.textPrimary,
-                      fontSize: 18,
+            // Content
+            RefreshIndicator(
+              color: DuoColors.green,
+              backgroundColor: theme.bgCard,
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gamified User Header
+                    DuoUserHeader(
+                      username: _userName,
+                      emoji: _userEmoji,
+                      level: _level,
+                      xp: _xp,
+                      xpToNext: _xpToNextLevel,
+                      coins: _coins,
+                      onCoinsTap: () {},
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Recent activity list
-                  _buildRecentActivityList(),
-                ],
+                    const SizedBox(height: 20),
+                    // Daily streak card
+                    DuoDailyStreakCard(
+                      streak: _currentStreak,
+                      isClaimed: _dailyRewardClaimed,
+                      onClaim: _dailyRewardClaimed ? null : _claimDailyReward,
+                    ),
+                    const SizedBox(height: 20),
+                    // Progress section
+                    _buildProgressSection(),
+                    const SizedBox(height: 20),
+                    // Quick actions
+                    _buildQuickActions(),
+                    const SizedBox(height: 24),
+                    // Recent activity section
+                    Text(
+                      'Atividade Recente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: theme.textPrimary,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Recent activity list
+                    _buildRecentActivityList(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -303,39 +307,39 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           const SizedBox(height: 16),
           ..._progressByUnit.entries.map((entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      entry.key,
-                      style: TextStyle(
-                        color: theme.textSecondary,
-                        fontSize: 13,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: TextStyle(
+                            color: theme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          '${(entry.value * 100).toInt()}%',
+                          style: const TextStyle(
+                            color: DuoColors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${(entry.value * 100).toInt()}%',
-                      style: const TextStyle(
-                        color: DuoColors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                    const SizedBox(height: 6),
+                    DuoProgressBar(
+                      progress: entry.value,
+                      color: _getColorForUnit(entry.key),
+                      height: 8,
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                DuoProgressBar(
-                  progress: entry.value,
-                  color: _getColorForUnit(entry.key),
-                  height: 8,
-                ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -343,19 +347,25 @@ class _HomeContentState extends State<_HomeContent> {
 
   Color _getColorForUnit(String unit) {
     switch (unit) {
-      case 'Números': return DuoColors.green;
-      case 'Álgebra': return DuoColors.blue;
-      case 'Geometria': return DuoColors.purple;
-      case 'Grandezas': return DuoColors.orange;
-      case 'Estatística': return DuoColors.yellow;
-      default: return DuoColors.green;
+      case 'Números':
+        return DuoColors.green;
+      case 'Álgebra':
+        return DuoColors.blue;
+      case 'Geometria':
+        return DuoColors.purple;
+      case 'Grandezas':
+        return DuoColors.orange;
+      case 'Estatística':
+        return DuoColors.yellow;
+      default:
+        return DuoColors.green;
     }
   }
 
   Widget _buildQuickActions() {
     // Get home screen state to switch tabs
     final homeState = context.findAncestorStateOfType<_HomeScreenState>();
-    
+
     return Row(
       children: [
         Expanded(
@@ -409,7 +419,8 @@ class _HomeContentState extends State<_HomeContent> {
                 color: DuoColors.gray.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.play_arrow_rounded, color: DuoColors.gray),
+              child:
+                  const Icon(Icons.play_arrow_rounded, color: DuoColors.gray),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -418,7 +429,8 @@ class _HomeContentState extends State<_HomeContent> {
                 children: [
                   Text(
                     'Comece sua jornada!',
-                    style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: theme.textPrimary, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -456,7 +468,8 @@ class _HomeContentState extends State<_HomeContent> {
               children: [
                 Text(
                   'Lição Completada',
-                  style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: theme.textPrimary, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -584,7 +597,8 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     final prefs = await SharedPreferences.getInstance();
     final coins = prefs.getInt(_userCoinsKey) ?? 500;
     final purchasedList = prefs.getStringList(_purchasedItemsKey) ?? [];
-    final selectedAvatar = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    final selectedAvatar =
+        prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
     final selectedTheme = prefs.getString(_selectedThemeKey) ?? 'theme_system';
 
     // Free items are always purchased
@@ -641,7 +655,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   void _handleAvatarTap(Map<String, dynamic> avatar) {
     final id = avatar['id'] as String;
     final price = avatar['price'] as int;
-    
+
     if (_isItemPurchased(id)) {
       _selectAvatar(id);
       _showSuccessSnackbar('Avatar selecionado!');
@@ -653,7 +667,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   void _handleThemeTap(Map<String, dynamic> theme) {
     final id = theme['id'] as String;
     final price = theme['price'] as int;
-    
+
     if (_isItemPurchased(id)) {
       _selectTheme(id);
       setState(() => _previewTheme = null); // Clear preview
@@ -667,7 +681,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
   void _toggleThemePreview(Map<String, dynamic> theme) {
     final id = theme['id'] as String;
     final themeProvider = DuoThemeProvider.of(context);
-    
+
     if (_previewTheme == id) {
       // Turn off preview
       setState(() => _previewTheme = null);
@@ -696,13 +710,14 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
     }
 
     final theme = context.duoTheme;
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Comprar $name?', style: TextStyle(color: theme.textPrimary)),
+        title:
+            Text('Comprar $name?', style: TextStyle(color: theme.textPrimary)),
         content: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -717,7 +732,8 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar', style: TextStyle(color: theme.textSecondary)),
+            child:
+                Text('Cancelar', style: TextStyle(color: theme.textSecondary)),
           ),
           DuoButton(
             text: 'Comprar',
@@ -729,7 +745,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
               _showSuccessSnackbar('$name comprado! 🎉');
-              
+
               // Clear preview and auto-select
               setState(() => _previewTheme = null);
               DuoThemeProvider.of(context)?.clearPreview();
@@ -851,7 +867,11 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
           // Tab Bar
           DuoTabBar(
             tabs: const ['Avatares', 'Temas', 'Power-ups'],
-            icons: const [Icons.face_rounded, Icons.palette_rounded, Icons.bolt_rounded],
+            icons: const [
+              Icons.face_rounded,
+              Icons.palette_rounded,
+              Icons.bolt_rounded
+            ],
             selectedIndex: _tabController.index,
             onTabSelected: (index) {
               _tabController.animateTo(index);
@@ -873,6 +893,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
       ),
     );
   }
+
   Widget _buildAvatarsGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -917,7 +938,7 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
         final theme = DuoThemes.all[index];
         final id = theme['id'] as String;
         final isSystem = theme['isSystem'] == true;
-        
+
         // Get colors from the appropriate variant (light or dark)
         final variant = isDark ? 'dark' : 'light';
         final variantData = theme[variant] as Map<String, dynamic>;
@@ -926,11 +947,13 @@ class _ShopPlaceholderState extends State<_ShopPlaceholder>
           Color(variantData['bgCard'] as int),
           Color(variantData['accent'] as int),
         ];
-        
+
         final isPurchased = _isItemPurchased(id);
         return DuoThemeCard(
           id: id,
-          name: isSystem ? 'Padrão (${isDark ? "Escuro" : "Claro"})' : theme['name'] as String,
+          name: isSystem
+              ? 'Padrão (${isDark ? "Escuro" : "Claro"})'
+              : theme['name'] as String,
           price: theme['price'] as int,
           colors: colors,
           isPurchased: isPurchased,
@@ -1021,7 +1044,8 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
     }
 
     // Load selected avatar
-    final selectedAvatarId = prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
+    final selectedAvatarId =
+        prefs.getString(_selectedAvatarKey) ?? 'avatar_default';
     String emoji = '🎓';
     String rarity = 'common';
     int color = 0xFF58CC02;
@@ -1116,7 +1140,8 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: DuoColors.green));
+      return const Center(
+          child: CircularProgressIndicator(color: DuoColors.green));
     }
 
     final theme = context.duoTheme;
@@ -1140,7 +1165,8 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                             color: DuoColors.purple.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.person_rounded, color: DuoColors.purple, size: 24),
+                          child: const Icon(Icons.person_rounded,
+                              color: DuoColors.purple, size: 24),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1156,7 +1182,8 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                         DuoIconButton(
                           icon: Icons.settings_rounded,
                           color: theme.bgCard,
-                          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(AppRoutes.settings),
                         ),
                       ],
                     ),
@@ -1210,7 +1237,10 @@ class _ProfilePlaceholderState extends State<_ProfilePlaceholder>
                 theme.bgDark,
                 DuoTabBar(
                   tabs: const ['Estatísticas', 'Conquistas'],
-                  icons: const [Icons.bar_chart_rounded, Icons.emoji_events_rounded],
+                  icons: const [
+                    Icons.bar_chart_rounded,
+                    Icons.emoji_events_rounded
+                  ],
                   selectedIndex: _tabController.index,
                   onTabSelected: (index) {
                     _tabController.animateTo(index);
@@ -1265,7 +1295,8 @@ class _DuoTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 56;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1274,5 +1305,6 @@ class _DuoTabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(_DuoTabBarDelegate oldDelegate) => oldDelegate.bgColor != bgColor;
+  bool shouldRebuild(_DuoTabBarDelegate oldDelegate) =>
+      oldDelegate.bgColor != bgColor;
 }
